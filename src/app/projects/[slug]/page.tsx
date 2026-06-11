@@ -72,7 +72,7 @@ export default function ProjectPage() {
 
   return (
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip">
-      
+
       {/* Top Header bar */}
       <header className="w-full mt-5 relative z-10">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
@@ -128,13 +128,13 @@ export default function ProjectPage() {
         <h1 className="col-[3/9] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/9] row-start-1 text-[#c5c5c5] font-medium text-[64px] leading-[100%] tracking-[-0.06em] self-start max-sm:text-[clamp(28px,8vw,40px)]">
           <span className="block whitespace-pre-line">{project.title}</span>
         </h1>
-        
+
         <p className="col-[4/8] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:max-xl:col-[4/10] xl:col-[4/8] row-start-2 font-medium text-xl leading-[100%] tracking-[-0.03em] text-[#c5c5c5] opacity-70 self-start max-sm:text-base mt-[1.2rem]">
           <span className="block pl-[calc((100%+20px)/4)] max-sm:pl-0 sm:pl-[calc((100%+20px)/4)]">
             {project.subtitle}
           </span>
         </p>
-        
+
         <p className="col-[5/7] max-sm:col-[2/5] sm:col-[2/5] md:col-[2/5] lg:max-xl:col-[5/9] xl:col-[5/8] row-start-3 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] self-start mt-[1.2rem]">
           {project.paragraph}
         </p>
@@ -167,7 +167,7 @@ export default function ProjectPage() {
 
         {/* Action Blocks: Contact Us & Next Work */}
         <div className="col-[3/11] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/11] grid grid-cols-2 max-sm:grid-cols-1 gap-5 mt-10">
-          
+
           {/* Link to Contacts */}
           <Link
             href="/contacts"
@@ -176,7 +176,7 @@ export default function ProjectPage() {
           >
             <AnimatedText text="Contact Us" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
           </Link>
-          
+
           {/* Link to Next Project */}
           {nextProjectObj && (
             <Link
@@ -195,7 +195,7 @@ export default function ProjectPage() {
       <WavyString className="mt-20" />      {/* Footer Section */}
       <footer className="pb-10">
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-center">
-          
+
           {/* EST 2019 */}
           <div className="col-span-1">
             <div className="flex items-center gap-1.5">
@@ -237,10 +237,10 @@ export default function ProjectPage() {
         </div>
 
         {/* Footer logo banner */}
-        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10">
+        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10 max-sm:hidden">
           <div className="col-[2/4] sm:col-[1/3] lg:col-[2/4] block w-[219px] max-sm:w-[180px] h-[55px]">
             <Link href="/">
-              <img alt="Maher Fayad" src="/assets/logo.svg" width="200" height="55" className="w-auto h-[55px]" />
+              <img alt="Maher Fayad" src="/assets/logo.svg" width="200" height="55" className="w-auto h-[40px]" />
             </Link>
           </div>
         </div>
@@ -278,7 +278,7 @@ export default function ProjectPage() {
               Creating intuitive user interfaces and user experiences across complex web apps and digital platforms.
             </p>
           </div>
-          
+
           <div className="col-[4/9] sm:col-[1/5] lg:col-[4/9] sm:row-start-2 max-sm:col-[1/3]">
             <Link href="/contacts" className="font-medium text-[64px] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] no-underline block max-sm:text-[clamp(36px,8vw,34px)] lg:max-dt:text-[clamp(44px,5.333vw-10.61px,64px)] md:max-dt:text-[clamp(32px,5.333vw-10.61px,54px)] sm:max-lg:text-[clamp(26px,6.25vw,28px)] dt:text-[64px]">
               <span className="pl-[calc((100%+20px)/5)] block max-sm:pl-0">

@@ -10,6 +10,7 @@ import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
+import PluginsGrid from "@/components/PluginsGrid";
 
 const STATS = [
   { name: "YEARS OF EXPERIENCE", value: "4+" },
@@ -296,8 +297,10 @@ export default function AboutPage() {
 
       <WavyString className="mt-28" />
 
-      {/* Brands and Badges Grid insertions */}
+      {/* Brands, Plugins, and Badges Grid insertions */}
       <BrandsGrid />
+      <WavyString className="mt-20" />
+      <PluginsGrid />
       <WavyString className="mt-20" />
       <BadgesGrid />
 
@@ -345,7 +348,7 @@ export default function AboutPage() {
         </div>
 
         {/* Footer logo banner */}
-        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10">
+        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10 max-sm:hidden">
           <Reveal className="col-[2/4] sm:col-[1/3] lg:col-[2/4] block w-[219px] max-sm:w-[180px] h-[55px]">
             <Link href="/">
               <img alt="Maher Fayad" src="/assets/logo.svg" width="200" height="55" className="w-auto h-[55px]" />

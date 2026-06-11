@@ -15,6 +15,7 @@ import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
+import PluginsGrid from "@/components/PluginsGrid";
 
 // Slider cards metadata for "What we do" section
 const SERVICES = [
@@ -92,12 +93,12 @@ export default function HomePage() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPos = window.scrollY + window.innerHeight / 2;
-      
+
       const heroEl = document.getElementById("hero-section");
       const projectsEl = document.getElementById("projects-section");
       const agencyEl = document.getElementById("agency-section");
       const contactsEl = document.getElementById("contacts-section");
-      
+
       if (contactsEl && scrollPos >= contactsEl.offsetTop) {
         setActiveSection("contacts");
       } else if (agencyEl && scrollPos >= agencyEl.offsetTop) {
@@ -108,7 +109,7 @@ export default function HomePage() {
         setActiveSection("honors");
       }
     };
-    
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
@@ -251,13 +252,13 @@ export default function HomePage() {
       {/* 3. Hero Section */}
       <section id="hero-section" className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start max-sm:h-auto max-sm:min-h-0 rp-hero-section lg:h-auto lg:!mt-[calc(843.5658px-17.7514vw)] min-[1024px]:max-[1399px]:h-[450px] min-[1024px]:max-[1399px]:!mt-[80px] sm:max-lg:h-auto sm:max-lg:!mt-[140px] max-sm:!mt-[300px]">
 
-        {/* Contact Me Button */}
+        {/* Contact Button */}
         <Reveal aboveFold className="col-span-2 max-sm:mt-2 max-sm:row-start-2 max-sm:col-[1/3] sm:col-[1/3] sm:row-start-2 sm:mt-2.5 sm:flex lg:col-span-2 lg:row-auto lg:mt-0 self-start flex items-start justify-between sm:max-lg:text-[clamp(0.75rem,2.2vw-2.115vw,1.125rem)] max-sm:text-[0.75rem]">
           <div style={{ position: "relative", width: "fit-content" }}>
             <Magnetic range={120} strength={0.4}>
               <Link
                 href="/contacts"
-                aria-label="Contact me"
+                aria-label="Contact"
                 className="group flex items-center gap-5 cursor-pointer bg-transparent border-none p-0 text-inherit text-left no-underline"
               >
                 <div className="relative w-20 h-20 shrink-0">
@@ -278,15 +279,15 @@ export default function HomePage() {
                       strokeWidth="2"
                     />
                   </svg>
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="#c5c5c5" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#c5c5c5"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 z-3 transition-colors duration-300 ease-in-out group-hover:stroke-black"
                   >
                     <rect width="20" height="16" x="2" y="4" rx="2" />
@@ -296,8 +297,6 @@ export default function HomePage() {
                 <div className="flex items-start lg:max-dt:hidden max-sm:hidden">
                   <span className="font-semibold text-sm tracking-[-0.03em] uppercase text-[#c5c5c5] underline underline-offset-[14%] decoration-[10%] leading-[140%]">
                     CONTACT
-                    <br />
-                    ME
                   </span>
                 </div>
               </Link>
@@ -416,9 +415,8 @@ export default function HomePage() {
 
             {/* Cards container translating X */}
             <div
-              className={`flex gap-5 select-none will-change-transform ${
-                isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
-              }`}
+              className={`flex gap-5 select-none will-change-transform ${isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
+                }`}
               onTransitionEnd={() => {
                 const len = SERVICES.length;
                 if (slideIdx >= len * 2) {
@@ -534,10 +532,6 @@ export default function HomePage() {
               <span>Creating high-</span>
               <span>quality projects</span>
             </Reveal>
-            <Reveal delay={0.4} className="text-right [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none text-[clamp(11px,0.8vw+0.8px,11px)] lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm mt-1">
-              <span>since —</span>
-              <span>2019</span>
-            </Reveal>
           </div>
         </div>
 
@@ -563,6 +557,8 @@ export default function HomePage() {
         <WavyString className="mt-20" />
         <BrandsGrid />
         <WavyString className="mt-20" />
+        <PluginsGrid />
+        <WavyString className="mt-20" />
         <BadgesGrid />
 
       </section>
@@ -576,7 +572,7 @@ export default function HomePage() {
         {/* Footer Top info line */}
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-center">
 
-          <Reveal className="col-span-1">
+          {/* <Reveal className="col-span-1">
             <div className="flex items-center gap-1.5">
               <img alt="" src="/est.svg" width="32" height="32" className="opacity-60" />
               <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
@@ -584,9 +580,9 @@ export default function HomePage() {
                 <span className="block">2019</span>
               </span>
             </div>
-          </Reveal>
+          </Reveal> */}
 
-          <Reveal className="col-[4/5] sm:col-[3/4] lg:col-[4/5]">
+          {/* <Reveal className="col-[4/5] sm:col-[3/4] lg:col-[4/5]">
             <button
               onClick={handleScrollTop}
               aria-label="Scroll to top"
@@ -599,7 +595,7 @@ export default function HomePage() {
                 <span className="block">TOP</span>
               </span>
             </button>
-          </Reveal>
+          </Reveal> */}
 
           <Reveal className="col-[10/13] sm:col-[4/5] lg:col-[10/13] lg:max-dt:col-[9/13] max-sm:hidden">
             <div className="flex items-center gap-1.5">
@@ -613,10 +609,10 @@ export default function HomePage() {
         </div>
 
         {/* Footer logo banner */}
-        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10">
+        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10 max-sm:hidden">
           <Reveal className="col-[2/4] sm:col-[1/3] lg:col-[2/4] block w-[219px] max-sm:w-[180px] h-[55px]">
             <Link href="/">
-              <img alt="Maher Fayad" src="/assets/logo.svg" width="200" height="55" className="w-auto h-[55px]" />
+              <img alt="Maher Fayad" src="/assets/logo.svg" width="200" height="55" className="w-auto h-[40px]" />
             </Link>
           </Reveal>
         </div>
