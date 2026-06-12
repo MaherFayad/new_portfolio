@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useState } from "react";
 import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
+import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 interface Badge {
   name: string;
@@ -75,6 +75,46 @@ const BADGES: Badge[] = [
 
 const CARD_WIDTH = 380;
 const CARD_GAP = 20;
+const MOBILE_CARD_WIDTH = "min(calc(100vw - 24px), 380px)";
+
+function BadgeCard({ badge }: { badge: Badge }) {
+  return (
+    <a
+      href={badge.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block rounded-none flex flex-col items-center relative overflow-hidden w-full h-[380px] cursor-pointer"
+      style={{ backgroundColor: "hsl(33, 14%, 12%)", transformStyle: "preserve-3d" }}
+    >
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at center, ${badge.glow} 0%, transparent 70%)`,
+        }}
+      />
+      <img
+        alt=""
+        className="mt-[40px] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[3.5rem] opacity-40 group-hover:opacity-100 transition-opacity duration-300"
+        src="/ar.svg"
+      />
+      <h3 className="mt-[20px] font-medium text-2xl tracking-[-0.04em] text-white relative z-1 pointer-events-none px-6 text-center">
+        <AnimatedText text={badge.title} className="projects-name-text" />
+      </h3>
+      <div
+        className="absolute bottom-0 right-0 w-[240px] h-[240px] transition-transform duration-[0.6s] ease-in-out pointer-events-none"
+        style={{
+          transform: "translate(25%, 25%) translateZ(20px)",
+        }}
+      >
+        <img
+          src={badge.image}
+          alt={badge.name}
+          className="w-full h-full object-contain filter saturate-50 group-hover:saturate-100 group-hover:scale-[1.05] transition-all duration-[0.6s]"
+        />
+      </div>
+    </a>
+  );
+}
 
 export default function BadgesGrid() {
   const [slideIdx, setSlideIdx] = useState(BADGES.length);
@@ -109,8 +149,22 @@ export default function BadgesGrid() {
 
       {/* 2. Carousel Slider (380px cards width) */}
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-[50px] items-start">
-        <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1] overflow-hidden">
-          
+        <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1]">
+          {/* Mobile: native touch scroll */}
+          <MobileHorizontalScroll className="lg:hidden -mx-3 px-3">
+            {BADGES.map((badge) => (
+              <div
+                key={badge.name}
+                className="shrink-0 snap-center overflow-hidden"
+                style={{ width: MOBILE_CARD_WIDTH }}
+              >
+                <BadgeCard badge={badge} />
+              </div>
+            ))}
+          </MobileHorizontalScroll>
+
+          {/* Desktop: transform carousel */}
+          <div className="hidden lg:block overflow-hidden">
           <div
             className={`flex gap-5 select-none will-change-transform ${
               isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
@@ -127,7 +181,6 @@ export default function BadgesGrid() {
             }}
             style={{
               transform: `translateX(-${slideIdx * (CARD_WIDTH + CARD_GAP)}px)`,
-              touchAction: "pan-y",
             }}
           >
             {[...BADGES, ...BADGES, ...BADGES].map((badge, index) => (
@@ -136,57 +189,17 @@ export default function BadgesGrid() {
                 className="shrink-0 overflow-hidden"
                 style={{ width: `${CARD_WIDTH}px` }}
               >
-                <a
-                  href={badge.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block rounded-none flex flex-col items-center relative overflow-hidden w-full h-[380px] cursor-pointer"
-                  style={{ backgroundColor: "hsl(33, 14%, 12%)", transformStyle: "preserve-3d" }}
-                >
-                  {/* Subtle brand glow overlay */}
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{
-                      background: `radial-gradient(circle at center, ${badge.glow} 0%, transparent 70%)`
-                    }}
-                  />
-
-                  {/* Top Arrow Down icon matching service cards */}
-                  <img
-                    alt=""
-                    className="mt-[40px] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[3.5rem] opacity-40 group-hover:opacity-100 transition-opacity duration-300"
-                    src="/ar.svg"
-                  />
-
-                  {/* Title Text positioned at the top, matching What we do layout */}
-                  <h3 className="mt-[20px] font-medium text-2xl tracking-[-0.04em] text-white relative z-1 pointer-events-none px-6 text-center">
-                    <AnimatedText text={badge.title} className="projects-name-text" />
-                  </h3>
-
-                  {/* Bottom-right aligned medallion image, overflowing 25% out of frame */}
-                  <div 
-                    className="absolute bottom-0 right-0 w-[240px] h-[240px] transition-transform duration-[0.6s] ease-in-out pointer-events-none"
-                    style={{
-                      transform: "translate(25%, 25%) translateZ(20px)",
-                    }}
-                  >
-                    <img
-                      src={badge.image}
-                      alt={badge.name}
-                      className="w-full h-full object-contain filter saturate-50 group-hover:saturate-100 group-hover:scale-[1.05] transition-all duration-[0.6s]"
-                    />
-                  </div>
-                </a>
+                <BadgeCard badge={badge} />
               </div>
             ))}
           </div>
-
+          </div>
         </div>
       </div>
 
       {/* 3. Slider Controls & Desc */}
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-8 mt-[70px] items-start">
-        <div className="col-span-4 max-sm:col-span-2 sm:col-[1/2] lg:col-[3/5] flex gap-2">
+        <div className="col-span-4 max-sm:col-span-2 sm:col-[1/2] lg:col-[3/5] flex gap-2 max-lg:hidden">
           <button
             onClick={handlePrevSlide}
             aria-label="Previous slide"

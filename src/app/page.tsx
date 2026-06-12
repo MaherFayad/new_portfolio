@@ -17,6 +17,7 @@ import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
 import PluginsGrid from "@/components/PluginsGrid";
 import DevPlayground from "@/components/DevPlayground";
+import MobileHorizontalScroll from "@/components/MobileHorizontalScroll";
 
 // Slider cards metadata for "What we do" section
 const SERVICES = [
@@ -413,9 +414,38 @@ export default function HomePage() {
 
         {/* Carousel Slider */}
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-[50px] items-start">
-          <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1] overflow-hidden">
+          <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1]">
+            {/* Mobile: native touch scroll */}
+            <MobileHorizontalScroll className="lg:hidden -mx-3 px-3">
+              {SERVICES.map((serv, index) => (
+                <div
+                  key={serv.id}
+                  className="shrink-0 snap-center overflow-hidden"
+                  style={{ width: "min(calc(100vw - 24px), 455px)" }}
+                >
+                  <div
+                    aria-label={serv.label}
+                    className="group rounded-none flex flex-col items-center relative overflow-hidden w-full h-[580px] min-h-[280px] cursor-pointer"
+                    onClick={() => setActiveCardIndex(index)}
+                  >
+                    <div className="absolute inset-0 w-full h-full -z-1">
+                      <img alt="" className="w-full h-full object-cover" src={serv.mobileImage} />
+                    </div>
+                    <img
+                      alt=""
+                      className="mt-[43px] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[4rem]"
+                      src="/ar.svg"
+                    />
+                    <h3 className="mt-[22px] font-medium text-[clamp(29px,8vw,40px)] leading-[100%] tracking-[-0.06em] text-white relative z-1 pointer-events-none px-4 text-center">
+                      <AnimatedText text={serv.title} className="projects-name-text" />
+                    </h3>
+                  </div>
+                </div>
+              ))}
+            </MobileHorizontalScroll>
 
-            {/* Cards container translating X */}
+            {/* Desktop: transform carousel */}
+            <div className="hidden lg:block overflow-hidden">
             <div
               className={`flex gap-5 select-none will-change-transform ${isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
                 }`}
@@ -431,7 +461,6 @@ export default function HomePage() {
               }}
               style={{
                 transform: `translateX(-${slideIdx * (455 + 20)}px)`,
-                touchAction: "pan-y",
               }}
             >
               {[...SERVICES, ...SERVICES, ...SERVICES].map((serv, index) => (
@@ -462,13 +491,13 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-
+            </div>
           </div>
         </div>
 
         {/* Carousel Slider Controls & desc */}
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-8 mt-[70px] items-start">
-          <div className="col-span-4 max-sm:col-span-2 sm:col-[1/2] lg:col-[3/5] flex gap-2">
+          <div className="col-span-4 max-sm:col-span-2 sm:col-[1/2] lg:col-[3/5] flex gap-2 max-lg:hidden">
             <button
               onClick={handlePrevSlide}
               aria-label="Previous slide"
