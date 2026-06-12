@@ -2,10 +2,14 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
+import ContactToast, { type ContactToastData } from "@/components/ContactToast";
 import emailjs from "@emailjs/browser";
+
+type ContactToast = ContactToastData;
 
 export default function ContactsPage() {
 
@@ -21,9 +25,8 @@ export default function ContactsPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [focused, setFocused] = useState({ name: false, email: false, message: false });
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [toast, setToast] = useState<ContactToast | null>(null);
   const [errors, setErrors] = useState({ name: "", email: "", message: "" });
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Update Riyadh clock every second
   useEffect(() => {
@@ -49,6 +52,12 @@ export default function ContactsPage() {
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const handleFocus = (field: keyof typeof focused) => {
     setFocused((prev) => ({ ...prev, [field]: true }));
@@ -90,7 +99,7 @@ export default function ContactsPage() {
     }
 
     setSubmitting(true);
-    setSubmitError(null);
+    setToast(null);
     try {
       if (!formRef.current) throw new Error("Form not found");
 
@@ -102,16 +111,18 @@ export default function ContactsPage() {
       );
 
       if (result.status === 200) {
-        setSuccess(true);
+        setToast({
+          type: "success",
+          message: "Message sent successfully! I'll reach back to you soon.",
+        });
         setForm({ name: "", email: "", message: "" });
-        setTimeout(() => setSuccess(false), 5000);
       } else {
         throw new Error("Failed to send message. Please try again.");
       }
     } catch (err: any) {
       console.error("Failed to send email:", err);
       const errMsg = err?.text || err?.message || "Failed to send message. Please try again.";
-      setSubmitError(errMsg);
+      setToast({ type: "error", message: errMsg });
     } finally {
       setSubmitting(false);
     }
@@ -428,19 +439,13 @@ export default function ContactsPage() {
               }}
             />
           </div>
-          {success && (
-            <p className="absolute top-[calc(100%+0.375rem)] left-0 font-semibold text-[0.75rem] leading-none tracking-[-0.03em] text-[#1CCECB]">
-              Message sent successfully! We will get back to you soon.
-            </p>
-          )}
-          {submitError && (
-            <p className="absolute top-[calc(100%+0.375rem)] left-0 font-semibold text-[0.75rem] leading-none tracking-[-0.03em] text-[#E84040]">
-              {submitError}
-            </p>
-          )}
         </Reveal>
 
       </form>
+
+      <AnimatePresence mode="wait">
+        {toast && <ContactToast key={`${toast.type}-${toast.message}`} toast={toast} />}
+      </AnimatePresence>
 
     </main>
   );
