@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { useLenis } from "lenis/react";
 
 interface CardData {
   title: string;
@@ -20,15 +21,12 @@ interface SliderPopupProps {
   card: CardData | null;
 }
 
-const BACKDROP_TRANSITION = "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)";
-const DRAWER_SLIDE_TRANSITION = "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)";
-const DRAWER_DESKTOP_TRANSITION =
-  "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)";
 const CLOSE_MS = 700;
 const REVEAL_EASING = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 const MOBILE_BREAKPOINT = "(max-width: 1023px)";
 
 export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps) {
+  const lenis = useLenis();
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [active, setActive] = useState(false);
@@ -62,11 +60,13 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
       isFirstRender.current = false;
       setShouldRender(true);
 
-      const timer = setTimeout(() => {
-        setActive(true);
-        closeBtnRef.current?.focus();
-      }, 20);
-      return () => clearTimeout(timer);
+      const frame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setActive(true);
+          closeBtnRef.current?.focus();
+        });
+      });
+      return () => cancelAnimationFrame(frame);
     }
 
     if (isFirstRender.current) return;
@@ -77,6 +77,18 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     }, CLOSE_MS);
     return () => clearTimeout(timer);
   }, [isOpen, mounted]);
+
+  useEffect(() => {
+    if (!shouldRender) return;
+
+    document.documentElement.classList.add("slider-popup-open");
+    lenis?.stop();
+
+    return () => {
+      document.documentElement.classList.remove("slider-popup-open");
+      lenis?.start();
+    };
+  }, [shouldRender, lenis]);
 
   useEffect(() => {
     if (!isOpen || !currentCard?.popupImage) return;
@@ -114,23 +126,6 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
   if (!mounted || !shouldRender || !currentCard) return null;
 
-  const backdropStyle: CSSProperties = {
-    opacity: active ? 1 : 0,
-    transition: BACKDROP_TRANSITION,
-  };
-
-  const drawerStyle: CSSProperties = isMobile
-    ? {
-        transform: active ? "translateX(0)" : "translateX(100%)",
-        transition: DRAWER_SLIDE_TRANSITION,
-      }
-    : {
-        transform: active ? "translateX(0%)" : "translateX(100%)",
-        borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
-        borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
-        transition: DRAWER_DESKTOP_TRANSITION,
-      };
-
   const desktopRevealStyle = (delay: string): CSSProperties => ({
     opacity: active ? 1 : 0,
     transform: active ? "translateY(0)" : "translateY(20px)",
@@ -143,14 +138,12 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     transition: `opacity 0.5s ${REVEAL_EASING} ${0.5 + 0.05 * idx}s, transform 0.5s ${REVEAL_EASING} ${0.5 + 0.05 * idx}s`,
   });
 
+  const activeClass = active ? "is-active" : "";
+
   return createPortal(
     <>
       <div
-        className="fixed inset-0 z-[100] cursor-pointer bg-black/60"
-        style={{
-          ...backdropStyle,
-          pointerEvents: isOpen ? "auto" : "none",
-        }}
+        className={`slider-popup-backdrop fixed inset-0 z-[100] cursor-pointer bg-black/60 ${activeClass}`}
         onClick={onClose}
         role="button"
         tabIndex={0}
@@ -164,16 +157,12 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
       />
 
       <div
-        className="slider-popup-drawer fixed top-0 right-0 h-screen z-[101] w-[600px] max-w-full flex flex-col overflow-y-auto overflow-x-hidden bg-black"
-        style={{
-          ...drawerStyle,
-          pointerEvents: isOpen ? "auto" : "none",
-        }}
+        className={`slider-popup-drawer fixed top-0 right-0 z-[101] flex h-dvh w-[600px] max-w-full flex-col overflow-hidden bg-black ${activeClass}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="slider-popup-title"
       >
-        <div className="absolute inset-0 z-0" aria-hidden="true">
+        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
           <div className="absolute inset-0 bg-[#111]" />
           {imgLoaded && (
             <div
@@ -187,7 +176,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           ref={closeBtnRef}
           type="button"
           aria-label="Close popup"
-          className="absolute top-6 right-6 z-10 w-12 h-12 flex items-center justify-center bg-white/8 border border-white/12 rounded-full text-white cursor-pointer transition-[background,border-color] duration-300 hover:bg-white/15 hover:border-white/25"
+          className="absolute top-6 right-6 z-20 flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/12 bg-white/8 text-white transition-[background,border-color] duration-300 hover:border-white/25 hover:bg-white/15"
           onClick={onClose}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -196,56 +185,64 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           </svg>
         </button>
 
-        <div className="relative z-1 flex flex-col p-10 max-sm:p-5 w-full min-h-full">
-          <h2
-            id="slider-popup-title"
-            className="font-medium text-[32px] max-sm:text-[38px] sm:text-[42px] lg:text-[48px] leading-[100%] tracking-[-0.06em] text-white mb-4"
-            style={isMobile ? undefined : desktopRevealStyle("0.3s")}
-          >
-            {currentCard.title}
-          </h2>
-
-          <p
-            className="font-medium max-sm:text-base sm:text-[20px] lg:text-[24px] leading-[120%] tracking-[-0.03em] text-white mb-6 pt-5"
-            style={isMobile ? undefined : desktopRevealStyle("0.4s")}
-          >
-            {currentCard.subtitle}
-          </p>
-
-          <p
-            className="font-normal text-sm leading-[125%] tracking-[-0.02em] text-white/60 mb-10"
-            style={isMobile ? undefined : desktopRevealStyle("0.45s")}
-          >
-            {currentCard.paragraph}
-          </p>
-
-          <ul className="list-none p-0 m-0 mb-12 flex flex-col gap-0">
-            {currentCard.points.map((pt, idx) => (
-              <li key={idx} style={isMobile ? undefined : desktopListItemStyle(idx)}>
-                <span className="font-medium text-4xl leading-[100%] tracking-[-0.02em] text-white">
-                  {pt}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex gap-3 mt-auto" style={isMobile ? undefined : desktopRevealStyle("0.85s")}>
-            <Link
-              href="/contacts"
-              onClick={onClose}
-              className="group w-[203px] max-sm:w-full max-sm:max-w-[200px] sm:w-[243px] lg:w-[203px] h-[72px] rounded-[17px] bg-white text-black no-underline cursor-pointer flex items-center justify-center relative overflow-hidden transition-all duration-300 z-1 hover:animate-[rotate_0.7s_ease-in-out_both] [&>span]:pointer-events-none [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]"
+        <div
+          className="slider-popup-scroll relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden lenis-clean"
+          data-lenis-prevent
+        >
+          <div className="flex w-full flex-col p-10 max-sm:p-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
+            <h2
+              id="slider-popup-title"
+              className="mb-4 pr-14 font-medium text-[32px] leading-[100%] tracking-[-0.06em] text-white max-sm:text-[38px] sm:text-[42px] lg:text-[48px]"
+              style={isMobile ? undefined : desktopRevealStyle("0.3s")}
             >
-              <span className="font-bold text-sm tracking-[-0.02em]">Get in touch</span>
-            </Link>
+              {currentCard.title}
+            </h2>
 
-            <a
-              href="https://www.linkedin.com/in/maherfayad/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group w-[203px] h-[72px] rounded-[17px] bg-white/15 border border-white/12 text-white no-underline cursor-pointer flex items-center justify-center gap-2 relative overflow-hidden transition-all duration-300 z-1 hover:animate-[rotate_0.7s_ease-in-out_both] [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:pointer-events-none [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]"
+            <p
+              className="mb-6 pt-5 font-medium leading-[120%] tracking-[-0.03em] text-white max-sm:text-base sm:text-[20px] lg:text-[24px]"
+              style={isMobile ? undefined : desktopRevealStyle("0.4s")}
             >
-              <span className="font-bold text-sm tracking-[-0.02em]">LinkedIn</span>
-            </a>
+              {currentCard.subtitle}
+            </p>
+
+            <p
+              className="mb-10 font-normal text-sm leading-[125%] tracking-[-0.02em] text-white/60"
+              style={isMobile ? undefined : desktopRevealStyle("0.45s")}
+            >
+              {currentCard.paragraph}
+            </p>
+
+            <ul className="mb-12 flex list-none flex-col gap-0 p-0 m-0">
+              {currentCard.points.map((pt, idx) => (
+                <li key={idx} style={isMobile ? undefined : desktopListItemStyle(idx)}>
+                  <span className="font-medium text-4xl leading-[100%] tracking-[-0.02em] text-white">
+                    {pt}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div
+              className="mt-4 flex flex-col gap-3 sm:flex-row lg:mt-auto"
+              style={isMobile ? undefined : desktopRevealStyle("0.85s")}
+            >
+              <Link
+                href="/contacts"
+                onClick={onClose}
+                className="group relative z-1 flex h-[72px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[17px] bg-white text-black no-underline transition-all duration-300 hover:animate-[rotate_0.7s_ease-in-out_both] sm:w-[243px] lg:w-[203px] [&>span]:pointer-events-none [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]"
+              >
+                <span className="font-bold text-sm tracking-[-0.02em]">Get in touch</span>
+              </Link>
+
+              <a
+                href="https://www.linkedin.com/in/maherfayad/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative z-1 flex h-[72px] w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-[17px] border border-white/12 bg-white/15 text-white no-underline transition-all duration-300 hover:animate-[rotate_0.7s_ease-in-out_both] sm:w-[203px] [&>span]:pointer-events-none [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]"
+              >
+                <span className="font-bold text-sm tracking-[-0.02em]">LinkedIn</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
