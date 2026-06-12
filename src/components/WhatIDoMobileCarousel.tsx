@@ -8,6 +8,7 @@ export interface WhatIDoService {
   id: string;
   title: string;
   mobileImage: string;
+  popupImage: string;
   label: string;
 }
 
@@ -41,6 +42,18 @@ export default function WhatIDoMobileCarousel({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!ready) return;
+
+    for (const serv of services) {
+      const cardImg = new window.Image();
+      cardImg.src = serv.mobileImage;
+
+      const popupImg = new window.Image();
+      popupImg.src = serv.popupImage;
+    }
+  }, [ready, services]);
+
   return (
     <div ref={rootRef} className="lg:hidden">
       {!ready ? (
@@ -73,8 +86,8 @@ export default function WhatIDoMobileCarousel({
                   fill
                   sizes="(max-width: 1023px) min(calc(100vw - 24px), 455px), 0px"
                   className="object-cover -z-10"
-                  priority={index < 2}
-                  loading={index < 2 ? "eager" : "lazy"}
+                  priority
+                  loading="eager"
                   decoding="async"
                   draggable={false}
                 />

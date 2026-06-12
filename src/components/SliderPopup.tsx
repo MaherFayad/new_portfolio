@@ -20,21 +20,25 @@ interface SliderPopupProps {
   card: CardData | null;
 }
 
+type MotionMode = "desktop" | "mobile";
+
+const MOBILE_CLOSE_MS = 300;
+
 export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps) {
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [active, setActive] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [motionMode, setMotionMode] = useState<MotionMode>("desktop");
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const isFirstRender = useRef(true);
 
-  // Retain card details during the exit transition animation
   const cardRef = useRef<CardData | null>(null);
   if (card) {
     cardRef.current = card;
   }
   const currentCard = card || cardRef.current;
+  const isMobileMotion = motionMode === "mobile";
 
   useEffect(() => {
     setMounted(true);
@@ -42,13 +46,12 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 1023px)");
-    const update = () => setAnimationsEnabled(!query.matches);
+    const update = () => setMotionMode(query.matches ? "mobile" : "desktop");
     update();
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);
 
-  // Sync state with open/close transition
   useEffect(() => {
     if (!mounted) return;
 
@@ -56,43 +59,39 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
       isFirstRender.current = false;
       setShouldRender(true);
 
-      if (animationsEnabled) {
-        const timer = setTimeout(() => {
-          setActive(true);
-          closeBtnRef.current?.focus();
-        }, 20);
-        return () => clearTimeout(timer);
-      }
-
-      setActive(true);
-      closeBtnRef.current?.focus();
-      return;
+      const timer = setTimeout(() => {
+        setActive(true);
+        closeBtnRef.current?.focus();
+      }, 20);
+      return () => clearTimeout(timer);
     }
 
     if (isFirstRender.current) return;
     setActive(false);
 
-    if (animationsEnabled) {
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 700);
-      return () => clearTimeout(timer);
-    }
+    const closeDelay = isMobileMotion ? MOBILE_CLOSE_MS : 700;
+    const timer = setTimeout(() => {
+      setShouldRender(false);
+    }, closeDelay);
+    return () => clearTimeout(timer);
+  }, [isOpen, mounted, isMobileMotion]);
 
-    setShouldRender(false);
-  }, [isOpen, mounted, animationsEnabled]);
-
-  // Load popup background image
   useEffect(() => {
     if (!isOpen || !currentCard?.popupImage) return;
-    setImgLoaded(false);
+
     const img = new window.Image();
     img.src = currentCard.popupImage;
+
+    if (img.complete) {
+      setImgLoaded(true);
+      return;
+    }
+
+    setImgLoaded(false);
     img.onload = () => setImgLoaded(true);
     img.onerror = () => setImgLoaded(true);
   }, [isOpen, currentCard?.popupImage]);
 
-  // Escape key listener to close popup
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -104,7 +103,6 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Resize listener to close on window resize
   useEffect(() => {
     if (!isOpen) return;
     const handleResize = () => onClose();
@@ -114,48 +112,49 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
   if (!mounted || !shouldRender || !currentCard) return null;
 
-  const backdropStyle: CSSProperties = animationsEnabled
+  const backdropStyle: CSSProperties = isMobileMotion
     ? {
         opacity: active ? 1 : 0,
-        transition: "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)",
+        transition: "opacity 0.25s ease",
       }
-    : { opacity: 1 };
+    : {
+        opacity: active ? 1 : 0,
+        transition: "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)",
+      };
 
-  const drawerStyle: CSSProperties = animationsEnabled
+  const drawerStyle: CSSProperties = isMobileMotion
     ? {
+        transform: active ? "translateX(0)" : "translateX(100%)",
+        transition: "transform 0.3s ease",
+      }
+    : {
         transform: active ? "translateX(0%)" : "translateX(100%)",
         borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
         borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
         transition:
           "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)",
-      }
-    : {
-        transform: "translateX(0%)",
-        borderTopLeftRadius: "0% 0%",
-        borderBottomLeftRadius: "0% 0%",
       };
 
   const revealStyle = (delay: string): CSSProperties =>
-    animationsEnabled
-      ? {
+    isMobileMotion
+      ? { opacity: 1 }
+      : {
           opacity: active ? 1 : 0,
           transform: active ? "translateY(0)" : "translateY(20px)",
           transition: `opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) ${delay}, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) ${delay}`,
-        }
-      : { opacity: 1, transform: "translateY(0)" };
+        };
 
   const listItemStyle = (idx: number): CSSProperties =>
-    animationsEnabled
-      ? {
+    isMobileMotion
+      ? { opacity: 1 }
+      : {
           opacity: active ? 1 : 0,
           transform: active ? "translateY(0)" : "translateY(20px)",
           transition: `opacity 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s`,
-        }
-      : { opacity: 1, transform: "translateY(0)" };
+        };
 
   return createPortal(
     <>
-      {/* Background Overlay Backdrop */}
       <div
         className="fixed inset-0 z-[100] cursor-pointer bg-black/60"
         style={{
@@ -174,7 +173,6 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
         }}
       />
 
-      {/* Slider Drawer Sheet */}
       <div
         className="slider-popup-drawer fixed top-0 right-0 h-screen z-[101] w-[600px] max-w-full flex flex-col overflow-y-auto overflow-x-hidden bg-black"
         style={{
@@ -185,7 +183,6 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
         aria-modal="true"
         aria-labelledby="slider-popup-title"
       >
-        {/* Background Visual Wrapper */}
         <div className="absolute inset-0 z-0" aria-hidden="true">
           <div className="absolute inset-0 bg-[#111]" />
           {imgLoaded && (
@@ -196,7 +193,6 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           )}
         </div>
 
-        {/* Close Button */}
         <button
           ref={closeBtnRef}
           type="button"
@@ -210,9 +206,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           </svg>
         </button>
 
-        {/* Content Container */}
         <div className="relative z-1 flex flex-col p-10 max-sm:p-5 w-full min-h-full">
-          
           <h2
             id="slider-popup-title"
             className="font-medium text-[32px] max-sm:text-[38px] sm:text-[42px] lg:text-[48px] leading-[100%] tracking-[-0.06em] text-white mb-4"
@@ -235,13 +229,9 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
             {currentCard.paragraph}
           </p>
 
-          {/* Points list */}
           <ul className="list-none p-0 m-0 mb-12 flex flex-col gap-0">
             {currentCard.points.map((pt, idx) => (
-              <li
-                key={idx}
-                style={listItemStyle(idx)}
-              >
+              <li key={idx} style={listItemStyle(idx)}>
                 <span className="font-medium text-4xl leading-[100%] tracking-[-0.02em] text-white">
                   {pt}
                 </span>
@@ -249,11 +239,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
             ))}
           </ul>
 
-          {/* Footer Action Buttons */}
-          <div
-            className="flex gap-3 mt-auto"
-            style={revealStyle("0.85s")}
-          >
+          <div className="flex gap-3 mt-auto" style={revealStyle("0.85s")}>
             <Link
               href="/contacts"
               onClick={onClose}
@@ -271,10 +257,9 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
               <span className="font-bold text-sm tracking-[-0.02em]">LinkedIn</span>
             </a>
           </div>
-
         </div>
       </div>
-    </>
-    , document.body
+    </>,
+    document.body
   );
 }
