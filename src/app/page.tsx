@@ -2,22 +2,27 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import WavyString from "@/components/WavyString";
 import ConcentricCircles from "@/components/ConcentricCircles";
 import ProjectsList from "@/components/ProjectsList";
 import FooterStripe from "@/components/FooterStripe";
-import SliderPopup from "@/components/SliderPopup";
 import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
 import PluginsGrid from "@/components/PluginsGrid";
 import DevPlayground from "@/components/DevPlayground";
-import MobileHorizontalScroll from "@/components/MobileHorizontalScroll";
+import ParallaxMockups from "@/components/ParallaxMockups";
+import WhatIDoMobileCarousel from "@/components/WhatIDoMobileCarousel";
+
+const SliderPopup = dynamic(() => import("@/components/SliderPopup"), {
+  ssr: false,
+});
 
 // Slider cards metadata for "What we do" section
 const SERVICES = [
@@ -93,14 +98,6 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState("honors");
   const stickyActiveRef = useRef(false);
   const activeSectionRef = useRef("honors");
-
-  // Parallax scroll for mockups container
-  const parallaxRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: parallaxRef,
-    offset: ["start end", "end start"],
-  });
-  const bgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   // Show/hide fixed sticky header on scroll up
   useEffect(() => {
@@ -400,54 +397,7 @@ export default function HomePage() {
       </section>
 
       {/* 4. Parallax mockups container */}
-      <Reveal>
-        <section
-          ref={parallaxRef}
-          className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]"
-        >
-          <Reveal className="absolute inset-0 z-0 overflow-hidden">
-            <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
-            <motion.div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]" style={{ y: bgY }}>
-              {/* Background Gradient Mesh Blobs replicating SolverCorp */}
-              <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-                {/* Blue Blur Blob (Left/Center) */}
-                <div className="absolute mt-[-10%] md:mt-0 left-[-80%] md:left-[-25%] bg-[#1146F2] blur-[180px] w-[1537px] md:w-[1809px] h-[1444px] rounded-full opacity-60" />
-                {/* Purple Blur Blob (Right/Top) */}
-                <div className="absolute right-[-80%] md:right-[-10%] bg-[#873AE3] blur-[150px] w-[1710px] h-[1367px] rounded-full opacity-60" />
-                {/* Dark Overlap Blending Mask (Bottom/Center) */}
-                <div className="absolute ml-[-90%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[142px] w-[1502px] md:w-[2774px] h-[1174px] md:h-[1444px] rounded-full opacity-90" />
-              </div>
-            </motion.div>
-          </Reveal>
-
-          {/* Floating Phones */}
-          <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
-            <div className="relative w-full max-w-[1200px] h-full flex justify-center items-end">
-
-              {/* Back phone */}
-              <div className="absolute left-1/2 z-[1] float-back-phone-anim" style={{ bottom: "clamp(-100px, -15vw, -60px)", width: "fit-content" }}>
-                <img
-                  alt="Back Phone"
-                  className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                  src="/back-phone.webp"
-                  loading="lazy"
-                />
-              </div>
-
-              {/* Top phone */}
-              <div className="absolute left-1/2 z-[5] float-top-phone-anim" style={{ bottom: "clamp(-60px, -10vw, -30px)", width: "fit-content" }}>
-                <img
-                  alt="Top Phone"
-                  className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                  src="/top-phone.webp"
-                  loading="lazy"
-                />
-              </div>
-
-            </div>
-          </div>
-        </section>
-      </Reveal>
+      <ParallaxMockups />
 
       {/* 5. Projects list section */}
       <ProjectsList />
@@ -456,7 +406,7 @@ export default function HomePage() {
       <WavyString className="mt-20" />
 
       {/* 7. What we do section */}
-      <section className="overflow-hidden">
+      <section className="overflow-hidden max-lg:[content-visibility:auto] max-lg:[contain-intrinsic-size:auto_720px]">
 
         {/* Header reveal */}
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-[last_baseline]">
@@ -472,34 +422,10 @@ export default function HomePage() {
         {/* Carousel Slider */}
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-[50px] items-start">
           <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1]">
-            {/* Mobile: native touch scroll */}
-            <MobileHorizontalScroll className="lg:hidden -mx-3 px-3">
-              {SERVICES.map((serv, index) => (
-                <div
-                  key={serv.id}
-                  className="shrink-0 snap-center overflow-hidden"
-                  style={{ width: "min(calc(100vw - 24px), 455px)" }}
-                >
-                  <div
-                    aria-label={serv.label}
-                    className="group rounded-none flex flex-col items-center relative overflow-hidden w-full h-[580px] min-h-[280px] cursor-pointer"
-                    onClick={() => setActiveCardIndex(index)}
-                  >
-                    <div className="absolute inset-0 w-full h-full -z-1">
-                      <img alt="" className="w-full h-full object-cover" src={serv.mobileImage} />
-                    </div>
-                    <img
-                      alt=""
-                      className="mt-[43px] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[4rem]"
-                      src="/ar.svg"
-                    />
-                    <h3 className="mt-[22px] font-medium text-[clamp(29px,8vw,40px)] leading-[100%] tracking-[-0.06em] text-white relative z-1 pointer-events-none px-4 text-center">
-                      <AnimatedText text={serv.title} className="projects-name-text" />
-                    </h3>
-                  </div>
-                </div>
-              ))}
-            </MobileHorizontalScroll>
+            <WhatIDoMobileCarousel
+              services={SERVICES}
+              onSelect={setActiveCardIndex}
+            />
 
             {/* Desktop: transform carousel */}
             <div className="hidden lg:block overflow-hidden">
@@ -616,7 +542,10 @@ export default function HomePage() {
                   {svc.ref}
                 </span>
                 <h3 className="col-[4/8] max-sm:col-[1/5] sm:col-[2/5] lg:col-[4/8] font-medium text-[clamp(24px,1.8vw,32px)] max-sm:text-[20px] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
-                  <AnimatedText text={svc.name} className="projects-name-text" />
+                  <span className="lg:hidden">{svc.name}</span>
+                  <span className="hidden lg:inline">
+                    <AnimatedText text={svc.name} className="projects-name-text" />
+                  </span>
                 </h3>
                 <div className="col-[8/12] max-sm:col-[1/5] sm:col-[1/5] lg:col-[8/12] flex flex-col gap-3 max-sm:mt-2">
                   <p className="font-medium text-sm text-[#c5c5c5] opacity-70 leading-[150%]">

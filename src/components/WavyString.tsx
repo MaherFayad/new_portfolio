@@ -10,13 +10,55 @@ interface WavyStringProps {
   alt?: string;
 }
 
-export default function WavyString({ className = "" }: WavyStringProps) {
+function WavyStringIcon() {
+  return (
+    <svg
+      width="24"
+      height="14.3"
+      viewBox="0 0 116 69"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="shrink-0 block opacity-40 hover:opacity-100 transition-opacity duration-200"
+    >
+      <rect width="20" height="69" fill="#C5C5C5" />
+      <rect x="24" width="20" height="55" fill="#C5C5C5" />
+      <rect x="48" width="20" height="69" fill="#C5C5C5" />
+      <rect x="72" width="20" height="69" fill="#C5C5C5" />
+      <rect x="96" width="20" height="20" fill="#C5C5C5" />
+      <rect x="96" y="24" width="20" height="20" fill="#C5C5C5" />
+    </svg>
+  );
+}
+
+function WavyStringStatic({ className = "" }: WavyStringProps) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <WavyStringIcon />
+      <div className="flex-1 relative h-[200px]">
+        <svg
+          className="w-full h-[200px] absolute top-0 left-0"
+          preserveAspectRatio="none"
+          viewBox="0 0 100 200"
+          aria-hidden="true"
+        >
+          <path
+            d="M 0 100 Q 50 100 100 100"
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.1)"
+            strokeWidth="2"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function WavyStringInteractive({ className = "" }: WavyStringProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const widthRef = useRef(100);
   const isVisibleRef = useRef(false);
   const [width, setWidth] = useState(0);
-  const mouseEffectsEnabled = useMouseEffectsEnabled();
 
   const displacement = useMotionValue(0);
   const springDisplacement = useSpring(displacement, {
@@ -45,11 +87,6 @@ export default function WavyString({ className = "" }: WavyStringProps) {
   }, [updateWidth]);
 
   useEffect(() => {
-    if (!mouseEffectsEnabled) {
-      updatePath(0);
-      return;
-    }
-
     const el = containerRef.current;
     if (!el) return;
 
@@ -71,10 +108,10 @@ export default function WavyString({ className = "" }: WavyStringProps) {
       observer.disconnect();
       unsubscribe();
     };
-  }, [mouseEffectsEnabled, springDisplacement, updatePath]);
+  }, [springDisplacement, updatePath]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!mouseEffectsEnabled || !containerRef.current) return;
+    if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const mouseY = e.clientY - rect.top;
     const centerY = rect.height / 2;
@@ -90,7 +127,6 @@ export default function WavyString({ className = "" }: WavyStringProps) {
   };
 
   const handleMouseLeave = () => {
-    if (!mouseEffectsEnabled) return;
     displacement.set(0);
   };
 
@@ -98,27 +134,12 @@ export default function WavyString({ className = "" }: WavyStringProps) {
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <svg
-        width="24"
-        height="14.3"
-        viewBox="0 0 116 69"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 block opacity-40 hover:opacity-100 transition-opacity duration-200"
-      >
-        <rect width="20" height="69" fill="#C5C5C5"/>
-        <rect x="24" width="20" height="55" fill="#C5C5C5"/>
-        <rect x="48" width="20" height="69" fill="#C5C5C5"/>
-        <rect x="72" width="20" height="69" fill="#C5C5C5"/>
-        <rect x="96" width="20" height="20" fill="#C5C5C5"/>
-        <rect x="96" y="24" width="20" height="20" fill="#C5C5C5"/>
-      </svg>
+      <WavyStringIcon />
       <div
         ref={containerRef}
-        className={`flex-1 relative h-[200px]${mouseEffectsEnabled ? " cursor-pointer" : ""}`}
-        {...(mouseEffectsEnabled
-          ? { onMouseMove: handleMouseMove, onMouseLeave: handleMouseLeave }
-          : {})}
+        className="flex-1 relative h-[200px] cursor-pointer"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         <svg
           className="w-full h-[200px] absolute top-0 left-0"
@@ -136,4 +157,14 @@ export default function WavyString({ className = "" }: WavyStringProps) {
       </div>
     </div>
   );
+}
+
+export default function WavyString(props: WavyStringProps) {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
+
+  if (!mouseEffectsEnabled) {
+    return <WavyStringStatic {...props} />;
+  }
+
+  return <WavyStringInteractive {...props} />;
 }
