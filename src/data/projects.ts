@@ -46,10 +46,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "lfg",
     caseFraming: {
-      role: "Lead Product Designer, research, UX, and UI (mobile)",
-      problem: "Remote workers lose focus and disengage, while a research client needed a science-backed soundscape app that reduces stress and captures consented data to monetize.",
-      approach: "Ran competitor analysis, literature review, and user interviews to validate the thesis, then designed the end-to-end mobile experience and a conversational onboarding survey, pressure-tested with moderated usability sessions.",
-      outcome: "100% task completion in moderated usability testing across onboarding, soundscape sessions, surveys, and team analytics.",
+      role: "Lead Product Designer (mobile)",
+      problem: "Remote workers lose focus; client needed a research-backed soundscape.",
+      approach: "Research, interviews, then end-to-end mobile UX and usability testing.",
+      outcome: "100% task completion in usability testing.",
     }
   },
   {
@@ -69,10 +69,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "alrajhi-bank-payroll",
     caseFraming: {
-      role: "Product Designer, gamification system and UI (mobile)",
-      problem: "The Milt Olin Foundation needed a habit and time-tracking app that keeps users motivated to build safer, healthier daily routines instead of dropping off.",
-      approach: "Applied the Octalysis gamification framework across all eight core drives (milestones, scarcity rewards, social leaderboards, and digital collectibles), and translated it into a cohesive UI system.",
-      outcome: "Gamification system delivered across all eight Octalysis drives, from milestone rewards to scarcity streaks and social leaderboards.",
+      role: "Product Designer (mobile)",
+      problem: "Foundation needed habit tracking that keeps users motivated.",
+      approach: "Octalysis gamification across eight core drives, built into UI.",
+      outcome: "Shipped milestones, streaks, leaderboards, and collectibles.",
     }
   },
   {
@@ -86,10 +86,10 @@ export const PROJECTS: Project[] = [
     nextProject: "airlab",
     externalUrl: "https://www.behance.net/gallery/218311889/Alrajhi-Bank-payroll-revamp-UX-design-case-study",
     caseFraming: {
-      role: "Senior Product Designer, enterprise web platform (AR/EN)",
-      problem: "Enterprise customers faced fragmented, error-prone salary disbursement flows on the e-business platform.",
-      approach: "Redesigned the payroll journey with analytics-informed flows, a consistent component system, and bilingual AR/EN support.",
-      outcome: "Full UX case study published on Behance. Payroll revamp shipped as part of broader e-business platform improvements.",
+      role: "Senior Product Designer (AR/EN)",
+      problem: "Enterprise payroll flows were fragmented on e-business.",
+      approach: "Redesigned journey with analytics-informed flows and bilingual UI.",
+      outcome: "Behance case study; part of broader e-business platform work.",
     }
   },
   {
@@ -104,10 +104,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "campus51",
     caseFraming: {
-      role: "UI & Visual Designer, marketing site",
-      problem: "A Web3 company needed a futuristic brand presence that stood out in a crowded cryptocurrency market.",
-      approach: "Paired a generative-AI reportage illustration experiment with a bold layout system to express a distinct visual identity.",
-      outcome: "Scope: desktop-first marketing website UI and visual identity exploration for a Web3 company.",
+      role: "UI & Visual Designer",
+      problem: "Web3 brand needed to stand out in a crowded market.",
+      approach: "Generative AI illustration plus bold layout.",
+      outcome: "Desktop marketing site and visual identity exploration.",
     }
   },
   {
@@ -123,10 +123,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "deployo",
     caseFraming: {
-      role: "Product Designer, end-to-end web app",
-      problem: "Educators lacked an intuitive way to build, run, and scale their teaching practice in one place.",
-      approach: "Designed a learning-management platform that simplifies curriculum creation, student engagement, and professional training flows.",
-      outcome: "Scope: web LMS platform for educators, with user flows and high-fidelity UI across curriculum, engagement, and training journeys.",
+      role: "Product Designer",
+      problem: "Educators lacked one place to run and scale teaching.",
+      approach: "LMS flows for curriculum, engagement, and training.",
+      outcome: "Web LMS with end-to-end educator journeys.",
     }
   },
   {
@@ -143,10 +143,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "dhsc",
     caseFraming: {
-      role: "Product Designer, SaaS dashboard",
-      problem: "DevOps and AI teams faced fragmented, complex tooling when deploying and monitoring machine-learning models.",
-      approach: "Designed a streamlined dashboard that unifies model integration, deployment pipelines, and performance monitoring into one workflow.",
-      outcome: "Scope: web dashboard UX for a developer and AI-engineer audience, covering pipeline, integration, and monitoring interfaces.",
+      role: "Product Designer",
+      problem: "ML deployment tooling was fragmented for DevOps teams.",
+      approach: "Unified dashboard for integration, pipelines, and monitoring.",
+      outcome: "Dashboard UX for developers and AI engineers.",
     }
   },
   {
@@ -161,10 +161,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "kobe-bryant",
     caseFraming: {
-      role: "Product Designer, Web3 community platform",
-      problem: "The Dark Horse Sports Club NFT community needed a secure, premium hub to unite members and surface the utility behind their holdings.",
-      approach: "Built a community dashboard that tracks NFT ownership, unlocks exclusive physical events, and aggregates sports utilities in one premium interface.",
-      outcome: "Scope: web platform UX for an NFT community, covering membership, ownership, and event-utility interfaces.",
+      role: "Product Designer",
+      problem: "NFT community needed one hub for membership and utility.",
+      approach: "Premium dashboard for ownership, events, and sports utilities.",
+      outcome: "Web platform for membership and NFT utility.",
     }
   },
   {
@@ -179,10 +179,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "nft-print-pro",
     caseFraming: {
-      role: "UI & Visual Designer, digital exhibition",
-      problem: "Fans needed a premium way to celebrate a sporting legend's legacy and access tribute memorabilia online.",
-      approach: "Designed an immersive digital exhibition showcasing historic moments, career milestones, and exclusive tribute collectibles.",
-      outcome: "Scope: web exhibition concept for a global fan audience, covering gallery, timeline, and memorabilia UI.",
+      role: "UI & Visual Designer",
+      problem: "Fans needed a premium online tribute experience.",
+      approach: "Digital exhibition for milestones and memorabilia.",
+      outcome: "Web exhibition with gallery and timeline UI.",
     }
   },
   {
@@ -197,10 +197,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "pexlp",
     caseFraming: {
-      role: "Product Designer, e-commerce flow",
-      problem: "NFT owners had no simple bridge between their digital collectibles and high-quality physical prints.",
-      approach: "Designed a print-on-demand e-commerce experience that connects Web3 wallets directly to premium printing services.",
-      outcome: "Scope: web e-commerce UX for Web3 collectors, covering wallet connection, product, and checkout flows.",
+      role: "Product Designer",
+      problem: "No simple path from NFT wallet to physical print.",
+      approach: "Print-on-demand ecommerce with Web3 wallet connection.",
+      outcome: "Wallet-to-checkout ecommerce flows.",
     }
   },
   {
@@ -216,10 +216,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "sacred-stacks",
     caseFraming: {
-      role: "UI Designer, agency landing page",
-      problem: "A creative design and art agency needed a portfolio site that proved its craft at first glance.",
-      approach: "Designed a sleek, artistic landing page that foregrounds illustration work, branding projects, and high-fidelity screen design.",
-      outcome: "Scope: web marketing site and brand showcase for a creative agency.",
+      role: "UI Designer",
+      problem: "Agency site had to prove craft at first glance.",
+      approach: "Artistic landing page foregrounding portfolio work.",
+      outcome: "Marketing site and brand showcase.",
     }
   },
   {
@@ -235,10 +235,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "six-clovers",
     caseFraming: {
-      role: "Brand & UI Designer, e-commerce",
-      problem: "A health and immunity supplement brand needed a premium storefront that signalled quality and built trust.",
-      approach: "Created a wellness-focused, dark-themed brand identity and e-commerce experience with Web3 integration for premium supplements.",
-      outcome: "Scope: web brand identity and storefront UX for wellness shoppers, covering product and purchase pages.",
+      role: "Brand & UI Designer",
+      problem: "Supplement brand needed trust and a premium feel.",
+      approach: "Dark-themed identity and ecommerce with Web3 hooks.",
+      outcome: "Brand identity and product storefront.",
     }
   },
   {
@@ -255,10 +255,10 @@ export const PROJECTS: Project[] = [
     ],
     nextProject: "sanarte",
     caseFraming: {
-      role: "Product Designer, fintech portal & docs",
-      problem: "A decentralized borderless payment network needed to connect corporate finance teams and developers to Web3 payment rails without friction.",
-      approach: "Designed professional portal structures, developer documentation guides, and end-to-end payment transaction flows.",
-      outcome: "Scope: web portal UX for corporate-finance and developer audiences, covering portal, documentation, and payment-flow interfaces.",
+      role: "Product Designer",
+      problem: "Finance and dev teams needed clear Web3 payment rails.",
+      approach: "Portal, docs, and payment flows in one system.",
+      outcome: "Portal UX for corporate finance and developers.",
     }
   }
 ];
