@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Maher Fayad | Senior Product Designer (UX/UI, Design Systems, AR/EN Localization)";
+  "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -49,7 +49,7 @@ export default function OgImage() {
               Senior Product Designer
             </span>
             <span style={{ fontSize: 28, marginTop: 14, color: "#c5c5c5" }}>
-              UX/UI · Design Systems · AR/EN Localization
+              UX/UI · Design Systems
             </span>
           </div>
         </div>

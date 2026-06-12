@@ -58,7 +58,7 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
     >
       <div className="h-full px-5 max-sm:px-3 relative">
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 h-full max-w-[1920px] mx-auto">
-          
+
           {/* Bottom Left Text */}
           <motion.div
             className="col-start-5 col-span-4 max-sm:pb-20 lg:col-[5/8] sm:col-[1/5] md:col-[1/5] max-sm:col-[1/4] flex items-end justify-start pb-[140px]"
@@ -73,7 +73,7 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
               </div>
               <div className="text-right mt-1">
                 <span>since</span>
-                <span>2019</span>
+                <span>2022</span>
               </div>
             </div>
           </motion.div>
@@ -81,7 +81,7 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
           {/* Center concentric spinners */}
           <div className="col-span-12 flex items-center justify-center absolute inset-0 pointer-events-none">
             <div className="relative w-[362px] h-[362px]">
-              
+
               {/* Inner ring */}
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"

@@ -18,27 +18,26 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://maherfayad.com"),
   title: {
     default:
-      "Maher Fayad | Senior Product Designer (UX/UI, Design Systems, AR/EN Localization)",
+      "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
     template: "%s | Maher Fayad",
   },
   description:
-    "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, Arabic/English UX localization, and analytics-informed product design for banking, fintech, and travel. +47% onboarding, +81% transactions.",
+    "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel. +47% onboarding, +81% transactions.",
   manifest: "/manifest.webmanifest",
   alternates: { canonical: "/" },
   keywords: [
     "senior product designer Riyadh",
     "senior product designer Saudi Arabia",
     "UX designer GCC",
-    "Arabic English UX localization",
     "Figma design systems consultant",
     "Maher Fayad",
   ],
   robots: { index: true, follow: true },
   openGraph: {
     title:
-      "Maher Fayad | Senior Product Designer (UX/UI, Design Systems, AR/EN Localization)",
+      "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
     description:
-      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, AR/EN localization, and analytics-informed product design for banking, fintech, and travel.",
+      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel.",
     url: "https://maherfayad.com",
     siteName: "Maher Fayad | Senior Product Designer",
     locale: "en",
@@ -48,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Maher Fayad | Senior Product Designer",
     description:
-      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, AR/EN localization, and analytics-informed product design.",
+      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design.",
   },
 };
 
@@ -66,8 +65,6 @@ const personJsonLd = {
     "Product Design",
     "UX Design",
     "Design Systems",
-    "Arabic localization",
-    "UX Writing",
     "Product Analytics",
   ],
   sameAs: [
