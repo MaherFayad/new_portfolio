@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,7 @@ export default function ContactsPage() {
   });
 
   // Form states
+  const formRef = useRef<HTMLFormElement>(null);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [focused, setFocused] = useState({ name: false, email: false, message: false });
   const [submitting, setSubmitting] = useState(false);
@@ -95,15 +96,13 @@ export default function ContactsPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      emailjs.init({ publicKey: "6Iz6j9YWRI_DaJ-s6" });
-      const result = await emailjs.send(
+      if (!formRef.current) throw new Error("Form not found");
+
+      const result = await emailjs.sendForm(
         "service_0qkob2y",
         "template_mnzk4uc",
-        {
-          name: form.name,
-          email: form.email,
-          message: form.message,
-        }
+        formRef.current,
+        "6Iz6j9YWRI_DaJ-s6"
       );
 
       if (result.status === 200) {
@@ -264,6 +263,7 @@ export default function ContactsPage() {
 
       {/* Form Input Section */}
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="mt-auto pt-[3.125rem] max-sm:pt-8 grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-4 sm:gap-5 md:gap-5 lg:gap-5 gap-y-0 items-end"
       >
@@ -289,6 +289,7 @@ export default function ContactsPage() {
             </label>
             <input
               id="name"
+              name="name"
               type="text"
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
@@ -336,7 +337,8 @@ export default function ContactsPage() {
             </label>
             <input
               id="email"
-              type="text"
+              name="email"
+              type="email"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
               onFocus={() => handleFocus("email")}
@@ -383,6 +385,7 @@ export default function ContactsPage() {
             </label>
             <textarea
               id="message"
+              name="message"
               rows={1}
               value={form.message}
               onChange={(e) => handleChange("message", e.target.value)}
