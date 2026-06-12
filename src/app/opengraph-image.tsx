@@ -23,7 +23,7 @@ export default function OgImage() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontSize: 30, fontWeight: 700, color: "#fff", letterSpacing: -1 }}>
-            Maher Fayad©
+            Maher Fayad
           </span>
           <span style={{ fontSize: 18, textTransform: "uppercase", color: "#7a7a7a" }}>
             Riyadh / Remote · AR / EN

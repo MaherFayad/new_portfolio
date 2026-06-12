@@ -154,7 +154,7 @@ export default function ContactsPage() {
           </nav>
           <div className="col-start-3 lg:col-start-11 max-sm:hidden flex flex-col text-right self-end">
             <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              © Maher
+              Maher
             </span>
             <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
               Fayad

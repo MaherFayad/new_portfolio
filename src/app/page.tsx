@@ -446,51 +446,51 @@ export default function HomePage() {
 
             {/* Desktop: transform carousel */}
             <div className="hidden lg:block overflow-hidden">
-            <div
-              className={`flex gap-5 select-none will-change-transform ${isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
-                }`}
-              onTransitionEnd={() => {
-                const len = SERVICES.length;
-                if (slideIdx >= len * 2) {
-                  setIsTransitioning(false);
-                  setSlideIdx(slideIdx - len);
-                } else if (slideIdx < len) {
-                  setIsTransitioning(false);
-                  setSlideIdx(slideIdx + len);
-                }
-              }}
-              style={{
-                transform: `translateX(-${slideIdx * (455 + 20)}px)`,
-              }}
-            >
-              {[...SERVICES, ...SERVICES, ...SERVICES].map((serv, index) => (
-                <div
-                  key={`${serv.id}-${index}`}
-                  className="shrink-0 overflow-hidden"
-                  style={{ width: "455px" }}
-                >
+              <div
+                className={`flex gap-5 select-none will-change-transform ${isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
+                  }`}
+                onTransitionEnd={() => {
+                  const len = SERVICES.length;
+                  if (slideIdx >= len * 2) {
+                    setIsTransitioning(false);
+                    setSlideIdx(slideIdx - len);
+                  } else if (slideIdx < len) {
+                    setIsTransitioning(false);
+                    setSlideIdx(slideIdx + len);
+                  }
+                }}
+                style={{
+                  transform: `translateX(-${slideIdx * (455 + 20)}px)`,
+                }}
+              >
+                {[...SERVICES, ...SERVICES, ...SERVICES].map((serv, index) => (
                   <div
-                    aria-label={serv.label}
-                    className="group rounded-none flex flex-col items-center relative overflow-hidden w-full h-[clamp(390px,28.846vw-13.85px,540px)] max-sm:h-[580px] max-sm:min-h-[280px] max-lg:h-auto max-lg:aspect-[3/4] lg:max-dt:h-[clamp(374px,39.467vw-30.2px,522px)] cursor-pointer"
-                    onClick={() => setActiveCardIndex(index % SERVICES.length)}
+                    key={`${serv.id}-${index}`}
+                    className="shrink-0 overflow-hidden"
+                    style={{ width: "455px" }}
                   >
-                    <div className="absolute inset-0 w-full h-full -z-1 transition-transform duration-[0.6s] ease-in-out group-hover:scale-[1.03]">
-                      <img alt="" className="w-full h-full object-cover" src={serv.image} />
+                    <div
+                      aria-label={serv.label}
+                      className="group rounded-none flex flex-col items-center relative overflow-hidden w-full h-[clamp(390px,28.846vw-13.85px,540px)] max-sm:h-[580px] max-sm:min-h-[280px] max-lg:h-auto max-lg:aspect-[3/4] lg:max-dt:h-[clamp(374px,39.467vw-30.2px,522px)] cursor-pointer"
+                      onClick={() => setActiveCardIndex(index % SERVICES.length)}
+                    >
+                      <div className="absolute inset-0 w-full h-full -z-1 transition-transform duration-[0.6s] ease-in-out group-hover:scale-[1.03]">
+                        <img alt="" className="w-full h-full object-cover" src={serv.image} />
+                      </div>
+
+                      <img
+                        alt=""
+                        className="mt-[clamp(43px,3.269vw-2.77px,60px)] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[4rem]"
+                        src="/ar.svg"
+                      />
+
+                      <h3 className="mt-[clamp(22px,1.538vw-1.54px,30px)] font-medium text-[clamp(29px,2.115vw-0.61px,40px)] leading-[100%] tracking-[-0.06em] text-white relative z-1 pointer-events-none">
+                        <AnimatedText text={serv.title} className="projects-name-text" />
+                      </h3>
                     </div>
-
-                    <img
-                      alt=""
-                      className="mt-[clamp(43px,3.269vw-2.77px,60px)] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[4rem]"
-                      src="/ar.svg"
-                    />
-
-                    <h3 className="mt-[clamp(22px,1.538vw-1.54px,30px)] font-medium text-[clamp(29px,2.115vw-0.61px,40px)] leading-[100%] tracking-[-0.06em] text-white relative z-1 pointer-events-none">
-                      <AnimatedText text={serv.title} className="projects-name-text" />
-                    </h3>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -615,7 +615,7 @@ export default function HomePage() {
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-8">
           <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-right">
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
-              © Maher
+              Maher
             </span>
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
               Fayad
