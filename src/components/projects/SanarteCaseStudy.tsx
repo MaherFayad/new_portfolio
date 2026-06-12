@@ -9,8 +9,6 @@ const SECTIONS = [
   { id: "competitor-analysis", title: "Competitor Analysis" },
   { id: "literature-review", title: "Literature Review" },
   { id: "user-interviews", title: "User Interviews" },
-  { id: "define-personas", title: "Define & Personas" },
-  { id: "wireframes", title: "Wireframes" },
   { id: "usability-testing", title: "Usability Testing" },
   { id: "style-guide", title: "Style Guide" },
   { id: "ui-design", title: "UI Design" },
@@ -77,11 +75,10 @@ export default function SanarteCaseStudy() {
             <button
               key={sec.id}
               onClick={() => scrollToSection(sec.id)}
-              className={`text-left text-sm font-semibold py-1.5 transition-all duration-300 ${
-                activeSection === sec.id
-                  ? "text-[#c5c5c5] translate-x-1 underline decoration-[#c5c5c5]/40 underline-offset-4"
-                  : "text-[rgba(197,197,197,0.4)] hover:text-white"
-              }`}
+              className={`text-left text-sm font-semibold py-1.5 transition-all duration-300 ${activeSection === sec.id
+                ? "text-[#c5c5c5] translate-x-1 underline decoration-[#c5c5c5]/40 underline-offset-4"
+                : "text-[rgba(197,197,197,0.4)] hover:text-white"
+                }`}
             >
               {sec.title}
             </button>
@@ -269,7 +266,16 @@ export default function SanarteCaseStudy() {
                 <img src="/assets/Projects/Sanarte/2.webp" alt="Chart 2" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
               <Reveal delay={0.15}>
-                <img src="/assets/Projects/Sanarte/4.webp" alt="Chart 3" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/3.webp" alt="Chart 3" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              </Reveal>
+              <Reveal delay={0.2}>
+                <img src="/assets/Projects/Sanarte/4.webp" alt="Chart 4" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              </Reveal>
+              <Reveal delay={0.25}>
+                <img src="/assets/Projects/Sanarte/5.webp" alt="Chart 5" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              </Reveal>
+              <Reveal delay={0.3}>
+                <img src="/assets/Projects/Sanarte/6.webp" alt="Chart 6" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
             </div>
           </div>
@@ -305,46 +311,6 @@ export default function SanarteCaseStudy() {
           </div>
         </section>
 
-        {/* Section 6: Define & Personas */}
-        <section id="define-personas" className="flex flex-col gap-8 scroll-mt-24">
-          <Reveal>
-            <h2 className="text-3xl font-medium tracking-[-0.04em] text-[#c5c5c5]">Define & Personas</h2>
-          </Reveal>
-
-          <div className="flex flex-col gap-6">
-            <Reveal>
-              <p className="text-sm text-[#c5c5c5] opacity-75 leading-[160%]">
-                Using gathered insights, I mapped out the user journey maps and developed two distinct persona types to target onboarding structures.
-              </p>
-            </Reveal>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Reveal delay={0.05}>
-                <h4 className="font-semibold text-sm text-[rgba(197,197,197,0.4)] mb-2 uppercase">Persona 1</h4>
-                <img src="/assets/Projects/Sanarte/persona-1.webp" alt="Persona 1" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
-              </Reveal>
-              <Reveal delay={0.1}>
-                <h4 className="font-semibold text-sm text-[rgba(197,197,197,0.4)] mb-2 uppercase">Persona 2</h4>
-                <img src="/assets/Projects/Sanarte/persona-2.webp" alt="Persona 2" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
-              </Reveal>
-            </div>
-
-            <Reveal className="mt-4">
-              <h4 className="font-semibold text-sm text-[rgba(197,197,197,0.4)] mb-2 uppercase">Journey Mapping</h4>
-              <img src="/assets/Projects/Sanarte/journey-map.webp" alt="Journey Map" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
-            </Reveal>
-          </div>
-        </section>
-
-        {/* Section 7: Wireframes */}
-        <section id="wireframes" className="flex flex-col gap-8 scroll-mt-24">
-          <Reveal>
-            <h2 className="text-3xl font-medium tracking-[-0.04em] text-[#c5c5c5]">Wireframes</h2>
-          </Reveal>
-          <Reveal className="bg-[#141414] border border-white/5 rounded-[24px] p-6">
-            <img src="/assets/Projects/Sanarte/WFs.webp" alt="Wireframes" className="w-full h-auto rounded-[16px] object-cover" />
-          </Reveal>
-        </section>
 
         {/* Section 8: Usability Testing */}
         <section id="usability-testing" className="flex flex-col gap-8 scroll-mt-24">
@@ -356,7 +322,7 @@ export default function SanarteCaseStudy() {
             <p className="text-sm text-[#c5c5c5] opacity-75 leading-[160%] mb-6">
               We selected the 4 primary user tasks inside the prototype and measured completion metrics (clicks, attempts, success rates) across users.
             </p>
-            
+
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left text-sm border-collapse">
                 <thead>
@@ -438,13 +404,13 @@ export default function SanarteCaseStudy() {
 
           <div className="flex flex-col gap-6">
             <Reveal delay={0.05}>
-              <img src="/assets/Projects/Sanarte/ui1.webp" alt="UI Screen 1" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Sanarte%20-%201.webp" alt="UI Screen 1" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.1}>
-              <img src="/assets/Projects/Sanarte/ui2.webp" alt="UI Screen 2" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Sanarte%20-%202.webp" alt="UI Screen 2" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.15}>
-              <img src="/assets/Projects/Sanarte/ui3.webp" alt="UI Screen 3" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Sanarte%20-%203.webp" alt="UI Screen 3" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
           </div>
         </section>

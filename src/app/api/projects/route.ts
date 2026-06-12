@@ -9,13 +9,20 @@ export async function GET() {
       paragraph: "Designed a mobile application that utilizes specific soundscapes to de-stress and increase the work quality and focus of remote workers, tailored for research data analytics and long-term engagement.",
       images: [
         "/assets/4.webp",
-        "/assets/Projects/Sanarte/journey-map.webp",
-        "/assets/Projects/Sanarte/persona-1.webp",
-        "/assets/Projects/Sanarte/persona-2.webp",
-        "/assets/Projects/Sanarte/WFs.webp",
-        "/assets/Projects/Sanarte/ui1.webp",
-        "/assets/Projects/Sanarte/ui2.webp",
-        "/assets/Projects/Sanarte/ui3.webp"
+        "/assets/Projects/Sanarte/Sanarte%20-%201.webp",
+        "/assets/Projects/Sanarte/Sanarte%20-%202.webp",
+        "/assets/Projects/Sanarte/Sanarte%20-%203.webp",
+        "/assets/Projects/Sanarte/1.webp",
+        "/assets/Projects/Sanarte/2.webp",
+        "/assets/Projects/Sanarte/3.webp",
+        "/assets/Projects/Sanarte/4.webp",
+        "/assets/Projects/Sanarte/5.webp",
+        "/assets/Projects/Sanarte/6.webp",
+        "/assets/Projects/Sanarte/Color.webp",
+        "/assets/Projects/Sanarte/Color-Greyscale.webp",
+        "/assets/Projects/Sanarte/Color-Gradient.webp",
+        "/assets/Projects/Sanarte/Typography.webp",
+        "/assets/Projects/Sanarte/TypographyTest.webp",
       ],
       nextProject: "lfg"
     },
@@ -27,9 +34,12 @@ export async function GET() {
       images: [
         "/assets/5.webp",
         "/assets/Projects/LFG/octalysis.webp",
-        "/assets/Projects/LFG/ui1.webp",
-        "/assets/Projects/LFG/ui2.webp",
-        "/assets/Projects/LFG/ui3.webp"
+        "/assets/Projects/LFG/LFG%20-%200.webp",
+        "/assets/Projects/LFG/LFG%20-%201.webp",
+        "/assets/Projects/LFG/LFG%20-%202.webp",
+        "/assets/Projects/LFG/LFG%20-%203.webp",
+        "/assets/Projects/LFG/LFG%20-%204.webp",
+        "/assets/Projects/LFG/LFG%20-%205.webp"
       ],
       nextProject: "indigo"
     },
