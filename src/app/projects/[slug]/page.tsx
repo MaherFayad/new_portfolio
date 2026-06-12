@@ -132,7 +132,7 @@ export default function ProjectPage() {
           )}
         </div>
 
-        {/* Action Blocks: Contact Us & Next Work */}
+        {/* Action Blocks: Contact & Next Project */}
         <div className="col-[3/11] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/11] grid grid-cols-2 max-sm:grid-cols-1 gap-5 mt-10">
 
           {/* Link to Contacts */}
@@ -141,7 +141,7 @@ export default function ProjectPage() {
             className="flex items-center justify-center no-underline cursor-pointer h-[18rem] max-sm:h-[12rem] lg:max-xl:h-[clamp(210px,20.8vw-3.1px,288px)]"
             style={{ background: "linear-gradient(145deg, rgba(255,68,0,1) 0%, rgba(255,98,0,1) 100%)" }}
           >
-            <AnimatedText text="Contact Us" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
+            <AnimatedText text="Contact" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
           </Link>
 
           {/* Link to Next Project */}
@@ -151,7 +151,7 @@ export default function ProjectPage() {
               className="flex items-center justify-center no-underline cursor-pointer h-[18rem] max-sm:h-[12rem] lg:max-xl:h-[clamp(210px,20.8vw-3.1px,288px)]"
               style={{ background: "linear-gradient(180deg, rgba(102,105,101,1) 0%, rgba(148,156,149,1) 100%)" }}
             >
-              <AnimatedText text="Next Work" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
+              <AnimatedText text="Next Project" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
             </Link>
           )}
 
