@@ -158,9 +158,22 @@ export default function ProjectsList() {
     setHoveredIdx(null);
   };
 
-  const handleClick = (e: React.MouseEvent, slug: string) => {
+  const getHref = (project: (typeof projects)[number]) =>
+    project.externalUrl ?? `/projects/${project.slug}`;
+
+  const openProject = (project: (typeof projects)[number]) => {
+    if (project.externalUrl) {
+      window.open(project.externalUrl, "_blank", "noopener,noreferrer");
+    } else {
+      router.push(`/projects/${project.slug}`);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent, project: (typeof projects)[number]) => {
+    // Let normal (and modified) clicks on external links use the browser's default behavior.
+    if (project.externalUrl) return;
     e.preventDefault();
-    router.push(`/projects/${slug}`);
+    router.push(`/projects/${project.slug}`);
   };
 
   const activeImage = projects[activeIdx]?.images[0] ?? projects[0]?.images[0] ?? "";
@@ -190,7 +203,7 @@ export default function ProjectsList() {
                   type="button"
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
                   className="relative w-full aspect-square overflow-hidden border border-white/10 bg-[#050505] cursor-pointer"
-                  onClick={() => router.push(`/projects/${project.slug}`)}
+                  onClick={() => openProject(project)}
                 >
                   {project.images[0] && (
                     <Image
@@ -205,7 +218,7 @@ export default function ProjectsList() {
                 <button
                   type="button"
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                  onClick={() => router.push(`/projects/${project.slug}`)}
+                  onClick={() => openProject(project)}
                   className="mt-5 text-left font-medium text-[1.125rem] leading-[1.15] tracking-[-0.06em] text-[#c5c5c5] no-underline"
                 >
                   <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
@@ -233,14 +246,16 @@ export default function ProjectsList() {
                 className="w-full flex justify-end"
               >
                 <a
-                  href={`/projects/${project.slug}`}
+                  href={getHref(project)}
+                  target={project.externalUrl ? "_blank" : undefined}
+                  rel={project.externalUrl ? "noopener noreferrer" : undefined}
                   className="font-medium text-[clamp(40px,3.462vw-8.47px,58px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] no-underline text-right w-full block transition-opacity duration-300 max-sm:text-[clamp(24px,6vw,32px)] lg:max-dt:text-[clamp(40px,4.8vw-9.15px,58px)] dt:text-[clamp(40px,3.462vw-8.47px,58px)]"
                   style={{
                     opacity: hoveredIdx !== null && hoveredIdx !== index ? 0.3 : 1,
                   }}
                   onMouseEnter={() => handleMouseEnter(index)}
                   onMouseLeave={handleMouseLeave}
-                  onClick={(e) => handleClick(e, project.slug)}
+                  onClick={(e) => handleClick(e, project)}
                 >
                   <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
                 </a>

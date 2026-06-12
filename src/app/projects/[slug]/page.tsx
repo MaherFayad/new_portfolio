@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import WavyString from "@/components/WavyString";
 import FooterStripe from "@/components/FooterStripe";
@@ -11,6 +10,8 @@ import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import SanarteCaseStudy from "@/components/projects/SanarteCaseStudy";
 import LFGCaseStudy from "@/components/projects/LFGCaseStudy";
+import CaseFramingSection from "@/components/projects/CaseFramingSection";
+import ProjectNavActions from "@/components/projects/ProjectNavActions";
 import { PROJECTS } from "@/data/projects";
 
 export default function ProjectPage() {
@@ -101,15 +102,15 @@ export default function ProjectPage() {
             {project.subtitle}
           </span>
         </p>
-
-        <p className="col-[5/7] max-sm:col-[2/5] sm:col-[2/5] md:col-[2/5] lg:max-xl:col-[5/9] xl:col-[5/8] row-start-3 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] self-start mt-[1.2rem]">
-          {project.paragraph}
-        </p>
       </section>
+
+      {project.caseFraming && <CaseFramingSection framing={project.caseFraming} />}
+
+      <WavyString className="mt-16 max-sm:mt-12" />
 
       {/* Image Gallery / Case Study Content Grid */}
       <div
-        className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-x-5 lg:gap-y-0 mt-[60px] max-sm:mt-8"
+        className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-x-5 lg:gap-y-0 mt-10 max-sm:mt-8"
         style={{ animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s both" }}
       >
         <div className="col-[3/11] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/11] flex flex-col gap-5 w-full">
@@ -131,32 +132,9 @@ export default function ProjectPage() {
             ))
           )}
         </div>
-
-        {/* Action Blocks: Contact & Next Project */}
-        <div className="col-[3/11] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/11] grid grid-cols-2 max-sm:grid-cols-1 gap-5 mt-10">
-
-          {/* Link to Contacts */}
-          <Link
-            href="/contacts"
-            className="flex items-center justify-center no-underline cursor-pointer h-[18rem] max-sm:h-[12rem] lg:max-xl:h-[clamp(210px,20.8vw-3.1px,288px)]"
-            style={{ background: "linear-gradient(145deg, rgba(255,68,0,1) 0%, rgba(255,98,0,1) 100%)" }}
-          >
-            <AnimatedText text="Contact" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
-          </Link>
-
-          {/* Link to Next Project */}
-          {nextProjectObj && (
-            <Link
-              href={`/projects/${nextProjectObj.slug}`}
-              className="flex items-center justify-center no-underline cursor-pointer h-[18rem] max-sm:h-[12rem] lg:max-xl:h-[clamp(210px,20.8vw-3.1px,288px)]"
-              style={{ background: "linear-gradient(180deg, rgba(102,105,101,1) 0%, rgba(148,156,149,1) 100%)" }}
-            >
-              <AnimatedText text="Next Project" className="font-medium text-[2.5rem] leading-none tracking-[-0.06em] text-white max-sm:text-[1.25rem]" />
-            </Link>
-          )}
-
-        </div>
       </div>
+
+      <ProjectNavActions nextProject={nextProjectObj} />
 
       {/* Interactive Divider */}
       <WavyString className="mt-20" />      {/* Footer Section */}

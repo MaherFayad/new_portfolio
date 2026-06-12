@@ -20,7 +20,7 @@ const STATS = [
 
 const TIMELINE = [
   {
-    position: "Senior UX Designer",
+    position: "Senior Product Designer",
     company: "Almosafer",
     time: "2025 - Present",
     points: [
