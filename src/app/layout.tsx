@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import RootLayoutClient from "./RootLayoutClient";
 import "./globals.css";
 
@@ -108,6 +109,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageJsonLd) }}
         />
         <RootLayoutClient>{children}</RootLayoutClient>
+        <Analytics />
       </body>
     </html>
   );
