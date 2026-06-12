@@ -63,6 +63,9 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   const mouseRef = useRef({ x: 0, y: 0 });
+  const gyroRef = useRef({ x: 0, y: 0 });
+  const gyroRafRef = useRef(0);
+  const gyroPendingRef = useRef({ x: 0, y: 0 });
   const ringARef = useRef<THREE.Mesh | null>(null);
   const ringBRef = useRef<THREE.Mesh | null>(null);
 
@@ -146,6 +149,92 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
       detach();
     };
   }, []);
+
+  // Track gyroscope on smaller screens (same mapping as About Maher / ConcentricCircles)
+  useEffect(() => {
+    const query = window.matchMedia(`(max-width: ${MOUSE_EFFECTS_MIN_WIDTH - 1}px)`);
+    let gyroListening = false;
+
+    const clampCoord = (val: number) => Math.max(-1, Math.min(1, val));
+
+    const applyPending = () => {
+      gyroRafRef.current = 0;
+      gyroRef.current = { ...gyroPendingRef.current };
+    };
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (!query.matches) return;
+      const gamma = e.gamma ?? 0;
+      const beta = e.beta ?? 0;
+      gyroPendingRef.current = {
+        x: clampCoord(gamma / 35),
+        y: clampCoord(beta / 35),
+      };
+      if (!gyroRafRef.current) {
+        gyroRafRef.current = requestAnimationFrame(applyPending);
+      }
+    };
+
+    const startGyro = () => {
+      if (gyroListening || !query.matches) return;
+      window.addEventListener("deviceorientation", handleOrientation, true);
+      gyroListening = true;
+    };
+
+    const stopGyro = () => {
+      if (!gyroListening) return;
+      window.removeEventListener("deviceorientation", handleOrientation, true);
+      gyroListening = false;
+      if (gyroRafRef.current) {
+        cancelAnimationFrame(gyroRafRef.current);
+        gyroRafRef.current = 0;
+      }
+      gyroRef.current = { x: 0, y: 0 };
+    };
+
+    const requestGyroPermission = () => {
+      const DeviceOrientation = (window as Window & {
+        DeviceOrientationEvent?: { requestPermission?: () => Promise<string> };
+      }).DeviceOrientationEvent;
+
+      if (DeviceOrientation && typeof DeviceOrientation.requestPermission === "function") {
+        const requestGyro = async () => {
+          try {
+            const permission = await DeviceOrientation.requestPermission!();
+            if (permission === "granted" && query.matches) {
+              startGyro();
+            }
+          } catch (err) {
+            console.error("Gyro permission error:", err);
+          } finally {
+            window.removeEventListener("touchstart", requestGyro);
+            window.removeEventListener("pointerdown", requestGyro);
+          }
+        };
+
+        window.addEventListener("touchstart", requestGyro, { once: true });
+        window.addEventListener("pointerdown", requestGyro, { once: true });
+      } else if (query.matches) {
+        startGyro();
+      }
+    };
+
+    const syncGyro = () => {
+      stopGyro();
+      if (query.matches) {
+        requestGyroPermission();
+      }
+    };
+
+    syncGyro();
+    query.addEventListener("change", syncGyro);
+
+    return () => {
+      query.removeEventListener("change", syncGyro);
+      stopGyro();
+    };
+  }, []);
+
   // Animate ThreeJS exit sequence when state changes to spheresExiting
   useEffect(() => {
     if (spheresExiting && ringARef.current && ringBRef.current) {
@@ -344,17 +433,21 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
         wobbleGroup.rotation.z = 0.2 + 0.05 * wobbleStrength * Math.cos(0.25 * elapsed);
         wobbleGroup.position.y = (mobile ? 0.35 : 0) + 0.05 * wobbleStrength * Math.sin(0.3 * elapsed);
 
-        // 3. Camera mouse orbit interpolation (desktop only)
-        if (!mobile) {
-          targetAngle.x += 0.05 * (0.6 * mouseRef.current.y - targetAngle.x);
-          targetAngle.y += 0.05 * (0.6 * mouseRef.current.x - targetAngle.y);
+        // 3. Camera orbit from mouse (desktop) or gyro (smaller screens)
+        const useGyroInput = window.innerWidth < MOUSE_EFFECTS_MIN_WIDTH;
+        const input = useGyroInput ? gyroRef.current : mouseRef.current;
+
+        if (!mobile || useGyroInput) {
+          targetAngle.x += 0.05 * (0.6 * input.y - targetAngle.x);
+          targetAngle.y += 0.05 * (0.6 * input.x - targetAngle.y);
 
           const theta = Math.PI / 2 - targetAngle.x;
           const phi = targetAngle.y + Math.PI;
+          const radius = mobile ? 8.8 : 6;
 
-          camera.position.x = 6 * Math.sin(theta) * Math.cos(phi);
-          camera.position.y = 6 * Math.cos(theta);
-          camera.position.z = 6 * Math.sin(theta) * Math.sin(phi);
+          camera.position.x = radius * Math.sin(theta) * Math.cos(phi);
+          camera.position.y = radius * Math.cos(theta);
+          camera.position.z = radius * Math.sin(theta) * Math.sin(phi);
           camera.lookAt(0, 0, 0);
         }
 
