@@ -73,7 +73,8 @@ export default function WhatIDoMobileCarousel({
                   fill
                   sizes="(max-width: 1023px) min(calc(100vw - 24px), 455px), 0px"
                   className="object-cover -z-10"
-                  loading={index === 0 ? "eager" : "lazy"}
+                  priority={index < 2}
+                  loading={index < 2 ? "eager" : "lazy"}
                   decoding="async"
                   draggable={false}
                 />

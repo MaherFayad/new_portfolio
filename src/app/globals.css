@@ -132,6 +132,7 @@ body {
   background-color: #000000;
   color: #c5c5c5;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
   font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -145,6 +146,7 @@ body {
 html {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  overscroll-behavior-y: none;
 }
 
 ::selection {
@@ -164,6 +166,11 @@ html {
 /* Smooth Scrolling Customizations */
 html.lenis {
   height: auto;
+  overscroll-behavior-y: none;
+}
+
+html.lenis body {
+  overscroll-behavior-y: none;
 }
 
 .lenis-clean {
