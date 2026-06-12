@@ -113,7 +113,7 @@ export default function ContactsPage() {
       if (result.status === 200) {
         setToast({
           type: "success",
-          message: "Message sent successfully! I'll reach back to you soon.",
+          message: "Message sent successfully! I'll reach back to you.",
         });
         setForm({ name: "", email: "", message: "" });
       } else {

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
-import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 interface Badge {
   name: string;
@@ -75,7 +74,6 @@ const BADGES: Badge[] = [
 
 const CARD_WIDTH = 380;
 const CARD_GAP = 20;
-const MOBILE_CARD_WIDTH = "min(calc(100vw - 24px), 380px)";
 
 function BadgeCard({ badge }: { badge: Badge }) {
   return (
@@ -83,7 +81,7 @@ function BadgeCard({ badge }: { badge: Badge }) {
       href={badge.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block rounded-none flex flex-col items-center relative overflow-hidden w-full h-[380px] cursor-pointer"
+      className="group block rounded-none flex flex-col items-center relative overflow-hidden w-full h-[210px] sm:h-[230px] lg:h-[380px] cursor-pointer"
       style={{ backgroundColor: "hsl(33, 14%, 12%)", transformStyle: "preserve-3d" }}
     >
       <div
@@ -94,22 +92,19 @@ function BadgeCard({ badge }: { badge: Badge }) {
       />
       <img
         alt=""
-        className="mt-[40px] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[3.5rem] opacity-40 group-hover:opacity-100 transition-opacity duration-300"
+        className="mt-4 lg:mt-[40px] relative z-1 select-none pointer-events-none w-auto h-auto max-w-[1.75rem] lg:max-w-[3.5rem] opacity-40 group-hover:opacity-100 transition-opacity duration-300"
         src="/ar.svg"
       />
-      <h3 className="mt-[20px] font-medium text-2xl tracking-[-0.04em] text-white relative z-1 pointer-events-none px-6 text-center">
+      <h3 className="mt-2 lg:mt-[20px] font-medium text-[0.8125rem] sm:text-sm lg:text-2xl tracking-[-0.04em] text-white relative z-1 pointer-events-none px-2 lg:px-6 text-center w-full max-w-full line-clamp-2 break-words">
         <AnimatedText text={badge.title} className="projects-name-text" />
       </h3>
       <div
-        className="absolute bottom-0 right-0 w-[240px] h-[240px] transition-transform duration-[0.6s] ease-in-out pointer-events-none"
-        style={{
-          transform: "translate(25%, 25%) translateZ(20px)",
-        }}
+        className="absolute bottom-0 left-1/2 w-[108px] h-[108px] sm:w-[120px] sm:h-[120px] lg:w-[240px] lg:h-[240px] -translate-x-1/2 translate-y-[6%] lg:translate-y-[25%] transition-transform duration-[0.6s] ease-in-out pointer-events-none"
       >
         <img
           src={badge.image}
           alt={badge.name}
-          className="w-full h-full object-contain filter saturate-50 group-hover:saturate-100 group-hover:scale-[1.05] transition-all duration-[0.6s]"
+          className="w-full h-full object-contain object-bottom filter saturate-50 group-hover:saturate-100 lg:group-hover:scale-[1.05] transition-all duration-[0.6s]"
         />
       </div>
     </a>
@@ -150,18 +145,14 @@ export default function BadgesGrid() {
       {/* 2. Carousel Slider (380px cards width) */}
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-[50px] items-start">
         <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1]">
-          {/* Mobile: native touch scroll */}
-          <MobileHorizontalScroll className="lg:hidden -mx-3 px-3">
-            {BADGES.map((badge) => (
-              <div
-                key={badge.name}
-                className="shrink-0 snap-center overflow-hidden"
-                style={{ width: MOBILE_CARD_WIDTH }}
-              >
+          {/* Mobile & tablet: all badges in a grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4 lg:hidden">
+            {BADGES.map((badge, idx) => (
+              <Reveal key={badge.name} delay={idx * 0.04} className="overflow-hidden min-w-0">
                 <BadgeCard badge={badge} />
-              </div>
+              </Reveal>
             ))}
-          </MobileHorizontalScroll>
+          </div>
 
           {/* Desktop: transform carousel */}
           <div className="hidden lg:block overflow-hidden">
