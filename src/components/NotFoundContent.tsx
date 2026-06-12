@@ -75,7 +75,7 @@ export default function NotFoundContent() {
           </Reveal>
         </div>
 
-        <Reveal aboveFold duration={1.5} y={50} style={{ perspective: 800, marginTop: -40 }}>
+        <Reveal duration={1.5} y={50} style={{ perspective: 800, marginTop: -100 }}>
           <ConcentricCircles centerLabel="404" />
         </Reveal>
 

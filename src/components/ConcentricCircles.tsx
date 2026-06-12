@@ -16,13 +16,13 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     if (typeof window === "undefined" || window.innerWidth >= 1024) return;
 
     let active = true;
-    const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+    const clampCoord = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
       const gamma = e.gamma ?? 0; // -90 to 90 (left/right)
       const beta = e.beta ?? 0;   // -180 to 180 (front/back)
-      const x = clamp(gamma / 35, -1, 1);
-      const y = clamp(beta / 35, -1, 1);
+      const x = clampCoord(gamma / 35, -1, 1);
+      const y = clampCoord(beta / 35, -1, 1);
       if (active) {
         setCoords({ x, y });
       }
@@ -61,12 +61,15 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     };
   }, []);
 
+  const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (window.innerWidth < 1024 && gyroActive) return;
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const x = clamp(((e.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1);
+    const y = clamp(((e.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1);
     setCoords({ x, y });
   };
 
@@ -89,6 +92,16 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     inset: 0,
     margin: "auto",
     display: "block",
+  };
+
+  const foregroundLayerStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    margin: "auto",
+    zIndex: "auto",
+    transform: "translateZ(310px)",
+    width: 296,
+    height: 199,
   };
 
   return (
@@ -139,11 +152,8 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
           {/* Layer 3: Foreground content (logo or custom label) */}
           {centerLabel ? (
             <motion.div
-              className="absolute inset-0 flex items-center justify-center font-black text-[clamp(72px,14vw,128px)] leading-none tracking-[-0.06em] text-[#c5c5c5] select-none pointer-events-none"
-              style={{
-                zIndex: "auto",
-                transform: "translateZ(310px)",
-              }}
+              className="flex items-center justify-center font-black text-[clamp(72px,14vw,128px)] leading-none tracking-[-0.06em] text-[#c5c5c5] select-none pointer-events-none"
+              style={{ ...foregroundLayerStyle, display: "flex" }}
               animate={{ x: 44 * coords.x, y: 44 * coords.y }}
               transition={springTransition}
             >
@@ -156,7 +166,7 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
               viewBox="0 0 296 199"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(310px)", width: 296, height: 199 }}
+              style={{ ...foregroundLayerStyle, display: "block" }}
               animate={{ x: 44 * coords.x, y: 44 * coords.y }}
               transition={springTransition}
             >
