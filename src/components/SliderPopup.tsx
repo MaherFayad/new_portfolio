@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 
@@ -25,6 +25,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
   const [shouldRender, setShouldRender] = useState(false);
   const [active, setActive] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const isFirstRender = useRef(true);
 
@@ -39,6 +40,14 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1023px)");
+    const update = () => setAnimationsEnabled(!query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
   // Sync state with open/close transition
   useEffect(() => {
     if (!mounted) return;
@@ -46,22 +55,32 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     if (isOpen) {
       isFirstRender.current = false;
       setShouldRender(true);
-      // Trigger open transition in the next tick
-      const timer = setTimeout(() => {
-        setActive(true);
-        closeBtnRef.current?.focus();
-      }, 20);
-      return () => clearTimeout(timer);
-    } else {
-      if (isFirstRender.current) return;
-      setActive(false);
-      // Wait for exit transition to complete before unmounting from DOM
+
+      if (animationsEnabled) {
+        const timer = setTimeout(() => {
+          setActive(true);
+          closeBtnRef.current?.focus();
+        }, 20);
+        return () => clearTimeout(timer);
+      }
+
+      setActive(true);
+      closeBtnRef.current?.focus();
+      return;
+    }
+
+    if (isFirstRender.current) return;
+    setActive(false);
+
+    if (animationsEnabled) {
       const timer = setTimeout(() => {
         setShouldRender(false);
       }, 700);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, mounted]);
+
+    setShouldRender(false);
+  }, [isOpen, mounted, animationsEnabled]);
 
   // Load popup background image
   useEffect(() => {
@@ -95,14 +114,52 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
   if (!mounted || !shouldRender || !currentCard) return null;
 
+  const backdropStyle: CSSProperties = animationsEnabled
+    ? {
+        opacity: active ? 1 : 0,
+        transition: "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)",
+      }
+    : { opacity: 1 };
+
+  const drawerStyle: CSSProperties = animationsEnabled
+    ? {
+        transform: active ? "translateX(0%)" : "translateX(100%)",
+        borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
+        borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
+        transition:
+          "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)",
+      }
+    : {
+        transform: "translateX(0%)",
+        borderTopLeftRadius: "0% 0%",
+        borderBottomLeftRadius: "0% 0%",
+      };
+
+  const revealStyle = (delay: string): CSSProperties =>
+    animationsEnabled
+      ? {
+          opacity: active ? 1 : 0,
+          transform: active ? "translateY(0)" : "translateY(20px)",
+          transition: `opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) ${delay}, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) ${delay}`,
+        }
+      : { opacity: 1, transform: "translateY(0)" };
+
+  const listItemStyle = (idx: number): CSSProperties =>
+    animationsEnabled
+      ? {
+          opacity: active ? 1 : 0,
+          transform: active ? "translateY(0)" : "translateY(20px)",
+          transition: `opacity 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s`,
+        }
+      : { opacity: 1, transform: "translateY(0)" };
+
   return createPortal(
     <>
       {/* Background Overlay Backdrop */}
       <div
         className="fixed inset-0 z-[100] cursor-pointer bg-black/60"
         style={{
-          opacity: active ? 1 : 0,
-          transition: "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)",
+          ...backdropStyle,
           pointerEvents: isOpen ? "auto" : "none",
         }}
         onClick={onClose}
@@ -121,10 +178,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
       <div
         className="slider-popup-drawer fixed top-0 right-0 h-screen z-[101] w-[600px] max-w-full flex flex-col overflow-y-auto overflow-x-hidden bg-black"
         style={{
-          transform: active ? "translateX(0%)" : "translateX(100%)",
-          borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
-          borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
-          transition: "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)",
+          ...drawerStyle,
           pointerEvents: isOpen ? "auto" : "none",
         }}
         role="dialog"
@@ -162,33 +216,21 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           <h2
             id="slider-popup-title"
             className="font-medium text-[32px] max-sm:text-[38px] sm:text-[42px] lg:text-[48px] leading-[100%] tracking-[-0.06em] text-white mb-4"
-            style={{
-              opacity: active ? 1 : 0,
-              transform: active ? "translateY(0)" : "translateY(20px)",
-              transition: "opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s",
-            }}
+            style={revealStyle("0.3s")}
           >
             {currentCard.title}
           </h2>
 
           <p
             className="font-medium max-sm:text-base sm:text-[20px] lg:text-[24px] leading-[120%] tracking-[-0.03em] text-white mb-6 pt-5"
-            style={{
-              opacity: active ? 1 : 0,
-              transform: active ? "translateY(0)" : "translateY(20px)",
-              transition: "opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.4s, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.4s",
-            }}
+            style={revealStyle("0.4s")}
           >
             {currentCard.subtitle}
           </p>
 
           <p
             className="font-normal text-sm leading-[125%] tracking-[-0.02em] text-white/60 mb-10"
-            style={{
-              opacity: active ? 1 : 0,
-              transform: active ? "translateY(0)" : "translateY(20px)",
-              transition: "opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.45s, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) 0.45s",
-            }}
+            style={revealStyle("0.45s")}
           >
             {currentCard.paragraph}
           </p>
@@ -198,11 +240,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
             {currentCard.points.map((pt, idx) => (
               <li
                 key={idx}
-                style={{
-                  opacity: active ? 1 : 0,
-                  transform: active ? "translateY(0)" : "translateY(20px)",
-                  transition: `opacity 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s`,
-                }}
+                style={listItemStyle(idx)}
               >
                 <span className="font-medium text-4xl leading-[100%] tracking-[-0.02em] text-white">
                   {pt}
@@ -214,11 +252,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           {/* Footer Action Buttons */}
           <div
             className="flex gap-3 mt-auto"
-            style={{
-              opacity: active ? 1 : 0,
-              transform: active ? "translateY(0)" : "translateY(20px)",
-              transition: "opacity 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) 0.85s, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) 0.85s",
-            }}
+            style={revealStyle("0.85s")}
           >
             <Link
               href="/contacts"
