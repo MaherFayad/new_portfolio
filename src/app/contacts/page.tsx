@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Reveal from "@/components/Reveal";
-import AnimatedText from "@/components/AnimatedText";
 import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import emailjs from "@emailjs/browser";
-import { useHomeRevealGate } from "@/components/HomeRevealGate";
 
 export default function ContactsPage() {
-  const router = useRouter();
-  const revealGate = useHomeRevealGate();
 
   // Clock state
   const [timeState, setTimeState] = useState({
@@ -175,9 +169,10 @@ export default function ContactsPage() {
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-5 mt-[5rem] max-sm:mt-8 items-start">
 
         {/* Left Column: Office Hours */}
-        <div
+        <Reveal
+          aboveFold
+          delay={0.2}
           className="col-[2/4] max-sm:col-[1/3] sm:col-[1/3] md:col-[1/3] lg:col-[2/6] flex flex-col"
-          style={revealGate ? { animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s both" } : { opacity: 0 }}
         >
           <p className="font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] !text-[1em]">
             Available from
@@ -212,12 +207,13 @@ export default function ContactsPage() {
           <p className="mt-[0.625rem] font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5] opacity-50">
             Saturday to Thursday GMT+3
           </p>
-        </div>
+        </Reveal>
 
         {/* Right Column: Parallax Riyadh Clock Widget */}
-        <div
+        <Reveal
+          aboveFold
+          delay={0.3}
           className="col-[8/12] max-sm:col-[2/5] sm:col-[3/5] md:col-[3/5] lg:col-[8/12]"
-          style={revealGate ? { animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s both" } : { opacity: 0 }}
         >
           <div className="grid grid-cols-4 gap-5 items-start">
             <img
@@ -259,7 +255,7 @@ export default function ContactsPage() {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
 
       </div>
 
@@ -271,9 +267,11 @@ export default function ContactsPage() {
       >
 
         {/* Name input */}
-        <div
+        <Reveal
+          aboveFold
+          delay={0.4}
+          duration={0.8}
           className="col-[2/7] max-sm:col-[1/5] sm:col-[1/3] md:col-[1/3] lg:col-[2/7] relative"
-          style={revealGate ? { animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.4s both" } : { opacity: 0 }}
         >
           <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
             <label
@@ -316,12 +314,14 @@ export default function ContactsPage() {
               </p>
             )}
           </div>
-        </div>
+        </Reveal>
 
         {/* Email input */}
-        <div
+        <Reveal
+          aboveFold
+          delay={0.5}
+          duration={0.8}
           className="col-[7/12] max-sm:col-[1/5] sm:col-[3/5] md:col-[3/5] lg:col-[7/12] relative"
-          style={revealGate ? { animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s both" } : { opacity: 0 }}
         >
           <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
             <label
@@ -364,12 +364,14 @@ export default function ContactsPage() {
               </p>
             )}
           </div>
-        </div>
+        </Reveal>
 
         {/* Message input & Submit Button */}
-        <div
+        <Reveal
+          aboveFold
+          delay={0.6}
+          duration={0.8}
           className="col-[2/12] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[2/12] mt-[1.56rem] relative"
-          style={revealGate ? { animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.6s both" } : { opacity: 0 }}
         >
           <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
             <label
@@ -436,7 +438,7 @@ export default function ContactsPage() {
               {submitError}
             </p>
           )}
-        </div>
+        </Reveal>
 
       </form>
 

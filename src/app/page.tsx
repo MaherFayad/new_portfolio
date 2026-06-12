@@ -373,52 +373,54 @@ export default function HomePage() {
       </section>
 
       {/* 4. Parallax mockups container */}
-      <section
-        ref={parallaxRef}
-        className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]"
-      >
-        <Reveal className="absolute inset-0 z-0 overflow-hidden">
-          <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
-          <motion.div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]" style={{ y: bgY }}>
-            {/* Background Gradient Mesh Blobs replicating SolverCorp */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-              {/* Blue Blur Blob (Left/Center) */}
-              <div className="absolute mt-[-10%] md:mt-0 left-[-80%] md:left-[-25%] bg-[#1146F2] blur-[180px] w-[1537px] md:w-[1809px] h-[1444px] rounded-full opacity-60" />
-              {/* Purple Blur Blob (Right/Top) */}
-              <div className="absolute right-[-80%] md:right-[-10%] bg-[#873AE3] blur-[150px] w-[1710px] h-[1367px] rounded-full opacity-60" />
-              {/* Dark Overlap Blending Mask (Bottom/Center) */}
-              <div className="absolute ml-[-90%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[142px] w-[1502px] md:w-[2774px] h-[1174px] md:h-[1444px] rounded-full opacity-90" />
+      <Reveal>
+        <section
+          ref={parallaxRef}
+          className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]"
+        >
+          <Reveal className="absolute inset-0 z-0 overflow-hidden">
+            <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
+            <motion.div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]" style={{ y: bgY }}>
+              {/* Background Gradient Mesh Blobs replicating SolverCorp */}
+              <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                {/* Blue Blur Blob (Left/Center) */}
+                <div className="absolute mt-[-10%] md:mt-0 left-[-80%] md:left-[-25%] bg-[#1146F2] blur-[180px] w-[1537px] md:w-[1809px] h-[1444px] rounded-full opacity-60" />
+                {/* Purple Blur Blob (Right/Top) */}
+                <div className="absolute right-[-80%] md:right-[-10%] bg-[#873AE3] blur-[150px] w-[1710px] h-[1367px] rounded-full opacity-60" />
+                {/* Dark Overlap Blending Mask (Bottom/Center) */}
+                <div className="absolute ml-[-90%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[142px] w-[1502px] md:w-[2774px] h-[1174px] md:h-[1444px] rounded-full opacity-90" />
+              </div>
+            </motion.div>
+          </Reveal>
+
+          {/* Floating Phones */}
+          <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
+            <div className="relative w-full max-w-[1200px] h-full flex justify-center items-end">
+
+              {/* Back phone */}
+              <div className="absolute left-1/2 z-[1] float-back-phone-anim" style={{ bottom: "clamp(-100px, -15vw, -60px)", width: "fit-content" }}>
+                <img
+                  alt="Back Phone"
+                  className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
+                  src="/back-phone.png"
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Top phone */}
+              <div className="absolute left-1/2 z-[5] float-top-phone-anim" style={{ bottom: "clamp(-60px, -10vw, -30px)", width: "fit-content" }}>
+                <img
+                  alt="Top Phone"
+                  className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
+                  src="/top-phone.png"
+                  loading="lazy"
+                />
+              </div>
+
             </div>
-          </motion.div>
-        </Reveal>
-
-        {/* Floating Phones */}
-        <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
-          <div className="relative w-full max-w-[1200px] h-full flex justify-center items-end">
-
-            {/* Back phone */}
-            <div className="absolute left-1/2 z-[1] float-back-phone-anim" style={{ bottom: "clamp(-100px, -15vw, -60px)", width: "fit-content" }}>
-              <img
-                alt="Back Phone"
-                className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/back-phone.png"
-                loading="lazy"
-              />
-            </div>
-
-            {/* Top phone */}
-            <div className="absolute left-1/2 z-[5] float-top-phone-anim" style={{ bottom: "clamp(-60px, -10vw, -30px)", width: "fit-content" }}>
-              <img
-                alt="Top Phone"
-                className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/top-phone.png"
-                loading="lazy"
-              />
-            </div>
-
           </div>
-        </div>
-      </section>
+        </section>
+      </Reveal>
 
       {/* 5. Projects list section */}
       <ProjectsList />

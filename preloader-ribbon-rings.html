@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ribbon-Ring Preloader — olhalazarieva.com reconstruction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@400;800;900&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f7f7f7; --ink: #101010; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; background: var(--bg); font-family: 'Sofia Sans Condensed', sans-serif; }
+
+  /* ---------- Preloader (matches .loader on the original site) ---------- */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+  }
+  .loader canvas { display: block; width: 100%; height: 100%; }
+
+  .loader-counter {
+    position: absolute;
+    left: 50%;
+    bottom: 22vh;
+    transform: translateX(-50%);
+    font-size: 23px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    opacity: 0;                /* GSAP fades it in at t≈2.3s */
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Page content revealed after the loader exits ---------- */
+  main { opacity: 0; min-height: 100vh; display: grid; place-items: center; }
+  .hero-title {
+    font-weight: 900;
+    font-size: clamp(48px, 12vw, 180px);
+    line-height: 0.9;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: flex;
+  }
+  .hero-letter-mask { overflow: hidden; display: inline-block; }
+  .hero-letter { display: inline-block; transform: translateY(110%); }
+</style>
+</head>
+<body>
+
+<div class="loader">
+  <!-- three.js canvas is injected here -->
+  <div class="loader-counter">0%</div>
+</div>
+
+<main>
+  <h1 class="hero-title" aria-label="PORTFOLIO"></h1>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* =========================================================================
+   1. RIBBON TEXTURES
+   The original loads two PNGs (2048 wide, ~32–128px tall strips of text on
+   transparency) and composites them centered onto a 2048×1024 transparent
+   canvas (their bk() helper). We generate the same thing procedurally so
+   you can change the copy without exporting images.
+   ========================================================================= */
+function makeRibbonTexture({ text, stripHeight, fontCSS, letterSpacing = 0, fill = '#ececec' }) {
+  const W = 2048, H = 1024;
+  const cnv = document.createElement('canvas');
+  cnv.width = W; cnv.height = H;
+  const ctx = cnv.getContext('2d');
+
+  // thin opaque strip at the vertical center → becomes the sphere's equator band
+  const y0 = (H - stripHeight) / 2;
+  ctx.fillStyle = fill;
+  ctx.fillRect(0, y0, W, stripHeight);
+
+  // text, stretched to span the full strip width (full wrap around the sphere)
+  ctx.fillStyle = '#111111';
+  ctx.font = fontCSS;
+  ctx.textBaseline = 'middle';
+  const metrics = ctx.measureText(text);
+  const pad = 24;
+  const scaleX = (W - pad * 2) / (metrics.width + letterSpacing * text.length);
+  ctx.save();
+  ctx.translate(pad, H / 2);
+  ctx.scale(scaleX, 1);
+  if (letterSpacing > 0) {
+    let x = 0;
+    for (const ch of text) { ctx.fillText(ch, x, 2); x += ctx.measureText(ch).width + letterSpacing; }
+  } else {
+    ctx.fillText(text, 0, 2);
+  }
+  ctx.restore();
+
+  // same texture settings as the original (CanvasTexture, clamp, linear, no mips)
+  const tex = new THREE.CanvasTexture(cnv);
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/* =========================================================================
+   2. SHADER MATERIAL — verbatim from the site's "AlphaSmoothMaterial"
+   Discards near-transparent texels, smooths the alpha edge, premultiplies.
+   This is what turns a textured sphere into a clean floating text ring.
+   ========================================================================= */
+function alphaSmoothMaterial(map) {
+  return new THREE.ShaderMaterial({
+    uniforms: { map: { value: map } },
+    vertexShader: /* glsl */`
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */`
+      uniform sampler2D map;
+      varying vec2 vUv;
+      void main() {
+        vec4 texColor = texture2D(map, vUv);
+        float alphaThreshold = 0.05;
+        if (texColor.a < alphaThreshold) discard;
+        float alphaFactor = smoothstep(alphaThreshold, alphaThreshold + 0.05, texColor.a);
+        vec3 premultipliedRGB = texColor.rgb * alphaFactor;
+        gl_FragColor = vec4(premultipliedRGB, texColor.a * alphaFactor);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+  });
+}
+
+/* =========================================================================
+   3. SCENE — camera z=6 fov=50, bg #f7f7f7, two unit spheres in a tilted,
+   gently wobbling group. Exact values lifted from the bundle.
+   ========================================================================= */
+const loaderEl  = document.querySelector('.loader');
+const counterEl = document.querySelector('.loader-counter');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+loaderEl.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#f7f7f7');
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0, 6);
+
+// outer group: tilted toward the viewer on desktop (rotation.x = -0.6)
+const tiltGroup = new THREE.Group();
+tiltGroup.rotation.x = window.innerWidth > 768 ? -0.6 : 0;
+scene.add(tiltGroup);
+
+// inner group: the slow ambient wobble
+const wobbleGroup = new THREE.Group();
+tiltGroup.add(wobbleGroup);
+
+const RIBBON_A = {
+  text: 'DESIGN THAT CHANGES THE WORLD',
+  stripHeight: 150,
+  fontCSS: '800 120px "Sofia Sans Condensed", sans-serif',
+};
+const RIBBON_B = {
+  text: 'WEB DESIGN • UX/UI DESIGN • CREATIVE DESIGN • PRODUCT AND APP DESIGN • DEVELOPMENT',
+  stripHeight: 44,
+  fontCSS: '400 30px "Space Mono", monospace',
+};
+
+const geo = new THREE.SphereGeometry(1, 64, 64);
+const ringA = new THREE.Mesh(geo, alphaSmoothMaterial(makeRibbonTexture(RIBBON_A))); // headline ring
+const ringB = new THREE.Mesh(geo, alphaSmoothMaterial(makeRibbonTexture(RIBBON_B))); // services ring
+wobbleGroup.add(ringA, ringB);
+
+/* =========================================================================
+   4. ANIMATION CHOREOGRAPHY — every number from the original timelines
+   ========================================================================= */
+
+// -- entrance: rings rise from below ------------------------------------
+ringA.position.y = -8;
+ringB.position.y = -8;
+function startChoreography() {
+  const enter = gsap.timeline();
+  enter.to(ringA.position, { y:  0.18, duration: 2.5, delay: 1, ease: 'power4.out' });
+  enter.to(ringB.position, { y: -0.18, duration: 2,   ease: 'power4.out' }, '-=2');
+
+  // -- counter: fake progress, runs AFTER assets are ready ----------------
+  // (the original waits for drei useProgress().active === false, then plays this)
+  const counterState = { value: 0 };
+  const counterTl = gsap.timeline({ onComplete: exitLoader });
+  counterTl.to(counterEl, { opacity: 1, duration: 0.6, delay: 2.3 });
+  counterTl.to(counterState, {
+    value: 100, duration: 4, delay: 0.5, ease: 'power3.out',
+    onUpdate: () => { counterEl.textContent = Math.round(counterState.value) + '%'; },
+  }, '-=0.3');
+  counterTl.to(counterEl, { opacity: 0, duration: 0.3 });
+}
+
+// -- exit: rings drop, page reveals --------------------------------------
+function exitLoader() {
+  const tl = gsap.timeline();
+  tl.to(ringB.position, { y: -10, duration: 1.2, ease: 'power4.in' });
+  tl.to(ringA.position, { y: -10, duration: 1.2, ease: 'power4.in' }, '-=1.1');
+  tl.to('main', { opacity: 1, duration: 1, ease: 'power4.out' }, '-=0.4');
+  tl.to('.loader', { opacity: 0, duration: 0.5, ease: 'power4.out', onComplete: () => loaderEl.remove() }, '<');
+  // hero letters stagger up from the center outward (same as the site)
+  gsap.to('.hero-letter', {
+    y: 0, delay: 0.5, duration: 1.7, ease: 'power4.inOut',
+    stagger: { each: 0.03, from: 'center' },
+  });
+}
+
+// -- per-frame motion (their useFrame callback) ---------------------------
+const clock = new THREE.Clock();
+function tick() {
+  const delta = clock.getDelta();
+  const t = clock.elapsedTime;
+
+  ringA.rotation.y -= 0.3 * delta;   // headline ring: slow spin
+  ringB.rotation.y -= 0.5 * delta;   // services ring: faster spin
+
+  wobbleGroup.rotation.x = 0.4 + 0.05 * Math.sin(0.2 * t);
+  wobbleGroup.rotation.z = 0.2 + 0.05 * Math.cos(0.25 * t);
+  wobbleGroup.position.y = 0.05 * Math.sin(0.3 * t);
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+// -- hero text setup -------------------------------------------------------
+const heroTitle = document.querySelector('.hero-title');
+for (const ch of 'PORTFOLIO') {
+  const mask = document.createElement('span');
+  mask.className = 'hero-letter-mask';
+  const letter = document.createElement('span');
+  letter.className = 'hero-letter';
+  letter.textContent = ch;
+  mask.appendChild(letter);
+  heroTitle.appendChild(mask);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// wait for the webfonts, then redraw the ribbons with the real typefaces
+// (canvas ctx.font does not trigger font loading by itself)
+Promise.all([
+  document.fonts.load('800 120px "Sofia Sans Condensed"'),
+  document.fonts.load('400 30px "Space Mono"'),
+]).catch(() => {}).then(() => {
+  ringA.material.uniforms.map.value = makeRibbonTexture(RIBBON_A);
+  ringB.material.uniforms.map.value = makeRibbonTexture(RIBBON_B);
+  tick();
+  startChoreography();
+});
+</script>
+</body>
+</html>

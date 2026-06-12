@@ -46,7 +46,7 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
     } else {
       const timer = setTimeout(() => {
         setRevealActive(true);
-      }, 200);
+      }, 20);
       return () => clearTimeout(timer);
     }
   }, [status]);
@@ -201,7 +201,7 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
 
             {/* Diagonal Grid Container of grey lines */}
             <div
-              className="absolute w-[180vw] h-[180vh] top-[-40vh] left-[-40vw] pointer-events-none flex gap-5 justify-between"
+              className="absolute w-[240vw] h-[240vh] top-[-70vh] left-[-70vw] pointer-events-none flex gap-5 justify-between"
               style={{
                 transform: "rotate(-35deg)",
               }}
@@ -221,7 +221,7 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
                         key={barIdx}
                         className="w-full bg-[#121212] rounded-xs shrink-0"
                         style={{
-                          height: `calc(${factor} * (180vh - 11 * 20px) / 18)`,
+                          height: `calc(${factor} * (240vh - 11 * 20px) / 18)`,
                         }}
                         custom={{ track: trackIdx, block: barIdx }}
                         variants={blockVariants}

@@ -1,55 +1,84 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useLenis } from "lenis/react";
 import SmoothScroll from "@/components/SmoothScroll";
 import Preloader from "@/components/Preloader";
 import { HomeRevealGateProvider } from "@/components/HomeRevealGate";
 import { PageTransitionProvider } from "@/components/PageTransition";
 
-export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
-
-  // Preloader only runs on the very first load of the homepage
-  const [preloaderActive, setPreloaderActive] = useState(isHome);
-  const [pageActive, setPageActive] = useState(!isHome);
-  const prevPathRef = useRef(pathname);
-
+function PreloaderScrollReset({
+  pageActive,
+  preloaderActive,
+}: {
+  pageActive: boolean;
+  preloaderActive: boolean;
+}) {
   const lenis = useLenis();
 
-  useEffect(() => {
-    const prev = prevPathRef.current;
-    if (prev !== pathname) {
-      prevPathRef.current = pathname;
-      if (isHome && prev !== "/" && prev !== "") {
-        setPreloaderActive(false);
-        setPageActive(true);
-      } else if (!isHome) {
-        setPreloaderActive(false);
-        setPageActive(true);
-      }
-    }
-  }, [pathname, isHome]);
-
-  // Handle locking scroll while preloader runs
-  useEffect(() => {
+  const scrollPageToTop = useCallback(() => {
     if (lenis) {
-      if (preloaderActive && !pageActive) {
-        lenis.stop();
-      } else {
-        lenis.start();
+      lenis.scrollTo(0, { immediate: true });
+    }
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [lenis]);
+
+  useEffect(() => {
+    if (typeof history !== "undefined" && "scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useEffect(() => {
+    if (pageActive) {
+      scrollPageToTop();
+    }
+  }, [pageActive, scrollPageToTop]);
+
+  useEffect(() => {
+    if (!preloaderActive) {
+      scrollPageToTop();
+    }
+  }, [preloaderActive, scrollPageToTop]);
+
+  useEffect(() => {
+    if (!lenis) return;
+
+    if (preloaderActive && !pageActive) {
+      lenis.stop();
+    } else {
+      lenis.start();
+      if (pageActive) {
+        scrollPageToTop();
       }
     }
-  }, [preloaderActive, pageActive, lenis]);
+  }, [preloaderActive, pageActive, lenis, scrollPageToTop]);
 
-  const showPreloader = isHome && preloaderActive;
-  const showPage = pageActive || (isHome && preloaderActive && !pageActive);
-  const gateValue = !isHome || pageActive;
+  return null;
+}
+
+export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  // Preloader runs on the first load of any page
+  const [preloaderActive, setPreloaderActive] = useState(true);
+  const [pageActive, setPageActive] = useState(false);
+  const prevPathRef = useRef(pathname);
+
+  useEffect(() => {
+    prevPathRef.current = pathname;
+  }, [pathname]);
+
+  const showPreloader = preloaderActive;
+  const showPage = true; // Always mount page and transition provider for page-to-page transitions
+  const gateValue = pageActive; // Reveal components wait for the preloader to complete
 
   return (
     <SmoothScroll>
+      <PreloaderScrollReset pageActive={pageActive} preloaderActive={preloaderActive} />
       <HomeRevealGateProvider value={gateValue}>
         {showPreloader && (
           <Preloader
@@ -62,7 +91,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
             <div
               className="relative z-0"
               style={
-                isHome && !pageActive
+                !pageActive
                   ? { opacity: 0, pointerEvents: "none" }
                   : {
                       animation: "page-fade-in 0.8s cubic-bezier(0.76, 0, 0.24, 1) forwards",
