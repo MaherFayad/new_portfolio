@@ -21,6 +21,7 @@ function PreloaderScrollReset({
   preloaderActive: boolean;
 }) {
   const lenis = useLenis();
+  const didInitialScrollReset = useRef(false);
 
   const scrollPageToTop = useCallback(() => {
     if (lenis) {
@@ -37,30 +38,23 @@ function PreloaderScrollReset({
     }
   }, []);
 
+  // Reset scroll once when the page first reveals — not again when preloader unmounts or Lenis mounts.
   useEffect(() => {
-    if (pageActive) {
+    if (pageActive && !didInitialScrollReset.current) {
+      didInitialScrollReset.current = true;
       scrollPageToTop();
     }
   }, [pageActive, scrollPageToTop]);
-
-  useEffect(() => {
-    if (!preloaderActive) {
-      scrollPageToTop();
-    }
-  }, [preloaderActive, scrollPageToTop]);
 
   useEffect(() => {
     if (!lenis) return;
 
     if (preloaderActive && !pageActive) {
       lenis.stop();
-    } else {
+    } else if (pageActive) {
       lenis.start();
-      if (pageActive) {
-        scrollPageToTop();
-      }
     }
-  }, [preloaderActive, pageActive, lenis, scrollPageToTop]);
+  }, [preloaderActive, pageActive, lenis]);
 
   return null;
 }
