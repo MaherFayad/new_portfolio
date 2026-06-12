@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 
-export default function ConcentricCircles() {
+interface ConcentricCirclesProps {
+  centerLabel?: ReactNode;
+}
+
+export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [gyroActive, setGyroActive] = useState(false);
@@ -132,27 +136,40 @@ export default function ConcentricCircles() {
             transition={springTransition}
           />
 
-          {/* Layer 3: Foreground content (Maher Fayad logo and name) */}
-          <motion.svg
-            width={296}
-            height={199}
-            viewBox="0 0 296 199"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(310px)", width: 296, height: 199 }}
-            animate={{ x: 44 * coords.x, y: 44 * coords.y }}
-            transition={springTransition}
-          >
-            {/* Maher Fayad Logo in the Center (scaled and shifted to center x=148, y=99.5) */}
-            <g transform="translate(90, 65)">
-              <rect width="20" height="69" fill="#C5C5C5"/>
-              <rect x="24" width="20" height="55" fill="#C5C5C5"/>
-              <rect x="48" width="20" height="69" fill="#C5C5C5"/>
-              <rect x="72" width="20" height="69" fill="#C5C5C5"/>
-              <rect x="96" width="20" height="20" fill="#C5C5C5"/>
-              <rect x="96" y="24" width="20" height="20" fill="#C5C5C5"/>
-            </g>
-          </motion.svg>
+          {/* Layer 3: Foreground content (logo or custom label) */}
+          {centerLabel ? (
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center font-black text-[clamp(72px,14vw,128px)] leading-none tracking-[-0.06em] text-[#c5c5c5] select-none pointer-events-none"
+              style={{
+                zIndex: "auto",
+                transform: "translateZ(310px)",
+              }}
+              animate={{ x: 44 * coords.x, y: 44 * coords.y }}
+              transition={springTransition}
+            >
+              {centerLabel}
+            </motion.div>
+          ) : (
+            <motion.svg
+              width={296}
+              height={199}
+              viewBox="0 0 296 199"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(310px)", width: 296, height: 199 }}
+              animate={{ x: 44 * coords.x, y: 44 * coords.y }}
+              transition={springTransition}
+            >
+              <g transform="translate(90, 65)">
+                <rect width="20" height="69" fill="#C5C5C5"/>
+                <rect x="24" width="20" height="55" fill="#C5C5C5"/>
+                <rect x="48" width="20" height="69" fill="#C5C5C5"/>
+                <rect x="72" width="20" height="69" fill="#C5C5C5"/>
+                <rect x="96" width="20" height="20" fill="#C5C5C5"/>
+                <rect x="96" y="24" width="20" height="20" fill="#C5C5C5"/>
+              </g>
+            </motion.svg>
+          )}
         </motion.div>
       </div>
     </div>

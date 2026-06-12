@@ -1,5 +1,5 @@
 // Static project data, imported directly by components (no client-side fetch).
-// Single source of truth for /projects pages, the home list, and /api/projects.
+// Single source of truth for /projects pages and the home list.
 
 export interface Project {
   slug: string;

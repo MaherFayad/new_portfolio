@@ -507,14 +507,14 @@ export default function HomePage() {
       {/* 8. Interactive Divider 2 */}
       <WavyString className="mt-20" />
 
-      {/* 9. About Studio section */}
+      {/* 9. About section */}
       <section className="relative">
         <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
 
           {/* Header left */}
           <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>About</span>
-            <span>Studio</span>
+            <span>Maher</span>
           </Reveal>
 
           {/* Logo middle */}
