@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useLenis } from "lenis/react";
@@ -33,7 +33,10 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
   const [imgLoaded, setImgLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
+  const enterFrameRef = useRef(0);
 
   const cardRef = useRef<CardData | null>(null);
   if (card) {
@@ -58,15 +61,9 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
     if (isOpen) {
       isFirstRender.current = false;
+      setActive(false);
       setShouldRender(true);
-
-      const frame = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setActive(true);
-          closeBtnRef.current?.focus();
-        });
-      });
-      return () => cancelAnimationFrame(frame);
+      return;
     }
 
     if (isFirstRender.current) return;
@@ -77,6 +74,28 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     }, CLOSE_MS);
     return () => clearTimeout(timer);
   }, [isOpen, mounted]);
+
+  useLayoutEffect(() => {
+    if (!shouldRender || !isOpen) return;
+
+    const backdrop = backdropRef.current;
+    const drawer = drawerRef.current;
+    backdrop?.getBoundingClientRect();
+    drawer?.getBoundingClientRect();
+
+    let innerFrame = 0;
+    enterFrameRef.current = requestAnimationFrame(() => {
+      innerFrame = requestAnimationFrame(() => {
+        setActive(true);
+        closeBtnRef.current?.focus();
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(enterFrameRef.current);
+      cancelAnimationFrame(innerFrame);
+    };
+  }, [shouldRender, isOpen]);
 
   useEffect(() => {
     if (!shouldRender) return;
@@ -143,6 +162,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
   return createPortal(
     <>
       <div
+        ref={backdropRef}
         className={`slider-popup-backdrop fixed inset-0 z-[100] cursor-pointer bg-black/60 ${activeClass}`}
         onClick={onClose}
         role="button"
@@ -157,6 +177,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
       />
 
       <div
+        ref={drawerRef}
         className={`slider-popup-drawer fixed top-0 right-0 z-[101] flex h-dvh w-[600px] max-w-full flex-col overflow-hidden bg-black ${activeClass}`}
         role="dialog"
         aria-modal="true"

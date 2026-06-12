@@ -265,6 +265,12 @@ html.slider-popup-open body {
   pointer-events: auto;
 }
 
+@starting-style {
+  .slider-popup-backdrop.is-active {
+    opacity: 0;
+  }
+}
+
 .slider-popup-drawer {
   transform: translate3d(100%, 0, 0);
   pointer-events: none;
@@ -275,6 +281,12 @@ html.slider-popup-open body {
 .slider-popup-drawer.is-active {
   transform: translate3d(0, 0, 0);
   pointer-events: auto;
+}
+
+@starting-style {
+  .slider-popup-drawer.is-active {
+    transform: translate3d(100%, 0, 0);
+  }
 }
 
 @media (max-width: 1023px) {

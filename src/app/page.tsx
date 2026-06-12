@@ -99,6 +99,10 @@ export default function HomePage() {
   const stickyActiveRef = useRef(false);
   const activeSectionRef = useRef("honors");
 
+  useEffect(() => {
+    void import("@/components/SliderPopup");
+  }, []);
+
   // Show/hide fixed sticky header on scroll up
   useEffect(() => {
     let lastScroll = 0;
