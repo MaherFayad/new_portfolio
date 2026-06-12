@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useHomeRevealGate } from "@/components/HomeRevealGate";
+import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import WavyString from "@/components/WavyString";
 import FooterStripe from "@/components/FooterStripe";
@@ -17,6 +19,7 @@ import { PROJECTS } from "@/data/projects";
 export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
+  const revealGate = useHomeRevealGate();
   const slug = params.slug as string;
 
   // Static data, resolved synchronously (no fetch, no loading screen)
@@ -42,7 +45,7 @@ export default function ProjectPage() {
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip">
 
       {/* Top Header bar */}
-      <header className="w-full mt-5 relative z-10">
+      <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
           <div className="col-span-1 lg:col-span-3">
             <Glitch>
@@ -86,32 +89,35 @@ export default function ProjectPage() {
             </span>
           </div>
         </div>
-      </header>
+      </Reveal>
 
       {/* Main Title Section */}
-      <section
-        className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-x-5 lg:gap-y-0 mt-[6.25rem] max-sm:mt-[4rem]"
-        style={{ animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.15s both" }}
-      >
-        <h1 className="col-[3/9] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/9] row-start-1 text-[#c5c5c5] font-medium text-[64px] leading-[100%] tracking-[-0.06em] self-start max-sm:text-[clamp(28px,8vw,40px)]">
+      <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-x-5 lg:gap-y-0 mt-[6.25rem] max-sm:mt-[4rem]">
+        <Reveal
+          aboveFold
+          as="h1"
+          className="col-[3/9] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/9] row-start-1 text-[#c5c5c5] font-medium text-[64px] leading-[100%] tracking-[-0.06em] self-start max-sm:text-[clamp(28px,8vw,40px)]"
+        >
           <span className="block whitespace-pre-line">{project.title}</span>
-        </h1>
+        </Reveal>
 
-        <p className="col-[4/8] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:max-xl:col-[4/10] xl:col-[4/8] row-start-2 font-medium text-xl leading-[100%] tracking-[-0.03em] text-[#c5c5c5] opacity-70 self-start max-sm:text-base mt-[1.2rem]">
+        <Reveal
+          aboveFold
+          delay={0.08}
+          as="p"
+          className="col-[4/8] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:max-xl:col-[4/10] xl:col-[4/8] row-start-2 font-medium text-xl leading-[100%] tracking-[-0.03em] text-[#c5c5c5] opacity-70 self-start max-sm:text-base mt-[1.2rem]"
+        >
           <span className="block pl-[calc((100%+20px)/4)] max-sm:pl-0 sm:pl-[calc((100%+20px)/4)]">
             {project.subtitle}
           </span>
-        </p>
+        </Reveal>
       </section>
 
       {project.caseFraming && <CaseFramingSection framing={project.caseFraming} />}
 
 
       {/* Image Gallery / Case Study Content Grid */}
-      <div
-        className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-x-5 lg:gap-y-0 mt-10 max-sm:mt-8"
-        style={{ animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s both" }}
-      >
+      <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-x-5 lg:gap-y-0 mt-10 max-sm:mt-8">
         <div className="col-[3/11] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[3/11] flex flex-col gap-5 w-full">
           {slug === "sanarte" ? (
             <SanarteCaseStudy />
@@ -119,7 +125,7 @@ export default function ProjectPage() {
             <LFGCaseStudy />
           ) : (
             galleryImages.map((imagePath, idx) => (
-              <div key={idx} className="w-full">
+              <Reveal key={idx} delay={idx * 0.05} className="w-full">
                 <img
                   alt={`${project.title} image ${idx + 1}`}
                   src={imagePath}
@@ -127,7 +133,7 @@ export default function ProjectPage() {
                   loading="lazy"
                   className="w-full h-auto block object-cover max-w-full"
                 />
-              </div>
+              </Reveal>
             ))
           )}
         </div>

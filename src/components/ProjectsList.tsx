@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "@/components/PageTransition";
 import { motion } from "framer-motion";
 import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
@@ -38,7 +38,7 @@ const itemVariants = {
 };
 
 export default function ProjectsList() {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const projects = PROJECTS;
   const [activeIdx, setActiveIdx] = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);

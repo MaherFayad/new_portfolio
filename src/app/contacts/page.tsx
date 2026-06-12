@@ -9,9 +9,11 @@ import AnimatedText from "@/components/AnimatedText";
 import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import emailjs from "@emailjs/browser";
+import { useHomeRevealGate } from "@/components/HomeRevealGate";
 
 export default function ContactsPage() {
   const router = useRouter();
+  const revealGate = useHomeRevealGate();
 
   // Clock state
   const [timeState, setTimeState] = useState({
@@ -125,7 +127,7 @@ export default function ContactsPage() {
     <main className="min-h-screen w-full px-5 max-sm:px-3 flex flex-col pb-[4.5rem]">
 
       {/* Header bar */}
-      <header className="w-full mt-5 relative z-10">
+      <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
           <div className="col-span-1 lg:col-span-3">
             <Glitch>
@@ -169,13 +171,13 @@ export default function ContactsPage() {
             </span>
           </div>
         </div>
-      </header>
+      </Reveal>
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-5 mt-[5rem] max-sm:mt-8 items-start">
 
         {/* Left Column: Office Hours */}
         <div
           className="col-[2/4] max-sm:col-[1/3] sm:col-[1/3] md:col-[1/3] lg:col-[2/6] flex flex-col"
-          style={{ animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s both" }}
+          style={revealGate ? { animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s both" } : { opacity: 0 }}
         >
           <p className="font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] !text-[1em]">
             Available from
@@ -215,7 +217,7 @@ export default function ContactsPage() {
         {/* Right Column: Parallax Riyadh Clock Widget */}
         <div
           className="col-[8/12] max-sm:col-[2/5] sm:col-[3/5] md:col-[3/5] lg:col-[8/12]"
-          style={{ animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s both" }}
+          style={revealGate ? { animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s both" } : { opacity: 0 }}
         >
           <div className="grid grid-cols-4 gap-5 items-start">
             <img
@@ -271,7 +273,7 @@ export default function ContactsPage() {
         {/* Name input */}
         <div
           className="col-[2/7] max-sm:col-[1/5] sm:col-[1/3] md:col-[1/3] lg:col-[2/7] relative"
-          style={{ animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.4s both" }}
+          style={revealGate ? { animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.4s both" } : { opacity: 0 }}
         >
           <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
             <label
@@ -319,7 +321,7 @@ export default function ContactsPage() {
         {/* Email input */}
         <div
           className="col-[7/12] max-sm:col-[1/5] sm:col-[3/5] md:col-[3/5] lg:col-[7/12] relative"
-          style={{ animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s both" }}
+          style={revealGate ? { animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s both" } : { opacity: 0 }}
         >
           <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
             <label
@@ -367,7 +369,7 @@ export default function ContactsPage() {
         {/* Message input & Submit Button */}
         <div
           className="col-[2/12] max-sm:col-[1/5] sm:col-[1/5] md:col-[1/5] lg:col-[2/12] mt-[1.56rem] relative"
-          style={{ animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.6s both" }}
+          style={revealGate ? { animation: "fade-up 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) 0.6s both" } : { opacity: 0 }}
         >
           <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
             <label

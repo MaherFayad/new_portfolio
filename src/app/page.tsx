@@ -169,7 +169,7 @@ export default function HomePage() {
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip flex flex-col pb-0">
 
       {/* 1. Header (Static) */}
-      <header className="w-full mt-5 relative z-10">
+      <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
           <div className="col-span-1 lg:col-span-3">
             <Glitch>
@@ -213,7 +213,7 @@ export default function HomePage() {
             </span>
           </div>
         </div>
-      </header>
+      </Reveal>
 
       {/* 2. Sticky Header (Scroll Triggered) */}
       <div

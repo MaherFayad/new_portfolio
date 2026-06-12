@@ -138,7 +138,7 @@ export default function AboutPage() {
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip flex flex-col pb-0">
 
       {/* Header (Static layout) */}
-      <header className="w-full mt-5 relative z-10">
+      <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
           <div className="col-span-1 lg:col-span-3">
             <Glitch>
@@ -182,7 +182,7 @@ export default function AboutPage() {
             </span>
           </div>
         </div>
-      </header>
+      </Reveal>
 
       {/* 1. Intro Heading (atomic hero geometry: side label, indented display H1, stats right) */}
       <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start mt-[clamp(120px,16vw,220px)] max-sm:mt-20">

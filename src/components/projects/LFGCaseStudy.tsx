@@ -62,7 +62,7 @@ export default function LFGCaseStudy() {
   return (
     <div className="w-full flex gap-10 mt-16 max-lg:flex-col items-start relative pointer-events-auto">
       {/* Sticky Table of Contents Sidebar */}
-      <aside className="w-[260px] shrink-0 sticky top-32 max-lg:hidden flex flex-col gap-4">
+      <Reveal aboveFold as="aside" className="w-[260px] shrink-0 sticky top-32 max-lg:hidden flex flex-col gap-4">
         <span className="block font-bold text-xs tracking-widest text-[rgba(197,197,197,0.4)] uppercase">
           Table of Contents
         </span>
@@ -81,7 +81,7 @@ export default function LFGCaseStudy() {
             </button>
           ))}
         </nav>
-      </aside>
+      </Reveal>
 
       {/* Main Content Article */}
       <article className="flex-1 w-full flex flex-col gap-16">

@@ -35,9 +35,9 @@ export default function Reveal({
     <MotionComp
       initial={initial}
       {...(aboveFold
-        ? { animate: aboveFold && homeRevealGate ? { opacity: 1, y: 0 } : initial }
+        ? { animate: homeRevealGate ? { opacity: 1, y: 0 } : initial }
         : {
-            whileInView: { opacity: 1, y: 0 },
+            whileInView: homeRevealGate ? { opacity: 1, y: 0 } : initial,
             viewport: { once: true, amount: 0.1, margin: "0px 0px -50px 0px" },
           })}
       transition={{ duration, delay, ease: [0.215, 0.61, 0.355, 1] }}
