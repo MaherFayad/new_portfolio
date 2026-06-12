@@ -21,15 +21,19 @@ interface SliderPopupProps {
 }
 
 const BACKDROP_TRANSITION = "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)";
-const DRAWER_TRANSITION = "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)";
+const DRAWER_SLIDE_TRANSITION = "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)";
+const DRAWER_DESKTOP_TRANSITION =
+  "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)";
 const CLOSE_MS = 700;
 const REVEAL_EASING = "cubic-bezier(0.215, 0.61, 0.355, 1)";
+const MOBILE_BREAKPOINT = "(max-width: 1023px)";
 
 export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps) {
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [active, setActive] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const isFirstRender = useRef(true);
 
@@ -41,6 +45,14 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_BREAKPOINT);
+    const update = () => setIsMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -107,20 +119,25 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     transition: BACKDROP_TRANSITION,
   };
 
-  const drawerStyle: CSSProperties = {
-    transform: active ? "translateX(0%)" : "translateX(100%)",
-    borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
-    borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
-    transition: DRAWER_TRANSITION,
-  };
+  const drawerStyle: CSSProperties = isMobile
+    ? {
+        transform: active ? "translateX(0)" : "translateX(100%)",
+        transition: DRAWER_SLIDE_TRANSITION,
+      }
+    : {
+        transform: active ? "translateX(0%)" : "translateX(100%)",
+        borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
+        borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
+        transition: DRAWER_DESKTOP_TRANSITION,
+      };
 
-  const revealStyle = (delay: string): CSSProperties => ({
+  const desktopRevealStyle = (delay: string): CSSProperties => ({
     opacity: active ? 1 : 0,
     transform: active ? "translateY(0)" : "translateY(20px)",
     transition: `opacity 0.6s ${REVEAL_EASING} ${delay}, transform 0.6s ${REVEAL_EASING} ${delay}`,
   });
 
-  const listItemStyle = (idx: number): CSSProperties => ({
+  const desktopListItemStyle = (idx: number): CSSProperties => ({
     opacity: active ? 1 : 0,
     transform: active ? "translateY(0)" : "translateY(20px)",
     transition: `opacity 0.5s ${REVEAL_EASING} ${0.5 + 0.05 * idx}s, transform 0.5s ${REVEAL_EASING} ${0.5 + 0.05 * idx}s`,
@@ -183,28 +200,28 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
           <h2
             id="slider-popup-title"
             className="font-medium text-[32px] max-sm:text-[38px] sm:text-[42px] lg:text-[48px] leading-[100%] tracking-[-0.06em] text-white mb-4"
-            style={revealStyle("0.3s")}
+            style={isMobile ? undefined : desktopRevealStyle("0.3s")}
           >
             {currentCard.title}
           </h2>
 
           <p
             className="font-medium max-sm:text-base sm:text-[20px] lg:text-[24px] leading-[120%] tracking-[-0.03em] text-white mb-6 pt-5"
-            style={revealStyle("0.4s")}
+            style={isMobile ? undefined : desktopRevealStyle("0.4s")}
           >
             {currentCard.subtitle}
           </p>
 
           <p
             className="font-normal text-sm leading-[125%] tracking-[-0.02em] text-white/60 mb-10"
-            style={revealStyle("0.45s")}
+            style={isMobile ? undefined : desktopRevealStyle("0.45s")}
           >
             {currentCard.paragraph}
           </p>
 
           <ul className="list-none p-0 m-0 mb-12 flex flex-col gap-0">
             {currentCard.points.map((pt, idx) => (
-              <li key={idx} style={listItemStyle(idx)}>
+              <li key={idx} style={isMobile ? undefined : desktopListItemStyle(idx)}>
                 <span className="font-medium text-4xl leading-[100%] tracking-[-0.02em] text-white">
                   {pt}
                 </span>
@@ -212,7 +229,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
             ))}
           </ul>
 
-          <div className="flex gap-3 mt-auto" style={revealStyle("0.85s")}>
+          <div className="flex gap-3 mt-auto" style={isMobile ? undefined : desktopRevealStyle("0.85s")}>
             <Link
               href="/contacts"
               onClick={onClose}
