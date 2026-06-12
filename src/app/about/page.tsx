@@ -41,7 +41,7 @@ const TIMELINE = [
   },
   {
     position: "Product Designer",
-    company: "Contact",
+    company: "Contact Financial Holding",
     time: "Dec. 2022 - Nov. 2023",
     points: [
       "Spearheaded user-centric, visually captivating design lifecycle from initial ideation to implementation.",
