@@ -36,6 +36,8 @@ uniform sampler2D disp;
 uniform float intensity;
 uniform float angle1;
 uniform float angle2;
+uniform vec2 uvScale1;
+uniform vec2 uvScale2;
 
 mat2 getRotM(float angle) {
   float s = sin(angle);
@@ -47,8 +49,11 @@ void main() {
   vec4 dispVal = texture2D(disp, vUv);
   vec2 dispVec = vec2(dispVal.r, dispVal.g);
 
-  vec2 distPos1 = vUv + getRotM(angle1) * dispVec * intensity * dispFactor;
-  vec2 distPos2 = vUv + getRotM(angle2) * dispVec * intensity * (1.0 - dispFactor);
+  vec2 scaledUv1 = (vUv - 0.5) * uvScale1 + 0.5;
+  vec2 scaledUv2 = (vUv - 0.5) * uvScale2 + 0.5;
+
+  vec2 distPos1 = scaledUv1 + getRotM(angle1) * dispVec * intensity * dispFactor;
+  vec2 distPos2 = scaledUv2 + getRotM(angle2) * dispVec * intensity * (1.0 - dispFactor);
 
   vec4 t1 = texture2D(texture1, distPos1);
   vec4 t2 = texture2D(texture2, distPos2);
@@ -70,6 +75,20 @@ interface WebGLState {
   tween: gsap.core.Tween | null;
   ready: boolean;
 }
+
+const getUvScale = (texture: THREE.Texture, containerWidth: number, containerHeight: number): THREE.Vector2 => {
+  const image = texture.image as any;
+  if (!image || !image.width || !image.height) {
+    return new THREE.Vector2(1, 1);
+  }
+  const r = containerWidth / containerHeight;
+  const ri = image.width / image.height;
+  if (r > ri) {
+    return new THREE.Vector2(1, ri / r);
+  } else {
+    return new THREE.Vector2(r / ri, 1);
+  }
+};
 
 const DisplacementHover = forwardRef<DisplacementHoverRef, DisplacementHoverProps>(
   (
@@ -107,6 +126,7 @@ const DisplacementHover = forwardRef<DisplacementHoverRef, DisplacementHoverProp
           state.tween.kill();
           if (state.activeTargetImage) {
             state.material.uniforms.texture1.value = state.material.uniforms.texture2.value;
+            state.material.uniforms.uvScale1.value.copy(state.material.uniforms.uvScale2.value);
             state.currentImage = state.activeTargetImage;
           }
           state.material.uniforms.dispFactor.value = 0;
@@ -123,6 +143,10 @@ const DisplacementHover = forwardRef<DisplacementHoverRef, DisplacementHoverProp
           if (state.requestedImage === targetImage) {
             tex.minFilter = THREE.LinearFilter;
             tex.magFilter = THREE.LinearFilter;
+            
+            const scale2 = getUvScale(tex, width, height);
+            state.material.uniforms.uvScale2.value.copy(scale2);
+            
             state.material.uniforms.texture2.value = tex;
             state.material.uniforms.dispFactor.value = 0;
             state.activeTargetImage = targetImage;
@@ -135,6 +159,7 @@ const DisplacementHover = forwardRef<DisplacementHoverRef, DisplacementHoverProp
               onUpdate: () => state.renderer.render(state.scene, state.camera),
               onComplete: () => {
                 state.material.uniforms.texture1.value = tex;
+                state.material.uniforms.uvScale1.value.copy(scale2);
                 state.material.uniforms.dispFactor.value = 0;
                 state.currentImage = targetImage;
                 if (state.requestedImage === targetImage) {
@@ -158,7 +183,7 @@ const DisplacementHover = forwardRef<DisplacementHoverRef, DisplacementHoverProp
           });
         }
       },
-      [speedIn]
+      [speedIn, width, height]
     );
 
     transitionFnRef.current = executeTransition;
@@ -250,26 +275,35 @@ const DisplacementHover = forwardRef<DisplacementHoverRef, DisplacementHoverProp
         checkLoaded();
       });
 
-      const initTex = loader.load(initialImageRef.current, (tex) => {
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        renderer.render(scene, camera);
-        checkLoaded();
-      });
-
       const material = new THREE.ShaderMaterial({
         uniforms: {
           intensity: { value: intensity },
           dispFactor: { value: 0 },
-          texture1: { value: initTex },
-          texture2: { value: initTex },
+          texture1: { value: new THREE.Texture() },
+          texture2: { value: new THREE.Texture() },
           disp: { value: dispTex },
           angle1: { value: Math.PI / 4 },
           angle2: { value: -3 * Math.PI / 4 },
+          uvScale1: { value: new THREE.Vector2(1, 1) },
+          uvScale2: { value: new THREE.Vector2(1, 1) },
         },
         vertexShader,
         fragmentShader,
         transparent: true,
+      });
+
+      const initTex = loader.load(initialImageRef.current, (tex) => {
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        
+        const scale = getUvScale(tex, width, height);
+        material.uniforms.uvScale1.value.copy(scale);
+        material.uniforms.uvScale2.value.copy(scale);
+        material.uniforms.texture1.value = tex;
+        material.uniforms.texture2.value = tex;
+        
+        renderer.render(scene, camera);
+        checkLoaded();
       });
 
       const geometry = new THREE.PlaneGeometry(width, height, 1);
