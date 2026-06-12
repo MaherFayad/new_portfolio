@@ -5,11 +5,18 @@ import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 interface MagneticProps {
   children: React.ReactNode;
+  /** Max pull distance in pixels */
   range?: number;
   strength?: number;
+  className?: string;
 }
 
-export default function Magnetic({ children, range = 60, strength = 0.35 }: MagneticProps) {
+export default function Magnetic({
+  children,
+  range = 60,
+  strength = 0.35,
+  className = "inline-block",
+}: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -28,15 +35,18 @@ export default function Magnetic({ children, range = 60, strength = 0.35 }: Magn
     const distanceX = clientX - centerX;
     const distanceY = clientY - centerY;
 
-    const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+    let pullX = distanceX * strength;
+    let pullY = distanceY * strength;
+    const pull = Math.hypot(pullX, pullY);
 
-    if (distance < range) {
-      x.set(distanceX * strength);
-      y.set(distanceY * strength);
-    } else {
-      x.set(0);
-      y.set(0);
+    if (pull > range) {
+      const scale = range / pull;
+      pullX *= scale;
+      pullY *= scale;
     }
+
+    x.set(pullX);
+    y.set(pullY);
   };
 
   const handleMouseLeave = () => {
@@ -49,7 +59,8 @@ export default function Magnetic({ children, range = 60, strength = 0.35 }: Magn
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ x: springX, y: springY, display: 'inline-block' }}
+      style={{ x: springX, y: springY }}
+      className={className}
     >
       {children}
     </motion.div>

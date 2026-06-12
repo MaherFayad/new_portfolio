@@ -105,12 +105,12 @@ export default function ProjectNavActions({ nextProject }: ProjectNavActionsProp
               <span>Project</span>
             </span>
 
-            <Magnetic range={100} strength={0.2}>
+            <Magnetic range={52} strength={0.1} className="block w-full">
               <Link
                 href={nextHref}
                 target={nextIsExternal ? "_blank" : undefined}
                 rel={nextIsExternal ? "noopener noreferrer" : undefined}
-                className="group block mt-4 max-sm:mt-3 no-underline"
+                className="group block mt-4 max-sm:mt-3 no-underline w-full"
               >
                 {nextProject.images[0] && (
                   <div className="relative w-full aspect-[2/1] max-sm:aspect-[16/10] border border-white/10 overflow-hidden bg-[#050505] mb-5 max-sm:mb-4">

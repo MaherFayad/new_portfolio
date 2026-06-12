@@ -106,7 +106,6 @@ export default function ProjectPage() {
 
       {project.caseFraming && <CaseFramingSection framing={project.caseFraming} />}
 
-      <WavyString className="mt-16 max-sm:mt-12" />
 
       {/* Image Gallery / Case Study Content Grid */}
       <div
@@ -133,6 +132,8 @@ export default function ProjectPage() {
           )}
         </div>
       </div>
+
+      <WavyString className="mt-20 max-sm:mt-14" />
 
       <ProjectNavActions nextProject={nextProjectObj} />
 
