@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
 interface WavyStringProps {
   className?: string;
@@ -9,10 +10,13 @@ interface WavyStringProps {
   alt?: string;
 }
 
-export default function WavyString({ className = "", icon = "/ins.svg", alt = "Instagram" }: WavyStringProps) {
+export default function WavyString({ className = "" }: WavyStringProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const widthRef = useRef(100);
+  const isVisibleRef = useRef(false);
   const [width, setWidth] = useState(0);
-  const [pathD, setPathD] = useState("M 0 100 Q 50 100 100 100");
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
 
   const displacement = useMotionValue(0);
   const springDisplacement = useSpring(displacement, {
@@ -21,13 +25,19 @@ export default function WavyString({ className = "", icon = "/ins.svg", alt = "I
     mass: 0.15,
   });
 
-  const updateWidth = useCallback(() => {
-    if (containerRef.current) {
-      setWidth(containerRef.current.getBoundingClientRect().width);
-    }
+  const updatePath = useCallback((latest: number) => {
+    const w = widthRef.current || 100;
+    pathRef.current?.setAttribute("d", `M 0 100 Q ${w / 2} ${100 + latest} ${w} 100`);
   }, []);
 
-  // Listen for resize to update the width of the interactive SVG divider
+  const updateWidth = useCallback(() => {
+    if (!containerRef.current) return;
+    const w = containerRef.current.getBoundingClientRect().width;
+    widthRef.current = w;
+    setWidth(w);
+    updatePath(0);
+  }, [updatePath]);
+
   useEffect(() => {
     updateWidth();
     window.addEventListener("resize", updateWidth);
@@ -35,16 +45,36 @@ export default function WavyString({ className = "", icon = "/ins.svg", alt = "I
   }, [updateWidth]);
 
   useEffect(() => {
-    const w = width || 100;
-    setPathD(`M 0 100 Q ${w / 2} 100 ${w} 100`);
+    if (!mouseEffectsEnabled) {
+      updatePath(0);
+      return;
+    }
 
-    return springDisplacement.on("change", (latest) => {
-      setPathD(`M 0 100 Q ${w / 2} ${100 + latest} ${w} 100`);
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isVisibleRef.current = entries.some((entry) => entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(el);
+
+    const unsubscribe = springDisplacement.on("change", (latest) => {
+      if (isVisibleRef.current) {
+        updatePath(latest);
+      }
     });
-  }, [springDisplacement, width]);
+
+    return () => {
+      observer.disconnect();
+      unsubscribe();
+    };
+  }, [mouseEffectsEnabled, springDisplacement, updatePath]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+    if (!mouseEffectsEnabled || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const mouseY = e.clientY - rect.top;
     const centerY = rect.height / 2;
@@ -52,7 +82,6 @@ export default function WavyString({ className = "", icon = "/ins.svg", alt = "I
     const absOffset = Math.abs(offset);
 
     if (absOffset < 60) {
-      // Linear falloff of amplitude based on distance from string center line
       const target = -Math.sign(offset) * (1 - absOffset / 60) * 60;
       displacement.set(target);
     } else {
@@ -61,6 +90,7 @@ export default function WavyString({ className = "", icon = "/ins.svg", alt = "I
   };
 
   const handleMouseLeave = () => {
+    if (!mouseEffectsEnabled) return;
     displacement.set(0);
   };
 
@@ -85,9 +115,10 @@ export default function WavyString({ className = "", icon = "/ins.svg", alt = "I
       </svg>
       <div
         ref={containerRef}
-        className="flex-1 relative h-[200px] cursor-pointer"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
+        className={`flex-1 relative h-[200px]${mouseEffectsEnabled ? " cursor-pointer" : ""}`}
+        {...(mouseEffectsEnabled
+          ? { onMouseMove: handleMouseMove, onMouseLeave: handleMouseLeave }
+          : {})}
       >
         <svg
           className="w-full h-[200px] absolute top-0 left-0"
@@ -95,7 +126,8 @@ export default function WavyString({ className = "", icon = "/ins.svg", alt = "I
           viewBox={`0 0 ${w} 200`}
         >
           <path
-            d={pathD}
+            ref={pathRef}
+            d={`M 0 100 Q ${w / 2} 100 ${w} 100`}
             fill="none"
             stroke="rgba(255, 255, 255, 0.1)"
             strokeWidth="2"

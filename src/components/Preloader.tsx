@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import * as THREE from "three";
 import { gsap } from "gsap";
+import { MOUSE_EFFECTS_MIN_WIDTH } from "@/hooks/useMouseEffectsEnabled";
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -112,16 +113,38 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
     return () => query.removeEventListener("change", update);
   }, []);
 
-  // Track mouse coordinates over window bounds (-1 to 1)
+  // Track mouse coordinates over window bounds (-1 to 1) on desktop only
   useEffect(() => {
+    const query = window.matchMedia(`(min-width: ${MOUSE_EFFECTS_MIN_WIDTH}px)`);
+
     const handleMouseMove = (e: MouseEvent) => {
       const x = (e.clientX / window.innerWidth) * 2 - 1;
       const y = (e.clientY / window.innerHeight) * 2 - 1;
       mouseRef.current = { x, y };
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    const attach = () => {
+      if (query.matches) {
+        window.addEventListener("mousemove", handleMouseMove);
+      }
+    };
+
+    const detach = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      mouseRef.current = { x: 0, y: 0 };
+    };
+
+    const onChange = () => {
+      detach();
+      attach();
+    };
+
+    attach();
+    query.addEventListener("change", onChange);
+    return () => {
+      query.removeEventListener("change", onChange);
+      detach();
+    };
   }, []);
   // Animate ThreeJS exit sequence when state changes to spheresExiting
   useEffect(() => {

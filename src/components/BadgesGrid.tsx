@@ -147,10 +147,10 @@ export default function BadgesGrid() {
         <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1]">
           {/* Mobile & tablet: all badges in a grid */}
           <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4 lg:hidden">
-            {BADGES.map((badge, idx) => (
-              <Reveal key={badge.name} delay={idx * 0.04} className="overflow-hidden min-w-0">
+            {BADGES.map((badge) => (
+              <div key={badge.name} className="overflow-hidden min-w-0">
                 <BadgeCard badge={badge} />
-              </Reveal>
+              </div>
             ))}
           </div>
 

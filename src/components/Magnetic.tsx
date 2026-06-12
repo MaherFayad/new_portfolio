@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import React, { useRef } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import React, { useRef } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
 interface MagneticProps {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ interface MagneticProps {
   className?: string;
 }
 
-export default function Magnetic({
+function MagneticInteractive({
   children,
   range = 60,
   strength = 0.35,
@@ -65,4 +66,15 @@ export default function Magnetic({
       {children}
     </motion.div>
   );
+}
+
+export default function Magnetic(props: MagneticProps) {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
+  const className = props.className ?? "inline-block";
+
+  if (!mouseEffectsEnabled) {
+    return <div className={className}>{props.children}</div>;
+  }
+
+  return <MagneticInteractive {...props} className={className} />;
 }

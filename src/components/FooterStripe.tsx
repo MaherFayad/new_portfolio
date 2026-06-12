@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
 export default function FooterStripe() {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
   const containerRef = useRef<HTMLDivElement>(null);
   const pathRefs = useRef<(SVGPathElement | null)[]>([]);
 
@@ -48,7 +50,7 @@ export default function FooterStripe() {
 
     const loop = (now: number) => {
       const elapsedSeconds = (now - startTime - totalPausedMs) / 1000;
-      const mouseVal = mouseSpring.get();
+      const mouseVal = mouseEffectsEnabled ? mouseSpring.get() : 0;
 
       for (let s = 0; s < 6; s += 1) {
         const pathD = generatePath(s, elapsedSeconds, mouseVal);
@@ -109,7 +111,7 @@ export default function FooterStripe() {
       observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
-  }, [mouseSpring]);
+  }, [mouseEffectsEnabled, mouseSpring]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -134,9 +136,10 @@ export default function FooterStripe() {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full cursor-pointer"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      className={`w-full h-full${mouseEffectsEnabled ? " cursor-pointer" : ""}`}
+      {...(mouseEffectsEnabled
+        ? { onMouseMove: handleMouseMove, onMouseLeave: handleMouseLeave }
+        : {})}
     >
       <svg
         viewBox="0 0 100 500"

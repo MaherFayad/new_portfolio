@@ -2,16 +2,22 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
 interface ConcentricCirclesProps {
   centerLabel?: ReactNode;
 }
 
 export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProps) {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
   const containerRef = useRef<HTMLDivElement>(null);
   const coordX = useMotionValue(0);
   const coordY = useMotionValue(0);
   const [gyroActive, setGyroActive] = useState(false);
+  const isVisibleRef = useRef(false);
+  const orientationHandlerRef = useRef<((e: DeviceOrientationEvent) => void) | null>(null);
+  const rafRef = useRef(0);
+  const pendingRef = useRef({ x: 0, y: 0 });
 
   const springConfig = {
     stiffness: 180,
@@ -35,56 +41,108 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
   useEffect(() => {
     if (typeof window === "undefined" || window.innerWidth >= 1024) return;
 
-    let active = true;
+    const container = containerRef.current;
+    if (!container) return;
+
+    let gyroListening = false;
+
     const clampCoord = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
+    const applyPending = () => {
+      rafRef.current = 0;
+      if (!isVisibleRef.current) return;
+      coordX.set(pendingRef.current.x);
+      coordY.set(pendingRef.current.y);
+    };
+
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      const gamma = e.gamma ?? 0; // -90 to 90 (left/right)
-      const beta = e.beta ?? 0;   // -180 to 180 (front/back)
-      const x = clampCoord(gamma / 35, -1, 1);
-      const y = clampCoord(beta / 35, -1, 1);
-      if (active) {
-        coordX.set(x);
-        coordY.set(y);
+      if (!isVisibleRef.current) return;
+      const gamma = e.gamma ?? 0;
+      const beta = e.beta ?? 0;
+      pendingRef.current = {
+        x: clampCoord(gamma / 35, -1, 1),
+        y: clampCoord(beta / 35, -1, 1),
+      };
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(applyPending);
       }
     };
 
-    const initGyro = () => {
+    orientationHandlerRef.current = handleOrientation;
+
+    const startGyro = () => {
+      if (gyroListening) return;
       window.addEventListener("deviceorientation", handleOrientation, true);
-      if (active) setGyroActive(true);
+      gyroListening = true;
+      setGyroActive(true);
     };
 
-    const DeviceOrientation = (window as any).DeviceOrientationEvent;
-    if (DeviceOrientation && typeof DeviceOrientation.requestPermission === "function") {
-      const requestGyro = async () => {
-        try {
-          const permission = await DeviceOrientation.requestPermission();
-          if (permission === "granted") {
-            initGyro();
-          }
-        } catch (err) {
-          console.error("Gyro permission error:", err);
-        } finally {
-          window.removeEventListener("touchstart", requestGyro);
-          window.removeEventListener("pointerdown", requestGyro);
-        }
-      };
+    const stopGyro = () => {
+      if (!gyroListening) return;
+      window.removeEventListener("deviceorientation", handleOrientation, true);
+      gyroListening = false;
+      setGyroActive(false);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+      coordX.set(0);
+      coordY.set(0);
+    };
 
-      window.addEventListener("touchstart", requestGyro, { once: true });
-      window.addEventListener("pointerdown", requestGyro, { once: true });
-    } else {
-      initGyro();
-    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.some((entry) => entry.isIntersecting);
+        isVisibleRef.current = visible;
+        if (visible) {
+          startGyro();
+        } else {
+          stopGyro();
+        }
+      },
+      { threshold: 0.05, rootMargin: "80px 0px" }
+    );
+    observer.observe(container);
+
+    const initGyroPermission = () => {
+      const DeviceOrientation = (window as Window & { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+      if (DeviceOrientation && typeof DeviceOrientation.requestPermission === "function") {
+        const requestGyro = async () => {
+          try {
+            const permission = await DeviceOrientation.requestPermission!();
+            if (permission === "granted" && isVisibleRef.current) {
+              startGyro();
+            }
+          } catch (err) {
+            console.error("Gyro permission error:", err);
+          } finally {
+            window.removeEventListener("touchstart", requestGyro);
+            window.removeEventListener("pointerdown", requestGyro);
+          }
+        };
+
+        window.addEventListener("touchstart", requestGyro, { once: true });
+        window.addEventListener("pointerdown", requestGyro, { once: true });
+      } else if (isVisibleRef.current) {
+        startGyro();
+      }
+    };
+
+    initGyroPermission();
 
     return () => {
-      active = false;
-      window.removeEventListener("deviceorientation", handleOrientation, true);
+      observer.disconnect();
+      stopGyro();
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, [coordX, coordY]);
 
   const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!mouseEffectsEnabled) return;
     if (window.innerWidth < 1024 && gyroActive) return;
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -96,6 +154,7 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
   };
 
   const handleMouseLeave = () => {
+    if (!mouseEffectsEnabled) return;
     if (window.innerWidth < 1024 && gyroActive) return;
     coordX.set(0);
     coordY.set(0);
@@ -122,18 +181,17 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     <div
       ref={containerRef}
       className="relative w-full flex justify-center items-center"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      {...(mouseEffectsEnabled
+        ? { onMouseMove: handleMouseMove, onMouseLeave: handleMouseLeave }
+        : {})}
     >
       <div className="relative w-full max-w-[482px] aspect-[482/600] flex justify-center items-center" style={{ perspective: 800 }}>
         <motion.div
           className="w-full h-full flex justify-center items-center relative max-sm:scale-[0.8] sm:scale-100 max-sm:-my-20"
           style={{ transformStyle: "preserve-3d", willChange: "transform", rotateX, rotateY }}
         >
-          {/* Invisible sizing placeholder */}
           <div style={{ width: 482, height: 600, visibility: "hidden" }} />
 
-          {/* Layer 0: Background glow (blurry) */}
           <motion.img
             src="/circle.svg"
             alt=""
@@ -141,21 +199,18 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
             style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(0px)", x: glowX, y: glowY }}
           />
 
-          {/* Layer 1: Solid base circle */}
           <motion.img
             src="/circle.svg"
             alt=""
             style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(0px)", x: baseX, y: baseY }}
           />
 
-          {/* Layer 2: Ring with dots */}
           <motion.img
             src="/circle-dots.svg"
             alt=""
             style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(150px)", x: dotsX, y: dotsY }}
           />
 
-          {/* Layer 3: Foreground content (logo or custom label) */}
           {centerLabel ? (
             <motion.div
               className="flex items-center justify-center font-black text-[clamp(72px,14vw,128px)] leading-none tracking-[-0.06em] text-[#c5c5c5] select-none pointer-events-none"

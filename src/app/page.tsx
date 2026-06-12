@@ -91,6 +91,8 @@ export default function HomePage() {
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState("honors");
+  const stickyActiveRef = useRef(false);
+  const activeSectionRef = useRef("honors");
 
   // Parallax scroll for mockups container
   const parallaxRef = useRef<HTMLDivElement>(null);
@@ -103,16 +105,25 @@ export default function HomePage() {
   // Show/hide fixed sticky header on scroll up
   useEffect(() => {
     let lastScroll = 0;
+    let ticking = false;
     const threshold = 180;
 
-    const handleScroll = () => {
+    const updateSticky = () => {
+      ticking = false;
       const currentScroll = window.scrollY;
-      if (currentScroll > threshold && currentScroll < lastScroll) {
-        setStickyActive(true);
-      } else {
-        setStickyActive(false);
+      const nextSticky = currentScroll > threshold && currentScroll < lastScroll;
+      if (nextSticky !== stickyActiveRef.current) {
+        stickyActiveRef.current = nextSticky;
+        setStickyActive(nextSticky);
       }
       lastScroll = currentScroll;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateSticky);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -121,7 +132,10 @@ export default function HomePage() {
 
   // Track active section for right sidebar navigation
   useEffect(() => {
-    const handleScroll = () => {
+    let ticking = false;
+
+    const updateSection = () => {
+      ticking = false;
       const scrollPos = window.scrollY + window.innerHeight / 2;
 
       const heroEl = document.getElementById("hero-section");
@@ -129,19 +143,32 @@ export default function HomePage() {
       const agencyEl = document.getElementById("agency-section");
       const contactsEl = document.getElementById("contacts-section");
 
+      let nextSection = "honors";
       if (contactsEl && scrollPos >= contactsEl.offsetTop) {
-        setActiveSection("contacts");
+        nextSection = "contacts";
       } else if (agencyEl && scrollPos >= agencyEl.offsetTop) {
-        setActiveSection("agency");
+        nextSection = "agency";
       } else if (projectsEl && scrollPos >= projectsEl.offsetTop) {
-        setActiveSection("work");
-      } else {
-        setActiveSection("honors");
+        nextSection = "work";
+      } else if (heroEl) {
+        nextSection = "honors";
+      }
+
+      if (nextSection !== activeSectionRef.current) {
+        activeSectionRef.current = nextSection;
+        setActiveSection(nextSection);
+      }
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateSection);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    updateSection();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

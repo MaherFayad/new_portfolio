@@ -8,8 +8,9 @@ import { motion } from "framer-motion";
 import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
 import { PROJECTS } from "@/data/projects";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
-// Load Three.js component dynamically only on the client-side
+// Load Three.js displacement canvas only on wide desktop viewports
 const DisplacementHover = dynamic(() => import("./DisplacementHover"), {
   ssr: false,
 });
@@ -47,6 +48,7 @@ export default function ProjectsList() {
   const webglRef = useRef<any>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const displacementEnabled = useMouseEffectsEnabled();
   const [webglActive, setWebglActive] = useState(false);
   const [webglReady, setWebglReady] = useState(false);
 
@@ -56,9 +58,9 @@ export default function ProjectsList() {
     setWebglReady(true);
   }, []);
 
-  // Pre-load all covers as HTML Image elements
+  // Pre-load cover images for the static fallback preview
   useEffect(() => {
-    if (projects.length === 0) return;
+    if (projects.length === 0 || !displacementEnabled) return;
     for (const p of projects) {
       const cover = p.images[0];
       if (cover) {
@@ -68,14 +70,14 @@ export default function ProjectsList() {
     }
     const displacement = new window.Image();
     displacement.src = "/displacement.webp";
-  }, [projects]);
+  }, [projects, displacementEnabled]);
 
   // Pre-load inside Three.js texture cache
   useEffect(() => {
-    if (projects.length === 0) return;
+    if (projects.length === 0 || !displacementEnabled) return;
     const covers = projects.map((p) => p.images[0]).filter(Boolean);
     webglRef.current?.preloadImages(covers);
-  }, [projects, size.width, webglActive]);
+  }, [projects, size.width, webglActive, displacementEnabled]);
 
   // Detect viewport size
   useEffect(() => {
@@ -87,9 +89,9 @@ export default function ProjectsList() {
     return () => query.removeEventListener("change", handler);
   }, []);
 
-  // Lazy-load WebGL canvas on desktop when project container approaches viewport
+  // Lazy-load WebGL canvas when project preview approaches viewport (1100px+ only)
   useEffect(() => {
-    if (isMobile) {
+    if (!displacementEnabled) {
       setWebglActive(false);
       return;
     }
@@ -107,11 +109,11 @@ export default function ProjectsList() {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isMobile]);
+  }, [displacementEnabled]);
 
   // Handle sizes and canvas layouts via observers
   useLayoutEffect(() => {
-    if (isMobile) {
+    if (!displacementEnabled) {
       setWebglActive(false);
       measureWidthRef.current = () => { };
       return;
@@ -141,12 +143,14 @@ export default function ProjectsList() {
       resizeObserver.disconnect();
       measureWidthRef.current = () => { };
     };
-  }, [isMobile, projects.length]);
+  }, [displacementEnabled, projects.length]);
 
   const handleMouseEnter = (index: number) => {
     setHoveredIdx(index);
     if (index === activeIdx) return;
     setActiveIdx(index);
+
+    if (!displacementEnabled) return;
 
     const nextCover = projects[index]?.images[0];
     if (nextCover) {
@@ -289,7 +293,7 @@ export default function ProjectsList() {
                 )}
 
                 {/* WebGL Canvas */}
-                {webglActive && (
+                {displacementEnabled && webglActive && (
                   <div
                     className="absolute inset-0 z-[1]"
                     style={{

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useMouseEffectsEnabled } from '@/hooks/useMouseEffectsEnabled';
 
 interface GlitchProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface GlitchProps {
 }
 
 export default function Glitch({ children, className = '' }: GlitchProps) {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
   const [isHovered, setIsHovered] = useState(false);
 
   const glitchAnim = {
@@ -25,6 +27,10 @@ export default function Glitch({ children, className = '' }: GlitchProps) {
     x: [0, -2, 2, -1, 1, -2, 2, 0],
     y: [0, 1, -1, 2, -2, 1, -1, 0],
   };
+
+  if (!mouseEffectsEnabled) {
+    return <div className={`glitch-wrapper ${className}`}>{children}</div>;
+  }
 
   return (
     <div

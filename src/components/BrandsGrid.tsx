@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Reveal from "./Reveal";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
 interface Brand {
   name: string;
@@ -117,7 +118,43 @@ const BRANDS: Brand[] = [
   },
 ];
 
-function BrandCard({ brand, index }: { brand: Brand; index: number }) {
+function getGlowColor(name: string) {
+  switch (name) {
+    case "LFG": return "rgba(0, 255, 128, 0.12)";
+    case "AlRajhi Bank": return "rgba(0, 102, 204, 0.12)";
+    case "AZMX": return "rgba(29, 220, 211, 0.12)";
+    case "Theradome": return "rgba(186, 85, 211, 0.12)";
+    case "Mit-olins": return "rgba(255, 69, 0, 0.12)";
+    case "Contact": return "rgba(255, 40, 40, 0.12)";
+    case "Konica Minolta": return "rgba(0, 191, 255, 0.12)";
+    case "IterationX": return "rgba(255, 20, 147, 0.12)";
+    case "Solidity Law": return "rgba(218, 165, 32, 0.12)";
+    case "GameIt": return "rgba(138, 43, 226, 0.12)";
+    case "Solidity Studios": return "rgba(255, 140, 0, 0.12)";
+    case "Supersight": return "rgba(0, 255, 255, 0.12)";
+    default: return "rgba(255, 255, 255, 0.06)";
+  }
+}
+
+function BrandCardStatic({ brand }: { brand: Brand }) {
+  return (
+    <a
+      href={brand.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="relative block bg-white/[0.01] backdrop-blur-[6px] border border-white/5 rounded-[16px] p-6 flex items-center justify-center h-[96px] overflow-hidden transition-colors duration-300 hover:border-white/10 hover:bg-white/[0.03]"
+    >
+      <img
+        src={brand.image}
+        alt={brand.name}
+        className="w-auto max-w-[85%] object-contain pointer-events-none opacity-45 brightness-0 invert"
+        style={{ maxHeight: brand.maxHeight || "38px" }}
+      />
+    </a>
+  );
+}
+
+function BrandCardInteractive({ brand }: { brand: Brand }) {
   const [hovered, setHovered] = useState(false);
   const [glowPos, setGlowPos] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -155,24 +192,6 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
     setHovered(false);
     x.set(0);
     y.set(0);
-  };
-
-  const getGlowColor = (name: string) => {
-    switch (name) {
-      case "LFG": return "rgba(0, 255, 128, 0.12)";
-      case "AlRajhi Bank": return "rgba(0, 102, 204, 0.12)";
-      case "AZMX": return "rgba(29, 220, 211, 0.12)";
-      case "Theradome": return "rgba(186, 85, 211, 0.12)";
-      case "Mit-olins": return "rgba(255, 69, 0, 0.12)";
-      case "Contact": return "rgba(255, 40, 40, 0.12)";
-      case "Konica Minolta": return "rgba(0, 191, 255, 0.12)";
-      case "IterationX": return "rgba(255, 20, 147, 0.12)";
-      case "Solidity Law": return "rgba(218, 165, 32, 0.12)";
-      case "GameIt": return "rgba(138, 43, 226, 0.12)";
-      case "Solidity Studios": return "rgba(255, 140, 0, 0.12)";
-      case "Supersight": return "rgba(0, 255, 255, 0.12)";
-      default: return "rgba(255, 255, 255, 0.06)";
-    }
   };
 
   const glowColor = getGlowColor(brand.name);
@@ -223,7 +242,23 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
   );
 }
 
+function BrandCard({
+  brand,
+  mouseEffectsEnabled,
+}: {
+  brand: Brand;
+  mouseEffectsEnabled: boolean;
+}) {
+  return mouseEffectsEnabled ? (
+    <BrandCardInteractive brand={brand} />
+  ) : (
+    <BrandCardStatic brand={brand} />
+  );
+}
+
 export default function BrandsGrid() {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
+
   return (
     <section className="relative w-full py-10">
       <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
@@ -245,7 +280,7 @@ export default function BrandsGrid() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 items-center" style={{ perspective: 1000 }}>
             {BRANDS.map((brand, idx) => (
               <Reveal key={brand.name} delay={idx * 0.04}>
-                <BrandCard brand={brand} index={idx} />
+                <BrandCard brand={brand} mouseEffectsEnabled={mouseEffectsEnabled} />
               </Reveal>
             ))}
           </div>

@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Reveal from "./Reveal";
+import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 
 interface Plugin {
   name: string;
@@ -29,7 +30,32 @@ const PLUGINS: Plugin[] = [
   },
 ];
 
-function PluginCard({ plugin, index }: { plugin: Plugin; index: number }) {
+function PluginCardStatic({ plugin }: { plugin: Plugin }) {
+  return (
+    <div
+      onClick={() => window.open(plugin.link, "_blank", "noopener,noreferrer")}
+      className="relative flex flex-col gap-6 bg-white/[0.01] backdrop-blur-[6px] border border-white/5 rounded-[24px] p-6 cursor-pointer overflow-hidden transition-colors duration-300 hover:border-white/10 hover:bg-white/[0.03] lg:col-span-1 md:col-span-2 col-span-2"
+    >
+      <div className="w-full aspect-video rounded-xl overflow-hidden pointer-events-none">
+        <img
+          src={plugin.image}
+          alt={plugin.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-2xl max-sm:text-xl font-medium text-[#c5c5c5]">
+          {plugin.name}
+        </h3>
+        <p className="text-[rgba(197,197,197,0.6)] text-sm leading-[150%] tracking-[-0.01em]">
+          {plugin.description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function PluginCardInteractive({ plugin }: { plugin: Plugin }) {
   const [hovered, setHovered] = useState(false);
   const [glowPos, setGlowPos] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
@@ -132,7 +158,23 @@ function PluginCard({ plugin, index }: { plugin: Plugin; index: number }) {
   );
 }
 
+function PluginCard({
+  plugin,
+  mouseEffectsEnabled,
+}: {
+  plugin: Plugin;
+  mouseEffectsEnabled: boolean;
+}) {
+  return mouseEffectsEnabled ? (
+    <PluginCardInteractive plugin={plugin} />
+  ) : (
+    <PluginCardStatic plugin={plugin} />
+  );
+}
+
 export default function PluginsGrid() {
+  const mouseEffectsEnabled = useMouseEffectsEnabled();
+
   return (
     <section className="relative w-full py-10">
       <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
@@ -154,7 +196,7 @@ export default function PluginsGrid() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6" style={{ perspective: 1000 }}>
             {PLUGINS.map((plugin, idx) => (
               <Reveal key={plugin.name} delay={idx * 0.04}>
-                <PluginCard plugin={plugin} index={idx} />
+                <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />
               </Reveal>
             ))}
           </div>
