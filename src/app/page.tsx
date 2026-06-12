@@ -62,25 +62,25 @@ const SERVICES_OFFERED = [
     ref: "01",
     name: "Product Design",
     description: "End-to-end product design for web and mobile, from problem framing and user flows to shipped, developer-ready UI.",
-    proof: "Proof: +47% online account openings and +81% e-business transactions at Al Rajhi Bank.",
+    proof: "+47% online account openings and +81% e-business transactions at Al Rajhi Bank.",
   },
   {
     ref: "02",
     name: "Design Systems",
     description: "Scalable, token-driven design systems and Figma libraries, including bilingual AR/EN and RTL components, so teams ship consistent UI faster.",
-    proof: "Proof: author of two published Figma community plugins that automate color and numeric tokens.",
+    proof: "author of two published Figma community plugins that automate color and numeric tokens.",
   },
   {
     ref: "03",
     name: "UX Audits",
     description: "Heuristic and accessibility audits that turn usability friction into a prioritized, build-ready list of fixes.",
-    proof: "Proof: delivered 41 revamps and enhancements across Al Rajhi e-business platforms.",
+    proof: "delivered 41 revamps and enhancements across Al Rajhi e-business platforms.",
   },
   {
     ref: "04",
     name: "Analytics-informed Design",
     description: "Funnel and behavioral analytics translated into design decisions that measurably move conversion and engagement.",
-    proof: "Proof: bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
+    proof: "bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
   },
 ];
 
