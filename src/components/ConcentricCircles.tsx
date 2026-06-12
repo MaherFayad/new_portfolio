@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 interface ConcentricCirclesProps {
   centerLabel?: ReactNode;
@@ -9,8 +9,28 @@ interface ConcentricCirclesProps {
 
 export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const coordX = useMotionValue(0);
+  const coordY = useMotionValue(0);
   const [gyroActive, setGyroActive] = useState(false);
+
+  const springConfig = {
+    stiffness: 180,
+    damping: 12,
+  };
+
+  const springX = useSpring(coordX, springConfig);
+  const springY = useSpring(coordY, springConfig);
+
+  const rotateX = useTransform(springY, (y) => -19 * y);
+  const rotateY = useTransform(springX, (x) => 19 * x);
+  const glowX = useTransform(springX, (x) => 6 * x);
+  const glowY = useTransform(springY, (y) => 6 * y);
+  const baseX = useTransform(springX, (x) => 12 * x);
+  const baseY = useTransform(springY, (y) => 12 * y);
+  const dotsX = useTransform(springX, (x) => 25 * x);
+  const dotsY = useTransform(springY, (y) => 25 * y);
+  const foregroundX = useTransform(springX, (x) => 44 * x);
+  const foregroundY = useTransform(springY, (y) => 44 * y);
 
   useEffect(() => {
     if (typeof window === "undefined" || window.innerWidth >= 1024) return;
@@ -24,7 +44,8 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
       const x = clampCoord(gamma / 35, -1, 1);
       const y = clampCoord(beta / 35, -1, 1);
       if (active) {
-        setCoords({ x, y });
+        coordX.set(x);
+        coordY.set(y);
       }
     };
 
@@ -59,7 +80,7 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
       active = false;
       window.removeEventListener("deviceorientation", handleOrientation, true);
     };
-  }, []);
+  }, [coordX, coordY]);
 
   const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
@@ -70,21 +91,14 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     if (rect.width <= 0 || rect.height <= 0) return;
     const x = clamp(((e.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1);
     const y = clamp(((e.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1);
-    setCoords({ x, y });
+    coordX.set(x);
+    coordY.set(y);
   };
 
   const handleMouseLeave = () => {
     if (window.innerWidth < 1024 && gyroActive) return;
-    setCoords({ x: 0, y: 0 });
-  };
-
-  const rotateX = -19 * coords.y;
-  const rotateY = 19 * coords.x;
-
-  const springTransition = {
-    type: "spring" as const,
-    stiffness: 180,
-    damping: 12,
+    coordX.set(0);
+    coordY.set(0);
   };
 
   const imageStyle: React.CSSProperties = {
@@ -114,9 +128,7 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
       <div className="relative w-full max-w-[482px] aspect-[482/600] flex justify-center items-center" style={{ perspective: 800 }}>
         <motion.div
           className="w-full h-full flex justify-center items-center relative max-sm:scale-[0.8] sm:scale-100 max-sm:-my-20"
-          style={{ transformStyle: "preserve-3d", willChange: "transform" }}
-          animate={{ rotateX, rotateY }}
-          transition={springTransition}
+          style={{ transformStyle: "preserve-3d", willChange: "transform", rotateX, rotateY }}
         >
           {/* Invisible sizing placeholder */}
           <div style={{ width: 482, height: 600, visibility: "hidden" }} />
@@ -126,36 +138,28 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
             src="/circle.svg"
             alt=""
             className="blur-[30px]"
-            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(0px)" }}
-            animate={{ x: 6 * coords.x, y: 6 * coords.y }}
-            transition={springTransition}
+            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(0px)", x: glowX, y: glowY }}
           />
 
           {/* Layer 1: Solid base circle */}
           <motion.img
             src="/circle.svg"
             alt=""
-            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(0px)" }}
-            animate={{ x: 12 * coords.x, y: 12 * coords.y }}
-            transition={springTransition}
+            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(0px)", x: baseX, y: baseY }}
           />
 
           {/* Layer 2: Ring with dots */}
           <motion.img
             src="/circle-dots.svg"
             alt=""
-            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(150px)" }}
-            animate={{ x: 25 * coords.x, y: 25 * coords.y }}
-            transition={springTransition}
+            style={{ ...imageStyle, zIndex: "auto", transform: "translateZ(150px)", x: dotsX, y: dotsY }}
           />
 
           {/* Layer 3: Foreground content (logo or custom label) */}
           {centerLabel ? (
             <motion.div
               className="flex items-center justify-center font-black text-[clamp(72px,14vw,128px)] leading-none tracking-[-0.06em] text-[#c5c5c5] select-none pointer-events-none"
-              style={{ ...foregroundLayerStyle, display: "flex" }}
-              animate={{ x: 44 * coords.x, y: 44 * coords.y }}
-              transition={springTransition}
+              style={{ ...foregroundLayerStyle, display: "flex", x: foregroundX, y: foregroundY }}
             >
               {centerLabel}
             </motion.div>
@@ -166,9 +170,7 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
               viewBox="0 0 296 199"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              style={{ ...foregroundLayerStyle, display: "block" }}
-              animate={{ x: 44 * coords.x, y: 44 * coords.y }}
-              transition={springTransition}
+              style={{ ...foregroundLayerStyle, display: "block", x: foregroundX, y: foregroundY }}
             >
               <g transform="translate(90, 65)">
                 <rect width="20" height="69" fill="#C5C5C5"/>

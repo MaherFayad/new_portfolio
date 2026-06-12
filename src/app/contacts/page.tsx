@@ -218,7 +218,7 @@ export default function ContactsPage() {
           <div className="grid grid-cols-4 gap-5 items-start">
             <img
               alt="card"
-              src="/cardbg.svg"
+              src="/cardbg.webp"
               width="455"
               height="254"
               className="col-[2/5] row-start-1 w-full h-auto block"

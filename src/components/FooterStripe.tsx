@@ -40,11 +40,14 @@ export default function FooterStripe() {
   };
 
   useEffect(() => {
-    let animationFrameId: number;
+    let animationFrameId = 0;
     const startTime = performance.now();
+    let totalPausedMs = 0;
+    let pauseStartedAt: number | null = null;
+    let isVisible = false;
 
     const loop = (now: number) => {
-      const elapsedSeconds = (now - startTime) / 1000;
+      const elapsedSeconds = (now - startTime - totalPausedMs) / 1000;
       const mouseVal = mouseSpring.get();
 
       for (let s = 0; s < 6; s += 1) {
@@ -58,8 +61,54 @@ export default function FooterStripe() {
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    animationFrameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animationFrameId);
+    const startLoop = () => {
+      if (pauseStartedAt !== null) {
+        totalPausedMs += performance.now() - pauseStartedAt;
+        pauseStartedAt = null;
+      }
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    const stopLoop = () => {
+      if (pauseStartedAt === null) {
+        pauseStartedAt = performance.now();
+      }
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+    };
+
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.some((entry) => entry.isIntersecting);
+        if (visible && !isVisible) {
+          isVisible = true;
+          startLoop();
+        } else if (!visible && isVisible) {
+          isVisible = false;
+          stopLoop();
+        }
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(el);
+
+    const rect = el.getBoundingClientRect();
+    if (rect.bottom > 0 && rect.top < window.innerHeight) {
+      isVisible = true;
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animationFrameId);
+    };
   }, [mouseSpring]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

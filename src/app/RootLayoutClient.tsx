@@ -1,12 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useLenis } from "lenis/react";
 import SmoothScroll from "@/components/SmoothScroll";
-import Preloader from "@/components/Preloader";
 import { HomeRevealGateProvider } from "@/components/HomeRevealGate";
 import { PageTransitionProvider } from "@/components/PageTransition";
+
+const Preloader = dynamic(() => import("@/components/Preloader"), {
+  ssr: false,
+  loading: () => <div className="loader bg-black" aria-hidden="true" />,
+});
 
 function PreloaderScrollReset({
   pageActive,
@@ -68,6 +73,18 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
   const [pageActive, setPageActive] = useState(false);
   const prevPathRef = useRef(pathname);
 
+  const handlePreloaderComplete = useCallback(() => {
+    setPreloaderActive(false);
+  }, []);
+
+  const handlePreloaderStartExit = useCallback(() => {
+    setPageActive(true);
+  }, []);
+
+  useEffect(() => {
+    void import("@/components/Preloader");
+  }, []);
+
   useEffect(() => {
     prevPathRef.current = pathname;
   }, [pathname]);
@@ -82,8 +99,8 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
       <HomeRevealGateProvider value={gateValue}>
         {showPreloader && (
           <Preloader
-            onComplete={() => setPreloaderActive(false)}
-            onStartExit={() => setPageActive(true)}
+            onComplete={handlePreloaderComplete}
+            onStartExit={handlePreloaderStartExit}
           />
         )}
         {showPage && (

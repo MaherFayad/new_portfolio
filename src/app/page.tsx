@@ -402,7 +402,7 @@ export default function HomePage() {
                 <img
                   alt="Back Phone"
                   className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                  src="/back-phone.png"
+                  src="/back-phone.webp"
                   loading="lazy"
                 />
               </div>
@@ -412,7 +412,7 @@ export default function HomePage() {
                 <img
                   alt="Top Phone"
                   className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                  src="/top-phone.png"
+                  src="/top-phone.webp"
                   loading="lazy"
                 />
               </div>

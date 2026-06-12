@@ -134,45 +134,56 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
 
   // Three.js spheres preloader initialization with mouse interaction and fonts ready lifecycle
   useEffect(() => {
-    if (!mountRef.current) return;
+    const mountEl = mountRef.current;
+    if (!mountEl) return;
 
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
-    const mobile = window.innerWidth < 768;
-    const mobileRingScale = 0.56 * 2;
+    let animationFrameId = 0;
+    let disposed = false;
+    let resizeObserver: ResizeObserver | null = null;
+    let removeResizeListener: (() => void) | null = null;
 
-    const scene = new THREE.Scene();
+    const initScene = (): (() => void) | null => {
+      if (disposed) return null;
 
-    const camera = new THREE.PerspectiveCamera(mobile ? 42 : 50, width / height, 0.1, 100);
-    camera.position.set(0, mobile ? 0.15 : 0, mobile ? 8.8 : 6);
+      const width = mountEl.clientWidth;
+      const height = mountEl.clientHeight;
+      if (width === 0 || height === 0) return null;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2));
-    mountRef.current.appendChild(renderer.domElement);
+      const mobile = window.innerWidth < 768;
+      const mobileRingScale = 0.56 * 2;
 
-    // Grouping for wobble and tilt
-    const tiltGroup = new THREE.Group();
-    tiltGroup.rotation.x = mobile ? -0.22 : -0.6;
-    scene.add(tiltGroup);
+      const scene = new THREE.Scene();
 
-    const wobbleGroup = new THREE.Group();
-    wobbleGroup.scale.setScalar(mobile ? mobileRingScale : 1);
-    wobbleGroup.position.y = mobile ? 0.35 : 0;
-    tiltGroup.add(wobbleGroup);
+      const camera = new THREE.PerspectiveCamera(mobile ? 42 : 50, width / height, 0.1, 100);
+      camera.position.set(0, mobile ? 0.15 : 0, mobile ? 8.8 : 6);
 
-    // Custom shader material: alpha smooth mapping
-    const alphaSmoothMaterial = (map: THREE.Texture) => {
-      return new THREE.ShaderMaterial({
-        uniforms: { map: { value: map } },
-        vertexShader: `
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2));
+      mountEl.appendChild(renderer.domElement);
+
+      // Grouping for wobble and tilt
+      const tiltGroup = new THREE.Group();
+      tiltGroup.rotation.x = mobile ? -0.22 : -0.6;
+      scene.add(tiltGroup);
+
+      const wobbleGroup = new THREE.Group();
+      wobbleGroup.scale.setScalar(mobile ? mobileRingScale : 1);
+      wobbleGroup.position.y = mobile ? 0.35 : 0;
+      tiltGroup.add(wobbleGroup);
+
+      // Custom shader material: alpha smooth mapping
+      const alphaSmoothMaterial = (map: THREE.Texture) => {
+        return new THREE.ShaderMaterial({
+          uniforms: { map: { value: map } },
+          vertexShader: `
           varying vec2 vUv;
           void main() {
             vUv = uv;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
-        fragmentShader: `
+          fragmentShader: `
           uniform sampler2D map;
           varying vec2 vUv;
           void main() {
@@ -184,177 +195,209 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
             gl_FragColor = vec4(premultipliedRGB, texColor.a * alphaFactor);
           }
         `,
-        transparent: true,
-        side: THREE.DoubleSide,
+          transparent: true,
+          side: THREE.DoubleSide,
+        });
+      };
+
+      // Helper to generate text ribbons procedurally without solid background strip
+      const makeRibbonTexture = (text: string, fontCSS: string, stripHeight: number, letterSpacing = 0, textColor = "#ffffff") => {
+        const W = 2048, H = 1024;
+        const cnv = document.createElement("canvas");
+        cnv.width = W;
+        cnv.height = H;
+        const ctx = cnv.getContext("2d");
+        if (!ctx) return new THREE.Texture();
+
+        // Clear the canvas to be completely transparent - no background strip!
+        ctx.clearRect(0, 0, W, H);
+
+        // Draw text
+        ctx.fillStyle = textColor;
+        ctx.font = fontCSS;
+        ctx.textBaseline = "middle";
+
+        const metrics = ctx.measureText(text);
+        const pad = 24;
+        const scaleX = (W - pad * 2) / (metrics.width + letterSpacing * text.length);
+
+        ctx.save();
+        ctx.translate(pad, H / 2);
+        ctx.scale(scaleX, 1);
+
+        if (letterSpacing > 0) {
+          let x = 0;
+          for (const ch of text) {
+            ctx.fillText(ch, x, 2);
+            x += ctx.measureText(ch).width + letterSpacing;
+          }
+        } else {
+          ctx.fillText(text, 0, 2);
+        }
+        ctx.restore();
+
+        const tex = new THREE.CanvasTexture(cnv);
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        tex.needsUpdate = true;
+        return tex;
+      };
+
+      const geo = new THREE.SphereGeometry(1, mobile ? 40 : 64, mobile ? 40 : 64);
+
+      const RIBBON_A = mobile
+        ? {
+            text: "DESIGN THAT CHANGES THE WORLD",
+            stripHeight: 88,
+            fontCSS: '400 88px "Bebas Neue", sans-serif',
+          }
+        : {
+            text: "DESIGN THAT CHANGES THE WORLD",
+            stripHeight: 150,
+            fontCSS: '400 150px "Bebas Neue", sans-serif',
+          };
+      const RIBBON_B = mobile
+        ? {
+            text: "UX/UI • PRODUCT DESIGN • DEVELOPMENT",
+            stripHeight: 30,
+            fontCSS: '400 22px "Space Mono", monospace',
+          }
+        : {
+            text: "WEB DESIGN • UX/UI DESIGN • CREATIVE DESIGN • PRODUCT AND APP DESIGN • DEVELOPMENT",
+            stripHeight: 44,
+            fontCSS: '400 30px "Space Mono", monospace',
+          };
+
+      const texA = makeRibbonTexture(RIBBON_A.text, RIBBON_A.fontCSS, RIBBON_A.stripHeight, 0, "#D9D9D9");
+      const texB = makeRibbonTexture(RIBBON_B.text, RIBBON_B.fontCSS, RIBBON_B.stripHeight, 0, "#757575");
+
+      const ringA = new THREE.Mesh(geo, alphaSmoothMaterial(texA));
+      const ringB = new THREE.Mesh(geo, alphaSmoothMaterial(texB));
+
+      ringARef.current = ringA;
+      ringBRef.current = ringB;
+
+      wobbleGroup.add(ringA, ringB);
+
+      // Set initial positions off-screen below
+      ringA.position.y = -8;
+      ringB.position.y = -8;
+
+      const targetAngle = { x: 0, y: 0 };
+
+      // Wait for the fonts to load, then swap textures and play entrance GSAP timeline
+      Promise.all([
+        document.fonts.load(RIBBON_A.fontCSS),
+        document.fonts.load(RIBBON_B.fontCSS),
+      ]).catch(() => { }).then(() => {
+        if (disposed) return;
+        (ringA.material as THREE.ShaderMaterial).uniforms.map.value = makeRibbonTexture(RIBBON_A.text, RIBBON_A.fontCSS, RIBBON_A.stripHeight, 0, "#D9D9D9");
+        (ringB.material as THREE.ShaderMaterial).uniforms.map.value = makeRibbonTexture(RIBBON_B.text, RIBBON_B.fontCSS, RIBBON_B.stripHeight, 0, "#757575");
+
+        gsap.timeline()
+          .to(ringA.position, { y: mobile ? 0.11 : 0.18, duration: 2.0, delay: 0.5, ease: "power4.out" })
+          .to(ringB.position, { y: mobile ? -0.11 : -0.18, duration: 1.5, ease: "power4.out" }, "-=1.5");
       });
+
+      // Animation render loop
+      const clock = new THREE.Clock();
+      const wobbleStrength = mobile ? 0.5 : 1;
+
+      const animateLoop = () => {
+        if (disposed) return;
+
+        const delta = clock.getDelta();
+        const elapsed = clock.getElapsedTime();
+
+        // 1. Revolve spheres in the same direction at different speeds
+        ringA.rotation.y -= (mobile ? 0.22 : 0.3) * delta;
+        ringB.rotation.y -= (mobile ? 0.36 : 0.5) * delta;
+
+        // 2. Slow ambient wobble on the parent group
+        wobbleGroup.rotation.x = 0.4 + 0.05 * wobbleStrength * Math.sin(0.2 * elapsed);
+        wobbleGroup.rotation.z = 0.2 + 0.05 * wobbleStrength * Math.cos(0.25 * elapsed);
+        wobbleGroup.position.y = (mobile ? 0.35 : 0) + 0.05 * wobbleStrength * Math.sin(0.3 * elapsed);
+
+        // 3. Camera mouse orbit interpolation (desktop only)
+        if (!mobile) {
+          targetAngle.x += 0.05 * (0.6 * mouseRef.current.y - targetAngle.x);
+          targetAngle.y += 0.05 * (0.6 * mouseRef.current.x - targetAngle.y);
+
+          const theta = Math.PI / 2 - targetAngle.x;
+          const phi = targetAngle.y + Math.PI;
+
+          camera.position.x = 6 * Math.sin(theta) * Math.cos(phi);
+          camera.position.y = 6 * Math.cos(theta);
+          camera.position.z = 6 * Math.sin(theta) * Math.sin(phi);
+          camera.lookAt(0, 0, 0);
+        }
+
+        renderer.render(scene, camera);
+        animationFrameId = requestAnimationFrame(animateLoop);
+      };
+
+      animateLoop();
+
+      const handleResize = () => {
+        if (disposed) return;
+        const w = mountEl.clientWidth;
+        const h = mountEl.clientHeight;
+        if (w === 0 || h === 0) return;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      };
+      window.addEventListener("resize", handleResize);
+      removeResizeListener = () => window.removeEventListener("resize", handleResize);
+
+      return () => {
+        disposed = true;
+        cancelAnimationFrame(animationFrameId);
+        removeResizeListener?.();
+        if (renderer.domElement.parentElement === mountEl) {
+          mountEl.removeChild(renderer.domElement);
+        }
+        geo.dispose();
+        ringA.geometry.dispose();
+        (ringA.material as THREE.ShaderMaterial).dispose();
+        texA.dispose();
+
+        ringB.geometry.dispose();
+        (ringB.material as THREE.ShaderMaterial).dispose();
+        texB.dispose();
+
+        renderer.dispose();
+        ringARef.current = null;
+        ringBRef.current = null;
+      };
     };
 
-    // Helper to generate text ribbons procedurally without solid background strip
-    const makeRibbonTexture = (text: string, fontCSS: string, stripHeight: number, letterSpacing = 0, textColor = "#ffffff") => {
-      const W = 2048, H = 1024;
-      const cnv = document.createElement("canvas");
-      cnv.width = W;
-      cnv.height = H;
-      const ctx = cnv.getContext("2d");
-      if (!ctx) return new THREE.Texture();
+    let cleanupScene: (() => void) | undefined;
 
-      // Clear the canvas to be completely transparent - no background strip!
-      ctx.clearRect(0, 0, W, H);
-
-      // Draw text
-      ctx.fillStyle = textColor;
-      ctx.font = fontCSS;
-      ctx.textBaseline = "middle";
-
-      const metrics = ctx.measureText(text);
-      const pad = 24;
-      const scaleX = (W - pad * 2) / (metrics.width + letterSpacing * text.length);
-
-      ctx.save();
-      ctx.translate(pad, H / 2);
-      ctx.scale(scaleX, 1);
-
-      if (letterSpacing > 0) {
-        let x = 0;
-        for (const ch of text) {
-          ctx.fillText(ch, x, 2);
-          x += ctx.measureText(ch).width + letterSpacing;
-        }
-      } else {
-        ctx.fillText(text, 0, 2);
+    const tryInit = () => {
+      if (cleanupScene) return;
+      const cleanup = initScene();
+      if (cleanup) {
+        cleanupScene = cleanup;
+        resizeObserver?.disconnect();
+        resizeObserver = null;
       }
-      ctx.restore();
-
-      const tex = new THREE.CanvasTexture(cnv);
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.generateMipmaps = false;
-      tex.needsUpdate = true;
-      return tex;
     };
 
-    const geo = new THREE.SphereGeometry(1, mobile ? 40 : 64, mobile ? 40 : 64);
+    tryInit();
 
-    const RIBBON_A = mobile
-      ? {
-          text: "DESIGN THAT CHANGES THE WORLD",
-          stripHeight: 88,
-          fontCSS: '400 88px "Bebas Neue", sans-serif',
-        }
-      : {
-          text: "DESIGN THAT CHANGES THE WORLD",
-          stripHeight: 150,
-          fontCSS: '400 150px "Bebas Neue", sans-serif',
-        };
-    const RIBBON_B = mobile
-      ? {
-          text: "UX/UI • PRODUCT DESIGN • DEVELOPMENT",
-          stripHeight: 30,
-          fontCSS: '400 22px "Space Mono", monospace',
-        }
-      : {
-          text: "WEB DESIGN • UX/UI DESIGN • CREATIVE DESIGN • PRODUCT AND APP DESIGN • DEVELOPMENT",
-          stripHeight: 44,
-          fontCSS: '400 30px "Space Mono", monospace',
-        };
-
-    const texA = makeRibbonTexture(RIBBON_A.text, RIBBON_A.fontCSS, RIBBON_A.stripHeight, 0, "#D9D9D9");
-    const texB = makeRibbonTexture(RIBBON_B.text, RIBBON_B.fontCSS, RIBBON_B.stripHeight, 0, "#757575");
-
-    const ringA = new THREE.Mesh(geo, alphaSmoothMaterial(texA));
-    const ringB = new THREE.Mesh(geo, alphaSmoothMaterial(texB));
-
-    ringARef.current = ringA;
-    ringBRef.current = ringB;
-
-    wobbleGroup.add(ringA, ringB);
-
-    // Set initial positions off-screen below
-    ringA.position.y = -8;
-    ringB.position.y = -8;
-
-    const targetAngle = { x: 0, y: 0 };
-
-    // Wait for the fonts to load, then swap textures and play entrance GSAP timeline
-    Promise.all([
-      document.fonts.load(RIBBON_A.fontCSS),
-      document.fonts.load(RIBBON_B.fontCSS),
-    ]).catch(() => { }).then(() => {
-      (ringA.material as THREE.ShaderMaterial).uniforms.map.value = makeRibbonTexture(RIBBON_A.text, RIBBON_A.fontCSS, RIBBON_A.stripHeight, 0, "#D9D9D9");
-      (ringB.material as THREE.ShaderMaterial).uniforms.map.value = makeRibbonTexture(RIBBON_B.text, RIBBON_B.fontCSS, RIBBON_B.stripHeight, 0, "#757575");
-
-      gsap.timeline()
-        .to(ringA.position, { y: mobile ? 0.11 : 0.18, duration: 2.0, delay: 0.5, ease: "power4.out" })
-        .to(ringB.position, { y: mobile ? -0.11 : -0.18, duration: 1.5, ease: "power4.out" }, "-=1.5");
-    });
-
-    // Animation render loop
-    const clock = new THREE.Clock();
-    let animationFrameId: number;
-    const wobbleStrength = mobile ? 0.5 : 1;
-
-    const animateLoop = () => {
-      const delta = clock.getDelta();
-      const elapsed = clock.getElapsedTime();
-
-      // 1. Revolve spheres in the same direction at different speeds
-      ringA.rotation.y -= (mobile ? 0.22 : 0.3) * delta;
-      ringB.rotation.y -= (mobile ? 0.36 : 0.5) * delta;
-
-      // 2. Slow ambient wobble on the parent group
-      wobbleGroup.rotation.x = 0.4 + 0.05 * wobbleStrength * Math.sin(0.2 * elapsed);
-      wobbleGroup.rotation.z = 0.2 + 0.05 * wobbleStrength * Math.cos(0.25 * elapsed);
-      wobbleGroup.position.y = (mobile ? 0.35 : 0) + 0.05 * wobbleStrength * Math.sin(0.3 * elapsed);
-
-      // 3. Camera mouse orbit interpolation (desktop only)
-      if (!mobile) {
-        targetAngle.x += 0.05 * (0.6 * mouseRef.current.y - targetAngle.x);
-        targetAngle.y += 0.05 * (0.6 * mouseRef.current.x - targetAngle.y);
-
-        const theta = Math.PI / 2 - targetAngle.x;
-        const phi = targetAngle.y + Math.PI;
-
-        camera.position.x = 6 * Math.sin(theta) * Math.cos(phi);
-        camera.position.y = 6 * Math.cos(theta);
-        camera.position.z = 6 * Math.sin(theta) * Math.sin(phi);
-        camera.lookAt(0, 0, 0);
-      }
-
-      renderer.render(scene, camera);
-      animationFrameId = requestAnimationFrame(animateLoop);
-    };
-
-    animateLoop();
-
-    // Resize listener
-    const handleResize = () => {
-      if (!mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener("resize", handleResize);
+    if (!cleanupScene) {
+      resizeObserver = new ResizeObserver(() => tryInit());
+      resizeObserver.observe(mountEl);
+    }
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
-      geo.dispose();
-      ringA.geometry.dispose();
-      (ringA.material as THREE.ShaderMaterial).dispose();
-      texA.dispose();
-
-      ringB.geometry.dispose();
-      (ringB.material as THREE.ShaderMaterial).dispose();
-      texB.dispose();
-
-      renderer.dispose();
+      disposed = true;
+      resizeObserver?.disconnect();
+      cleanupScene?.();
     };
   }, []);
 
