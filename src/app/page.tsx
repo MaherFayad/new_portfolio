@@ -16,6 +16,7 @@ import Magnetic from "@/components/Magnetic";
 import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
 import PluginsGrid from "@/components/PluginsGrid";
+import DevPlayground from "@/components/DevPlayground";
 
 // Slider cards metadata for "What we do" section
 const SERVICES = [
@@ -559,6 +560,8 @@ export default function HomePage() {
         <BrandsGrid />
         <WavyString className="mt-20" />
         <PluginsGrid />
+        <WavyString className="mt-20" />
+        <DevPlayground />
         <WavyString className="mt-20" />
         <BadgesGrid />
 
