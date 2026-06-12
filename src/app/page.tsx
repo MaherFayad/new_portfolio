@@ -406,7 +406,7 @@ export default function HomePage() {
       <WavyString className="mt-20" />
 
       {/* 7. What we do section */}
-      <section className="overflow-hidden max-lg:[content-visibility:auto] max-lg:[contain-intrinsic-size:auto_720px]">
+      <section className="overflow-hidden">
 
         {/* Header reveal */}
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-[last_baseline]">

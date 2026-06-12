@@ -34,7 +34,7 @@ export default function WhatIDoMobileCarousel({
           observer.disconnect();
         }
       },
-      { rootMargin: "120px 0px", threshold: 0.01 }
+      { rootMargin: "600px 0px", threshold: 0.01 }
     );
 
     observer.observe(el);
