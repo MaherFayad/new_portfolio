@@ -20,16 +20,16 @@ interface SliderPopupProps {
   card: CardData | null;
 }
 
-type MotionMode = "desktop" | "mobile";
-
-const MOBILE_CLOSE_MS = 300;
+const BACKDROP_TRANSITION = "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)";
+const DRAWER_TRANSITION = "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)";
+const CLOSE_MS = 700;
+const REVEAL_EASING = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 
 export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps) {
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [active, setActive] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [motionMode, setMotionMode] = useState<MotionMode>("desktop");
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const isFirstRender = useRef(true);
 
@@ -38,18 +38,9 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     cardRef.current = card;
   }
   const currentCard = card || cardRef.current;
-  const isMobileMotion = motionMode === "mobile";
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 1023px)");
-    const update = () => setMotionMode(query.matches ? "mobile" : "desktop");
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -69,12 +60,11 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
     if (isFirstRender.current) return;
     setActive(false);
 
-    const closeDelay = isMobileMotion ? MOBILE_CLOSE_MS : 700;
     const timer = setTimeout(() => {
       setShouldRender(false);
-    }, closeDelay);
+    }, CLOSE_MS);
     return () => clearTimeout(timer);
-  }, [isOpen, mounted, isMobileMotion]);
+  }, [isOpen, mounted]);
 
   useEffect(() => {
     if (!isOpen || !currentCard?.popupImage) return;
@@ -112,46 +102,29 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
 
   if (!mounted || !shouldRender || !currentCard) return null;
 
-  const backdropStyle: CSSProperties = isMobileMotion
-    ? {
-        opacity: active ? 1 : 0,
-        transition: "opacity 0.25s ease",
-      }
-    : {
-        opacity: active ? 1 : 0,
-        transition: "opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1)",
-      };
+  const backdropStyle: CSSProperties = {
+    opacity: active ? 1 : 0,
+    transition: BACKDROP_TRANSITION,
+  };
 
-  const drawerStyle: CSSProperties = isMobileMotion
-    ? {
-        transform: active ? "translateX(0)" : "translateX(100%)",
-        transition: "transform 0.3s ease",
-      }
-    : {
-        transform: active ? "translateX(0%)" : "translateX(100%)",
-        borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
-        borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
-        transition:
-          "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), border-radius 0.7s cubic-bezier(0.76, 0, 0.24, 1)",
-      };
+  const drawerStyle: CSSProperties = {
+    transform: active ? "translateX(0%)" : "translateX(100%)",
+    borderTopLeftRadius: active ? "0% 0%" : "50% 100%",
+    borderBottomLeftRadius: active ? "0% 0%" : "50% 100%",
+    transition: DRAWER_TRANSITION,
+  };
 
-  const revealStyle = (delay: string): CSSProperties =>
-    isMobileMotion
-      ? { opacity: 1 }
-      : {
-          opacity: active ? 1 : 0,
-          transform: active ? "translateY(0)" : "translateY(20px)",
-          transition: `opacity 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) ${delay}, transform 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) ${delay}`,
-        };
+  const revealStyle = (delay: string): CSSProperties => ({
+    opacity: active ? 1 : 0,
+    transform: active ? "translateY(0)" : "translateY(20px)",
+    transition: `opacity 0.6s ${REVEAL_EASING} ${delay}, transform 0.6s ${REVEAL_EASING} ${delay}`,
+  });
 
-  const listItemStyle = (idx: number): CSSProperties =>
-    isMobileMotion
-      ? { opacity: 1 }
-      : {
-          opacity: active ? 1 : 0,
-          transform: active ? "translateY(0)" : "translateY(20px)",
-          transition: `opacity 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s, transform 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) ${0.5 + 0.05 * idx}s`,
-        };
+  const listItemStyle = (idx: number): CSSProperties => ({
+    opacity: active ? 1 : 0,
+    transform: active ? "translateY(0)" : "translateY(20px)",
+    transition: `opacity 0.5s ${REVEAL_EASING} ${0.5 + 0.05 * idx}s, transform 0.5s ${REVEAL_EASING} ${0.5 + 0.05 * idx}s`,
+  });
 
   return createPortal(
     <>
