@@ -33,6 +33,7 @@ export default function Reveal({
 
   return (
     <MotionComp
+      data-reveal=""
       initial={initial}
       {...(aboveFold
         ? { animate: homeRevealGate ? { opacity: 1, y: 0 } : initial }

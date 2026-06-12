@@ -245,9 +245,9 @@ export default function ContactsPage() {
             </div>
 
             <div className="col-[2/3] max-sm:col-[2/5] lg:col-[2/4] row-start-2 flex flex-col mt-[2rem]">
-              <span className="font-medium text-[1.625rem] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] opacity-70">
+              <h1 className="font-medium text-[1.625rem] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] opacity-70">
                 Saudi Arabia
-              </span>
+              </h1>
               <p className="mt-[0.75rem] font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] max-sm:whitespace-nowrap">
                 Riyadh UTC/GMT
                 <br />

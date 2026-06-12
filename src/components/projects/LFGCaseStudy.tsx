@@ -131,7 +131,7 @@ export default function LFGCaseStudy() {
           <Reveal delay={0.1}>
             <img
               src="/assets/Projects/LFG/octalysis.webp"
-              alt="Octalysis Framework diagram"
+              alt="LFG App — Octalysis gamification framework diagram"
               className="w-full h-auto rounded-[24px] border border-white/5 mb-8 object-cover"
             />
           </Reveal>
@@ -203,22 +203,22 @@ export default function LFGCaseStudy() {
           
           <div className="flex flex-col gap-6">
             <Reveal delay={0.05}>
-              <img src="/assets/Projects/LFG/LFG%20-%200.webp" alt="UI screen 1" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/LFG/LFG%20-%200.webp" alt="LFG App — habit tracking home screen" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.1}>
-              <img src="/assets/Projects/LFG/LFG%20-%201.webp" alt="UI screen 2" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/LFG/LFG%20-%201.webp" alt="LFG App — activity progress view" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.15}>
-              <img src="/assets/Projects/LFG/LFG%20-%202.webp" alt="UI screen 3" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/LFG/LFG%20-%202.webp" alt="LFG App — gamified rewards screen" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.2}>
-              <img src="/assets/Projects/LFG/LFG%20-%203.webp" alt="UI screen 4" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/LFG/LFG%20-%203.webp" alt="LFG App — social leaderboard" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.25}>
-              <img src="/assets/Projects/LFG/LFG%20-%204.webp" alt="UI screen 5" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/LFG/LFG%20-%204.webp" alt="LFG App — goal customization flow" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.3}>
-              <img src="/assets/Projects/LFG/LFG%20-%205.webp" alt="UI screen 6" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/LFG/LFG%20-%205.webp" alt="LFG App — streak and achievement screen" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
           </div>
         </section>

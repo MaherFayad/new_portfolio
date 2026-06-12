@@ -260,22 +260,22 @@ export default function SanarteCaseStudy() {
             {/* Lit review charts grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Reveal delay={0.05}>
-                <img src="/assets/Projects/Sanarte/1.webp" alt="Chart 1" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/1.webp" alt="Sanarte — remote worker isolation research chart" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
               <Reveal delay={0.1}>
-                <img src="/assets/Projects/Sanarte/2.webp" alt="Chart 2" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/2.webp" alt="Sanarte — music therapy and productivity research chart" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
               <Reveal delay={0.15}>
-                <img src="/assets/Projects/Sanarte/3.webp" alt="Chart 3" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/3.webp" alt="Sanarte — workplace stress and soundscape findings chart" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
               <Reveal delay={0.2}>
-                <img src="/assets/Projects/Sanarte/4.webp" alt="Chart 4" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/4.webp" alt="Sanarte — remote work mental health survey chart" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
               <Reveal delay={0.25}>
-                <img src="/assets/Projects/Sanarte/5.webp" alt="Chart 5" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/5.webp" alt="Sanarte — focus and accuracy under soundscapes chart" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
               <Reveal delay={0.3}>
-                <img src="/assets/Projects/Sanarte/6.webp" alt="Chart 6" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+                <img src="/assets/Projects/Sanarte/6.webp" alt="Sanarte — literature review summary chart" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
               </Reveal>
             </div>
           </div>
@@ -377,21 +377,21 @@ export default function SanarteCaseStudy() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Reveal delay={0.05}>
-              <img src="/assets/Projects/Sanarte/Color.webp" alt="Colors" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Color.webp" alt="Sanarte — color palette style guide" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.1}>
-              <img src="/assets/Projects/Sanarte/Color-Greyscale.webp" alt="Greyscales" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Color-Greyscale.webp" alt="Sanarte — greyscale color tokens" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.15}>
-              <img src="/assets/Projects/Sanarte/Color-Gradient.webp" alt="Gradients" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Color-Gradient.webp" alt="Sanarte — gradient color system" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
             </Reveal>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Reveal delay={0.05}>
-              <img src="/assets/Projects/Sanarte/Typography.webp" alt="Typography Grid" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Typography.webp" alt="Sanarte — typography scale grid" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.1}>
-              <img src="/assets/Projects/Sanarte/TypographyTest.webp" alt="Typography Spec" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/TypographyTest.webp" alt="Sanarte — typography specification" className="w-full h-auto rounded-[20px] border border-white/5 object-cover" />
             </Reveal>
           </div>
         </section>
@@ -404,13 +404,13 @@ export default function SanarteCaseStudy() {
 
           <div className="flex flex-col gap-6">
             <Reveal delay={0.05}>
-              <img src="/assets/Projects/Sanarte/Sanarte%20-%201.webp" alt="UI Screen 1" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Sanarte%20-%201.webp" alt="Sanarte — mobile app home screen" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.1}>
-              <img src="/assets/Projects/Sanarte/Sanarte%20-%202.webp" alt="UI Screen 2" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Sanarte%20-%202.webp" alt="Sanarte — soundscape session screen" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
             <Reveal delay={0.15}>
-              <img src="/assets/Projects/Sanarte/Sanarte%20-%203.webp" alt="UI Screen 3" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
+              <img src="/assets/Projects/Sanarte/Sanarte%20-%203.webp" alt="Sanarte — team insights dashboard" className="w-full h-auto rounded-[24px] border border-white/5 object-cover" />
             </Reveal>
           </div>
         </section>

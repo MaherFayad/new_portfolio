@@ -41,7 +41,7 @@ export const metadata: Metadata = {
       "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel.",
     url: "https://maherfayad.com",
     siteName: "Maher Fayad | Senior Product Designer",
-    locale: "en",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
@@ -82,13 +82,6 @@ const personJsonLd = {
   ],
 };
 
-const profilePageJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "ProfilePage",
-  mainEntity: { "@type": "Person", name: "Maher Fayad", url: "https://maherfayad.com" },
-  url: "https://maherfayad.com",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -98,15 +91,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <head>
         <meta name="google-site-verification" content="jSkR22cF6TasEMLo9kxXI633TLgjeEot3Fo9U-Rx6pA" />
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
       </head>
       <body className="min-h-full flex flex-col bg-black text-white">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageJsonLd) }}
         />
         <RootLayoutClient>{children}</RootLayoutClient>
         <Analytics />
