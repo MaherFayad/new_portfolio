@@ -8,6 +8,7 @@ import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
+import emailjs from "@emailjs/browser";
 
 export default function ContactsPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function ContactsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({ name: "", email: "", message: "" });
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Update Riyadh clock every second
   useEffect(() => {
@@ -91,19 +93,30 @@ export default function ContactsPage() {
     }
 
     setSubmitting(true);
+    setSubmitError(null);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (res.ok) {
+      emailjs.init({ publicKey: "6Iz6j9YWRI_DaJ-s6" });
+      const result = await emailjs.send(
+        "service_0qkob2y",
+        "template_mnzk4uc",
+        {
+          name: form.name,
+          email: form.email,
+          message: form.message,
+        }
+      );
+
+      if (result.status === 200) {
         setSuccess(true);
         setForm({ name: "", email: "", message: "" });
         setTimeout(() => setSuccess(false), 5000);
+      } else {
+        throw new Error("Failed to send message. Please try again.");
       }
-    } catch (err) {
-      console.error("Form submit error:", err);
+    } catch (err: any) {
+      console.error("Failed to send email:", err);
+      const errMsg = err?.text || err?.message || "Failed to send message. Please try again.";
+      setSubmitError(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -111,7 +124,7 @@ export default function ContactsPage() {
 
   return (
     <main className="min-h-screen w-full px-5 max-sm:px-3 flex flex-col pb-[4.5rem]">
-      
+
       {/* Header bar */}
       <header className="w-full mt-5 relative z-10">
         <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
@@ -159,30 +172,16 @@ export default function ContactsPage() {
         </div>
       </header>
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-5 mt-[5rem] max-sm:mt-8 items-start">
-        
+
         {/* Left Column: Office Hours */}
         <div
           className="col-[2/4] max-sm:col-[1/3] sm:col-[1/3] md:col-[1/3] lg:col-[2/6] flex flex-col"
           style={{ animation: "fade-up 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.2s both" }}
         >
           <p className="font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] !text-[1em]">
-            We are open from:
+            Available from
           </p>
           <div className="mt-[3.125rem] max-sm:mt-[1.5rem] flex items-center">
-            <span className="font-semibold text-[2rem] leading-[120%] tracking-[-0.03em] text-[#c5c5c5]">
-              09
-            </span>
-            <div className="ml-[0.25rem] flex flex-col justify-center">
-              <span className="font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5]">
-                AM
-              </span>
-              <span className="font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5] opacity-35">
-                PM
-              </span>
-            </div>
-            <span className="mx-[0.625rem] font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
-              —
-            </span>
             <span className="font-semibold text-[2rem] leading-[120%] tracking-[-0.03em] text-[#c5c5c5]">
               05
             </span>
@@ -194,9 +193,23 @@ export default function ContactsPage() {
                 PM
               </span>
             </div>
+            <span className="mx-[0.625rem] font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
+              to
+            </span>
+            <span className="font-semibold text-[2rem] leading-[120%] tracking-[-0.03em] text-[#c5c5c5]">
+              12
+            </span>
+            <div className="ml-[0.25rem] flex flex-col justify-center">
+              <span className="font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5]">
+                AM
+              </span>
+              <span className="font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5] opacity-35">
+                PM
+              </span>
+            </div>
           </div>
           <p className="mt-[0.625rem] font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5] opacity-50">
-            Monday to Friday GMT
+            Saturday to Thursday GMT+3
           </p>
         </div>
 
@@ -214,7 +227,7 @@ export default function ContactsPage() {
               className="col-[2/5] row-start-1 w-full h-auto block"
               loading="lazy"
             />
-            
+
             {/* Clock Overlay */}
             <div className="col-[1/5] row-start-1 flex items-baseline self-start pointer-events-none mt-[60px] sm:mt-[100px] md:mt-[150px] lg:mt-[200px]">
               <span className="font-medium text-[#c5c5c5] text-[60px] sm:text-[100px] md:text-[120px] lg:text-[150px] leading-none tracking-[-0.07em]">
@@ -254,7 +267,7 @@ export default function ContactsPage() {
         onSubmit={handleSubmit}
         className="mt-auto pt-[3.125rem] max-sm:pt-8 grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-4 sm:gap-5 md:gap-5 lg:gap-5 gap-y-0 items-end"
       >
-        
+
         {/* Name input */}
         <div
           className="col-[2/7] max-sm:col-[1/5] sm:col-[1/3] md:col-[1/3] lg:col-[2/7] relative"
@@ -283,7 +296,7 @@ export default function ContactsPage() {
               onBlur={() => handleBlur("name")}
               className="w-full bg-transparent border-none outline-none resize-none font-medium leading-[160%] tracking-[-0.03em] text-[#c5c5c5] pt-[0.711em] pb-[0.356em] text-[clamp(1.25rem,1.875vw,2.25rem)]"
             />
-            
+
             <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#262626]" />
             <div
               className="absolute bottom-0 left-0 w-full h-[2px] pointer-events-none origin-left"
@@ -330,7 +343,7 @@ export default function ContactsPage() {
               onBlur={() => handleBlur("email")}
               className="w-full bg-transparent border-none outline-none resize-none font-medium leading-[160%] tracking-[-0.03em] text-[#c5c5c5] pt-[0.711em] pb-[0.356em] text-[clamp(1.25rem,1.875vw,2.25rem)]"
             />
-            
+
             <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#262626]" />
             <div
               className="absolute bottom-0 left-0 w-full h-[2px] pointer-events-none origin-left"
@@ -378,7 +391,7 @@ export default function ContactsPage() {
               className="w-full bg-transparent border-none outline-none resize-none font-medium leading-[160%] tracking-[-0.03em] text-[#c5c5c5] pt-[0.711em] pb-[0.356em] text-[clamp(1.25rem,1.875vw,2.25rem)] pb-0 pr-[5.333em]"
               style={{ overflow: "hidden", boxSizing: "border-box" }}
             />
-            
+
             {/* Submit button inside form element */}
             <button
               type="submit"
@@ -396,7 +409,7 @@ export default function ContactsPage() {
                 className="block mb-[0.3rem]"
               />
             </button>
-            
+
             <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#262626]" />
             <div
               className="absolute bottom-0 left-0 w-full h-[2px] pointer-events-none origin-left"
@@ -411,6 +424,11 @@ export default function ContactsPage() {
           {success && (
             <p className="absolute top-[calc(100%+0.375rem)] left-0 font-semibold text-[0.75rem] leading-none tracking-[-0.03em] text-[#1CCECB]">
               Message sent successfully! We will get back to you soon.
+            </p>
+          )}
+          {submitError && (
+            <p className="absolute top-[calc(100%+0.375rem)] left-0 font-semibold text-[0.75rem] leading-none tracking-[-0.03em] text-[#E84040]">
+              {submitError}
             </p>
           )}
         </div>

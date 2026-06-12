@@ -8,6 +8,7 @@ interface Brand {
   name: string;
   image: string;
   link: string;
+  maxHeight?: string;
 }
 
 const BRANDS: Brand[] = [
@@ -23,8 +24,31 @@ const BRANDS: Brand[] = [
   },
   {
     name: "AZMX",
-    image: "/assets/Logos/AZMX.png",
+    image: "/assets/Logos/AZMX-new.svg",
     link: "https://azmx.sa/en/",
+    maxHeight: "20px",
+  },
+  {
+    name: "Almosafer",
+    image: "/assets/Logos/almosafer.svg",
+    link: "https://www.almosafer.com/",
+    maxHeight: "22px",
+  },
+  {
+    name: "Al Rajhi Capital",
+    image: "/assets/Logos/alrajhi-capital.png",
+    link: "https://www.alrajhi-capital.com/",
+  },
+  {
+    name: "Emkan",
+    image: "/assets/Logos/emkan.svg",
+    link: "https://emkanfinance.com.sa/",
+    maxHeight: "24px",
+  },
+  {
+    name: "neoleap",
+    image: "/assets/Logos/neoleap.png",
+    link: "https://www.neoleap.com.sa/",
   },
   {
     name: "Theradome",
@@ -70,6 +94,26 @@ const BRANDS: Brand[] = [
     name: "Supersight",
     image: "/assets/Logos/supersight.png",
     link: "https://supersight.xyz/",
+  },
+  {
+    name: "Pelxp",
+    image: "/assets/Logos/pexlp.png",
+    link: "https://pelxp.com/",
+  },
+  {
+    name: "Deployo",
+    image: "/assets/Logos/Deployo.png",
+    link: "https://www.deployo.ai/",
+  },
+  {
+    name: "Versal",
+    image: "/assets/Logos/versal.png",
+    link: "https://www.versal.money/",
+  },
+  {
+    name: "Sacred Stacks",
+    image: "/assets/Logos/sacred.png",
+    link: "https://www.sacredstacks.com/",
   },
 ];
 
@@ -158,7 +202,7 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
         }}
       />
 
-      <div 
+      <div
         className="absolute inset-0 border border-white/10 rounded-[16px] pointer-events-none transition-opacity duration-300"
         style={{ opacity: hovered ? 0.3 : 0 }}
       />
@@ -166,8 +210,9 @@ function BrandCard({ brand, index }: { brand: Brand; index: number }) {
       <img
         src={brand.image}
         alt={brand.name}
-        className="max-h-[38px] w-auto max-w-[85%] object-contain pointer-events-none"
+        className="w-auto max-w-[85%] object-contain pointer-events-none"
         style={{
+          maxHeight: brand.maxHeight || "38px",
           transform: hovered ? "translateZ(20px)" : "translateZ(0px)",
           opacity: hovered ? 1 : 0.45,
           filter: hovered ? "brightness(1) invert(0)" : "brightness(0) invert(1)",
@@ -182,7 +227,7 @@ export default function BrandsGrid() {
   return (
     <section className="relative w-full py-10">
       <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
-        
+
         {/* Left-aligned vertical column header matching page style */}
         <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Clients &</span>

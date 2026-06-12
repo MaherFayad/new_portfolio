@@ -72,7 +72,7 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
                 <span>quality projects</span>
               </div>
               <div className="text-right mt-1">
-                <span>since —</span>
+                <span>since</span>
                 <span>2019</span>
               </div>
             </div>

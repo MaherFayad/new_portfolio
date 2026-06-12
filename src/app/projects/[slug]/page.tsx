@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Reveal from "@/components/Reveal";
@@ -11,59 +11,26 @@ import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import SanarteCaseStudy from "@/components/projects/SanarteCaseStudy";
 import LFGCaseStudy from "@/components/projects/LFGCaseStudy";
-
-interface Project {
-  slug: string;
-  title: string;
-  subtitle: string;
-  paragraph: string;
-  images: string[];
-  nextProject: string;
-}
+import { PROJECTS } from "@/data/projects";
 
 export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [project, setProject] = useState<Project | null>(null);
-  const [nextProjectObj, setNextProjectObj] = useState<Project | null>(null);
+  // Static data, resolved synchronously (no fetch, no loading screen)
+  const project = PROJECTS.find((p) => p.slug === slug) ?? null;
+  const nextProjectObj = project
+    ? PROJECTS.find((p) => p.slug === project.nextProject) ?? null
+    : null;
 
+  // Unknown slug: send home
   useEffect(() => {
-    fetch("/api/projects")
-      .then((res) => res.json())
-      .then((data: Project[]) => {
-        setProjects(data);
-        const current = data.find((p) => p.slug === slug);
-        if (current) {
-          setProject(current);
-          const next = data.find((p) => p.slug === current.nextProject);
-          if (next) setNextProjectObj(next);
-        } else {
-          // Fallback if not found
-          router.push("/");
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching projects:", err);
-        router.push("/");
-      });
-  }, [slug, router]);
-
-  // Handle scroll to top in footer
-  const handleScrollTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    if (!project) router.push("/");
+  }, [project, router]);
 
   if (!project) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
-        <span className="text-sm font-semibold tracking-widest uppercase animate-pulse">
-          Loading Project...
-        </span>
-      </div>
-    );
+    return null;
   }
 
   // Get gallery images (excluding the covers if needed, but in the payload, images[0] is cover and others are detail panels!)
@@ -154,7 +121,7 @@ export default function ProjectPage() {
             galleryImages.map((imagePath, idx) => (
               <div key={idx} className="w-full">
                 <img
-                  alt={`${project.title} — image ${idx + 1}`}
+                  alt={`${project.title} image ${idx + 1}`}
                   src={imagePath}
                   draggable="false"
                   loading="lazy"
@@ -194,48 +161,6 @@ export default function ProjectPage() {
       {/* Interactive Divider */}
       <WavyString className="mt-20" />      {/* Footer Section */}
       <footer className="pb-10">
-        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-center">
-
-          {/* EST 2019 */}
-          <div className="col-span-1">
-            <div className="flex items-center gap-1.5">
-              <img alt="" src="/est.svg" width="32" height="32" className="opacity-60" />
-              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
-                <span className="block">EST.</span>
-                <span className="block">2019</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Go Top */}
-          <div className="col-[4/5] sm:col-[3/4] lg:col-[4/5]">
-            <button
-              type="button"
-              onClick={handleScrollTop}
-              aria-label="Scroll to top"
-              className="flex items-center gap-1.5 bg-transparent border-none p-0 cursor-pointer text-inherit transition-opacity duration-300 hover:opacity-70"
-            >
-              <img alt="" src="/top.svg" width="32" height="32" />
-              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[#c5c5c5] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
-                <span className="block">GO</span>
-                <span className="block">TOP</span>
-              </span>
-            </button>
-          </div>
-
-          {/* Copyright banner */}
-          <div className="col-[10/13] sm:col-[4/5] lg:col-[10/13] lg:max-dt:col-[9/13] max-sm:hidden">
-            <div className="flex items-center gap-1.5">
-              <img alt="" src="/c.svg" width="32" height="32" className="opacity-60" />
-              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
-                <span className="block">2026 ©</span>
-                <span className="block">Copyright</span>
-              </span>
-            </div>
-          </div>
-
-        </div>
-
         {/* Footer logo banner */}
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10 max-sm:hidden">
           <div className="col-[2/4] sm:col-[1/3] lg:col-[2/4] block w-[219px] max-sm:w-[180px] h-[55px]">

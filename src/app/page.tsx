@@ -26,8 +26,8 @@ const SERVICES = [
     mobileImage: "/card1_compressed.webp",
     popupImage: "/sliderpopup/ppbg1.svg",
     subtitle: "Diving deep into user research, competitor landscapes, and business goals",
-    paragraph: "To craft a truly impactful design, it's crucial to grasp both user challenges and business objectives. I perform conversations, surveys, and usability tests to unearth key insights.",
-    points: ["Competitor Analysis", "User Interviews", "Persona Creation", "Market Landscapes", "Problem Scoping"],
+    paragraph: "To craft a truly impactful design, I grasp both user challenges and business objectives. I run interviews, surveys, and funnel analyses to unearth the insights that decide what gets built.",
+    points: ["Competitor Analysis", "User Interviews", "Persona Creation", "Funnel & Analytics Review", "Problem Scoping"],
     label: "Open Research & Discovery details",
   },
   {
@@ -37,8 +37,8 @@ const SERVICES = [
     mobileImage: "/card2_compressed.webp",
     popupImage: "/sliderpopup/ppbg2.svg",
     subtitle: "Iterating from wireframes and sketches to pixel-perfect design systems",
-    paragraph: "I design intuitive graphical interfaces, starting from low-fidelity wireframes up to high-fidelity interactive prototypes, building structured, scalable design systems.",
-    points: ["Sketches & Wireframes", "High-fidelity Mockups", "Interactive Prototypes", "Design Systems", "Figma Components"],
+    paragraph: "I design intuitive interfaces from low-fidelity wireframes to high-fidelity interactive prototypes, building scalable design systems, bilingual AR/EN layouts, and the Figma plugins that automate them.",
+    points: ["Sketches & Wireframes", "Interactive Prototypes", "Design Systems & Tokens", "AR/EN & RTL Layouts", "Figma Components & Plugins"],
     label: "Open Design & Prototyping details",
   },
   {
@@ -48,8 +48,8 @@ const SERVICES = [
     mobileImage: "/card3_compressed.webp",
     popupImage: "/sliderpopup/ppbg3.svg",
     subtitle: "Rigorous testing and developer hand-off for flawless execution",
-    paragraph: "I subject prototypes to usability testing to identify friction points and iterate. I collaborate closely with development teams to ensure designs are perfectly executed.",
-    points: ["Usability Testing", "Feedback Integration", "Dev Collaboration", "Product Analytics", "Continuous Improvement"],
+    paragraph: "I test prototypes with real users, audit against accessibility standards, and iterate with analytics in hand, collaborating closely with development teams until designs ship exactly as intended.",
+    points: ["Usability Testing", "Accessibility Audits", "Product Analytics", "Dev Collaboration", "Continuous Improvement"],
     label: "Open Testing & Iteration details",
   },
 ];
@@ -115,9 +115,6 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleScrollTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const handlePrevSlide = () => {
     if (!isTransitioning) return;
@@ -316,14 +313,14 @@ export default function HomePage() {
         {/* Design Awards Stats */}
         <Reveal aboveFold className="col-[11/12] max-sm:mt-5 max-sm:col-[3/4] sm:col-[3/4] sm:row-start-2 lg:row-start-1 sm:mt-5 sm:flex lg:col-[11/12] lg:mt-[90px] flex flex-col gap-[14px] self-start">
           <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
-            20+
+            50+
           </span>
           <span className="flex flex-col [&>span]:block">
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
-              DESIGN
+              COMPLETED
             </span>
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
-              AWARDS
+              PROJECTS
             </span>
           </span>
         </Reveal>
@@ -331,7 +328,7 @@ export default function HomePage() {
         {/* Experience Stats */}
         <Reveal aboveFold className="col-[12/13] max-sm:mt-5 max-sm:col-[4/5] sm:col-[4/5] sm:row-start-2 lg:row-start-1 sm:mt-5 sm:flex lg:col-[12/13] lg:mt-[90px] flex flex-col gap-[14px] self-start">
           <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
-            10+
+            4+
           </span>
           <span className="flex flex-col [&>span]:block">
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
@@ -348,16 +345,20 @@ export default function HomePage() {
       {/* 4. Parallax mockups container */}
       <section
         ref={parallaxRef}
-        className="relative w-full overflow-hidden bg-[#1a1a1a] z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]"
+        className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]"
       >
         <Reveal className="absolute inset-0 z-0 overflow-hidden">
-          <div aria-hidden="true" className="absolute inset-0 bg-[#1a1a1a] pointer-events-none" />
-          <motion.div className="absolute inset-0 z-[1]" style={{ y: bgY }}>
-            <img
-              alt=""
-              className="object-cover object-bottom w-full h-[120%] absolute top-[-10%]"
-              src="/banner.svg"
-            />
+          <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
+          <motion.div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]" style={{ y: bgY }}>
+            {/* Background Gradient Mesh Blobs replicating SolverCorp */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+              {/* Blue Blur Blob (Left/Center) */}
+              <div className="absolute mt-[-10%] md:mt-0 left-[-80%] md:left-[-25%] bg-[#1146F2] blur-[180px] w-[1537px] md:w-[1809px] h-[1444px] rounded-full opacity-60" />
+              {/* Purple Blur Blob (Right/Top) */}
+              <div className="absolute right-[-80%] md:right-[-10%] bg-[#873AE3] blur-[150px] w-[1710px] h-[1367px] rounded-full opacity-60" />
+              {/* Dark Overlap Blending Mask (Bottom/Center) */}
+              <div className="absolute ml-[-90%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[142px] w-[1502px] md:w-[2774px] h-[1174px] md:h-[1444px] rounded-full opacity-90" />
+            </div>
           </motion.div>
         </Reveal>
 
@@ -370,7 +371,7 @@ export default function HomePage() {
               <img
                 alt="Back Phone"
                 className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/back-phone.webp"
+                src="/back-phone.png"
                 loading="lazy"
               />
             </div>
@@ -380,7 +381,7 @@ export default function HomePage() {
               <img
                 alt="Top Phone"
                 className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/top-phone.webp"
+                src="/top-phone.png"
                 loading="lazy"
               />
             </div>
@@ -405,7 +406,7 @@ export default function HomePage() {
             <span>Activities</span>
           </span>
           <h2 className="col-[3/6] max-sm:col-[1/5] sm:col-[1/5] lg:col-[3/6] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(28px,8vw,36px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)]">
-            What we do
+            What I do
           </h2>
         </Reveal>
 
@@ -492,10 +493,10 @@ export default function HomePage() {
           <div className="col-[2/5] md:col-[3/5] lg:col-[6/11] xl:col-[6/9] max-sm:row-start-2">
             <p className="font-medium text-xl leading-[100%] tracking-[-0.03em] text-[#c5c5c5] opacity-70 max-sm:text-base">
               <span className="inline-block w-[35%] lg:w-[25%] xl:w-[35%]" />
-              We pride ourselves on our ability to craft digital products that not only meet but exceed the expectations of our clients.
+              I pride myself on crafting digital products that not only meet but exceed expectations, with outcomes I can put numbers on.
             </p>
             <p className="mt-[30px] max-sm:mt-4 ml-[35%] lg:ml-[25%] xl:ml-[35%] max-sm:ml-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
-              With a wealth of experience and expertise in the field of digital product development, we understand how to design user-friendly interfaces that captivate and engage audiences.
+              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, with results like 47% more account openings and 81% more transactions.
             </p>
           </div>
         </div>
@@ -544,13 +545,13 @@ export default function HomePage() {
         <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
           <Reveal as="p" className="col-span-4 max-sm:col-start-2 max-sm:col-span-3 sm:col-[2/5] lg:col-[8/12] font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[clamp(18px,5vw,22px)] lg:max-dt:text-[clamp(18px,2.133vw-3.84px,26px)] dt:text-[clamp(26px,1.923vw-0.92px,36px)]">
             <span className="max-sm:pl-0 pl-[calc((100%+20px)/4)] sm:pl-[calc((100%+20px)/3)] block">
-              Seasoned UI/UX Designer
+              Senior Product Designer
             </span>
-            specialized in crafting intuitive user interfaces and enriching experiences
+            crafting measurable, bilingual experiences for travel, banking, and fintech
           </Reveal>
 
           <Reveal delay={0.1} as="p" className="col-span-4 max-sm:col-start-2 max-sm:col-span-3 sm:col-[3/5] lg:col-[9/12] mt-[30px] max-sm:mt-4 max-sm:text-sm sm:mt-[10px] font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] text-[clamp(16px,0.8vw+0.8px,16px)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md">
-            Collaborating with leading financial institutions and tech startups like AZMX, Al Rajhi Bank, Contact, and Solidity Labs to deliver high-converting products.
+            Currently at Almosafer, the GCC&apos;s leading travel platform, after Al Rajhi Bank, AZMX, and Contact Financial Holding, delivering high-converting products.
           </Reveal>
         </div>
 
@@ -568,45 +569,6 @@ export default function HomePage() {
 
       {/* 11. Footer Section */}
       <footer className="pb-10">
-
-        {/* Footer Top info line */}
-        <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-center">
-
-          {/* <Reveal className="col-span-1">
-            <div className="flex items-center gap-1.5">
-              <img alt="" src="/est.svg" width="32" height="32" className="opacity-60" />
-              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
-                <span className="block">EST.</span>
-                <span className="block">2019</span>
-              </span>
-            </div>
-          </Reveal> */}
-
-          {/* <Reveal className="col-[4/5] sm:col-[3/4] lg:col-[4/5]">
-            <button
-              onClick={handleScrollTop}
-              aria-label="Scroll to top"
-              className="flex items-center gap-1.5 bg-transparent border-none p-0 cursor-pointer text-inherit transition-opacity duration-300 hover:opacity-70"
-              type="button"
-            >
-              <img alt="" src="/top.svg" width="32" height="32" />
-              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[#c5c5c5] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
-                <span className="block">GO</span>
-                <span className="block">TOP</span>
-              </span>
-            </button>
-          </Reveal> */}
-
-          <Reveal className="col-[10/13] sm:col-[4/5] lg:col-[10/13] lg:max-dt:col-[9/13] max-sm:hidden">
-            <div className="flex items-center gap-1.5">
-              <img alt="" src="/c.svg" width="32" height="32" className="opacity-60" />
-              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm text-left">
-                <span className="block">2026 ©</span>
-                <span className="block">Copyright</span>
-              </span>
-            </div>
-          </Reveal>
-        </div>
 
         {/* Footer logo banner */}
         <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-10 max-sm:hidden">
