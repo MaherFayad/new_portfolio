@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
@@ -7,8 +8,14 @@ import MobileHorizontalScroll from "./MobileHorizontalScroll";
 import { useTransitionRouter } from "@/components/PageTransition";
 import { PROJECTS } from "@/data/projects";
 
+const CARD_GAP = 16;
+
+const arrowButtonClassName =
+  "group w-[clamp(60px,12vw,86px)] max-sm:w-[60px] lg:w-[86px] h-14 rounded-full bg-[rgba(197,197,197,0.15)] border-none outline-none cursor-pointer flex justify-center items-center relative overflow-hidden transition-all duration-300 z-1 hover:animate-[rotate_0.7s_ease-in-out_both] [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:pointer-events-none [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]";
+
 export default function AboutProjectsScroll() {
   const router = useTransitionRouter();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const openProject = (project: (typeof PROJECTS)[number]) => {
     if (project.externalUrl) {
@@ -16,6 +23,15 @@ export default function AboutProjectsScroll() {
     } else {
       router.push(`/projects/${project.slug}`);
     }
+  };
+
+  const scrollByCard = (direction: 1 | -1) => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const card = container.querySelector<HTMLElement>("[data-project-card]");
+    const amount = (card?.offsetWidth ?? 380) + CARD_GAP;
+    container.scrollBy({ left: direction * amount, behavior: "smooth" });
   };
 
   return (
@@ -32,14 +48,15 @@ export default function AboutProjectsScroll() {
 
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-6 mt-[50px]">
         <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1] -mx-5 max-sm:-mx-3 px-5 max-sm:px-3">
-          <MobileHorizontalScroll className="lg:cursor-grab lg:active:cursor-grabbing">
+          <MobileHorizontalScroll ref={scrollRef} className="lg:cursor-grab lg:active:cursor-grabbing">
             {PROJECTS.map((project, index) => (
-              <Reveal
+              <div
                 key={project.slug}
-                delay={0.04 * index}
+                data-project-card
                 className="shrink-0 snap-start flex flex-col"
                 style={{ width: "clamp(240px, 72vw, 380px)" }}
               >
+                <Reveal delay={0.04 * index} className="flex flex-col">
                 <button
                   type="button"
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
@@ -70,9 +87,33 @@ export default function AboutProjectsScroll() {
                     {project.subtitle}
                   </span>
                 </button>
-              </Reveal>
+                </Reveal>
+              </div>
             ))}
           </MobileHorizontalScroll>
+
+          <div className="flex gap-2 mt-8 max-sm:mt-6">
+            <button
+              onClick={() => scrollByCard(-1)}
+              aria-label="Previous project"
+              className={arrowButtonClassName}
+              type="button"
+            >
+              <span>
+                <img alt="" className="block z-2 transition-[filter] duration-300 w-6 h-6 lg:w-8 lg:h-8" src="/arl.svg" />
+              </span>
+            </button>
+            <button
+              onClick={() => scrollByCard(1)}
+              aria-label="Next project"
+              className={arrowButtonClassName}
+              type="button"
+            >
+              <span>
+                <img alt="" className="block z-2 transition-[filter] duration-300 w-6 h-6 lg:w-8 lg:h-8" src="/arr.svg" />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
