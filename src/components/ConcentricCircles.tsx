@@ -11,6 +11,15 @@ interface ConcentricCirclesProps {
 export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProps) {
   const mouseEffectsEnabled = useMouseEffectsEnabled();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isPhone, setIsPhone] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const checkPhone = () => setIsPhone(window.innerWidth < 640);
+    checkPhone();
+    window.addEventListener("resize", checkPhone);
+    return () => window.removeEventListener("resize", checkPhone);
+  }, []);
   const coordX = useMotionValue(0);
   const coordY = useMotionValue(0);
   const [gyroActive, setGyroActive] = useState(false);
@@ -165,6 +174,8 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     inset: 0,
     margin: "auto",
     display: "block",
+    maxWidth: "100%",
+    height: "auto",
   };
 
   const foregroundLayerStyle: React.CSSProperties = {
@@ -172,9 +183,9 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     inset: 0,
     margin: "auto",
     zIndex: "auto",
-    transform: "translateZ(310px)",
-    width: 296,
-    height: 199,
+    transform: isPhone ? "translateZ(120px)" : "translateZ(310px)",
+    width: isPhone ? 200 : 296,
+    height: isPhone ? 134 : 199,
   };
 
   return (
@@ -187,7 +198,7 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
     >
       <div className="relative w-full max-w-[482px] aspect-[482/600] flex justify-center items-center" style={{ perspective: 800 }}>
         <motion.div
-          className="w-full h-full flex justify-center items-center relative max-sm:scale-[0.8] sm:scale-100 max-sm:-my-20"
+          className="w-full h-full flex justify-center items-center relative max-sm:scale-[0.8] sm:scale-100 max-sm:my-0"
           style={{ transformStyle: "preserve-3d", willChange: "transform", rotateX, rotateY }}
         >
           <div style={{ width: 482, height: 600, visibility: "hidden" }} />
@@ -220,8 +231,8 @@ export default function ConcentricCircles({ centerLabel }: ConcentricCirclesProp
             </motion.div>
           ) : (
             <motion.svg
-              width={296}
-              height={199}
+              width={isPhone ? 200 : 296}
+              height={isPhone ? 134 : 199}
               viewBox="0 0 296 199"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"

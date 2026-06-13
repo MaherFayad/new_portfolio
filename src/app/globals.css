@@ -315,3 +315,11 @@ html.slider-popup-open body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+
+.site-nav-desktop-center {
+  @media (min-width: 1024px) {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}

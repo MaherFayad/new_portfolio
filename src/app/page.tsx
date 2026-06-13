@@ -19,6 +19,7 @@ import PluginsGrid from "@/components/PluginsGrid";
 import DevPlayground from "@/components/DevPlayground";
 import ParallaxMockups from "@/components/ParallaxMockups";
 import WhatIDoMobileCarousel from "@/components/WhatIDoMobileCarousel";
+import SiteHeader from "@/components/SiteHeader";
 
 const SliderPopup = dynamic(() => import("@/components/SliderPopup"), {
   ssr: false,
@@ -217,49 +218,7 @@ export default function HomePage() {
 
       {/* 1. Header (Static) */}
       <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
-        <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
-          <div className="col-span-1 lg:col-span-3">
-            <Glitch>
-              <Link href="/">
-                <img
-                  alt="Maher Fayad"
-                  src="/assets/logo.svg"
-                  width="115"
-                  height="32"
-                  className="w-[115px] h-8"
-                />
-              </Link>
-            </Glitch>
-          </div>
-          <nav aria-label="Primary" className="col-start-2 lg:col-start-5 lg:col-span-4 max-sm:col-start-3 self-end flex justify-center gap-8 pointer-events-auto">
-            <Magnetic range={40} strength={0.4}>
-              <Link href="/about" className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70">
-                ABOUT
-              </Link>
-            </Magnetic>
-            <Magnetic range={40} strength={0.4}>
-              <Link href="/contacts" className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70">
-                CONTACTS
-              </Link>
-            </Magnetic>
-          </nav>
-          <div className="col-start-3 lg:col-start-11 max-sm:hidden flex flex-col text-right self-end">
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              MAHER
-            </span>
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              FAYAD
-            </span>
-          </div>
-          <div className="col-start-4 lg:col-start-12 max-sm:hidden flex flex-col text-left self-end">
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              PRODUCT
-            </span>
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              DESIGNER
-            </span>
-          </div>
-        </div>
+        <SiteHeader variant="static" />
       </Reveal>
 
       {/* 2. Sticky Header (Scroll Triggered) */}
@@ -269,62 +228,12 @@ export default function HomePage() {
           }`}
       >
         <div className="pointer-events-auto w-full px-[20px] max-sm:px-[12px] md:px-[20px] lg:px-[20px]">
-          <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end backdrop-blur-md pb-4 pt-1 border-b border-white/5 rounded-b-xl">
-            <div className="col-span-1 lg:col-span-3">
-              <Glitch>
-                <Link href="/" tabIndex={-1}>
-                  <img
-                    alt="Maher Fayad"
-                    src="/assets/logo.svg"
-                    width="115"
-                    height="32"
-                    className="w-[115px] h-8"
-                  />
-                </Link>
-              </Glitch>
-            </div>
-            <nav aria-label="Primary" className="col-start-2 lg:col-start-5 lg:col-span-4 max-sm:col-start-3 self-end flex justify-center gap-8 pointer-events-auto">
-              <Magnetic range={40} strength={0.4}>
-                <Link
-                  href="/about"
-                  className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
-                  tabIndex={-1}
-                >
-                  ABOUT
-                </Link>
-              </Magnetic>
-              <Magnetic range={40} strength={0.4}>
-                <Link
-                  href="/contacts"
-                  className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
-                  tabIndex={-1}
-                >
-                  CONTACTS
-                </Link>
-              </Magnetic>
-            </nav>
-            <div className="col-start-3 lg:col-start-11 max-sm:hidden flex flex-col text-right self-end">
-              <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-                MAHER
-              </span>
-              <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-                FAYAD
-              </span>
-            </div>
-            <div className="col-start-4 lg:col-start-12 max-sm:hidden flex flex-col text-left self-end">
-              <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-                PRODUCT
-              </span>
-              <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-                DESIGNER
-              </span>
-            </div>
-          </div>
+          <SiteHeader variant="sticky" />
         </div>
       </div>
 
       {/* 3. Hero Section */}
-      <section id="hero-section" className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start max-sm:h-auto max-sm:min-h-0 rp-hero-section lg:h-auto lg:!mt-[calc(843.5658px-17.7514vw)] min-[1024px]:max-[1399px]:h-[450px] min-[1024px]:max-[1399px]:!mt-[80px] sm:max-lg:h-auto sm:max-lg:!mt-[140px] max-sm:!mt-[300px]">
+      <section id="hero-section" className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start max-sm:h-auto max-sm:min-h-0 rp-hero-section lg:h-auto lg:!mt-[calc(843.5658px-17.7514vw)] min-[1024px]:max-[1399px]:h-[450px] min-[1024px]:max-[1399px]:!mt-[80px] sm:max-lg:h-auto sm:max-lg:!mt-[140px] max-sm:!mt-[160px]">
 
         {/* Contact Button */}
         <Reveal aboveFold className="col-span-2 max-sm:mt-2 max-sm:row-start-2 max-sm:col-[1/3] sm:col-[1/3] sm:row-start-2 sm:mt-2.5 sm:flex lg:col-span-2 lg:row-auto lg:mt-0 self-start flex items-start justify-between sm:max-lg:text-[clamp(0.75rem,2.2vw-2.115vw,1.125rem)] max-sm:text-[0.75rem]">
@@ -426,7 +335,7 @@ export default function HomePage() {
       <ProjectsList />
 
       {/* 6. Interactive Divider 1 */}
-      <WavyString className="mt-20" />
+      <WavyString className="max-sm:mt-10 mt-20" />
 
       {/* 7. What we do section */}
       <section className="overflow-hidden">
@@ -540,7 +449,7 @@ export default function HomePage() {
       </section>
 
       {/* 7b. Interactive Divider */}
-      <WavyString className="mt-20" />
+      <WavyString className="max-sm:mt-10 mt-20" />
 
       {/* 7c. Services (dual-audience, outcome-led) */}
       <section className="mt-16">
@@ -585,11 +494,11 @@ export default function HomePage() {
       </section>
 
       {/* 8. Interactive Divider 2 */}
-      <WavyString className="mt-20" />
+      <WavyString className="max-sm:mt-10 mt-20" />
 
       {/* 9. About section */}
       <section className="relative">
-        <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
+        <div className="grid grid-cols-12 max-sm:grid-cols-2 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
 
           {/* Header left */}
           <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
@@ -609,8 +518,8 @@ export default function HomePage() {
           </div>
 
           {/* Copyright details right */}
-          <div className="col-[11/12] max-sm:col-start-4 max-sm:col-span-1 max-sm:mt-4 flex flex-col">
-            <Reveal delay={0.3} className="text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none text-[clamp(11px,0.8vw+0.8px,11px)] lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+          <div className="col-[11/12] max-sm:col-start-2 max-sm:col-span-1 max-sm:mt-0 flex flex-col items-end">
+            <Reveal delay={0.3} className="text-left max-sm:text-right [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none text-[clamp(11px,0.8vw+0.8px,11px)] lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
               <span>Creating high-</span>
               <span>quality projects</span>
             </Reveal>
@@ -618,37 +527,37 @@ export default function HomePage() {
         </div>
 
         {/* 3D Concentric holographic circles */}
-        <Reveal duration={1.5} y={50} style={{ perspective: 800, marginTop: -100 }}>
+        <Reveal duration={1.5} y={50} className="lg:-mt-[100px] -mt-[40px] max-sm:mt-0 max-sm:mb-4" style={{ perspective: 800 }}>
           <ConcentricCircles />
         </Reveal>
 
         {/* About description paragraphs */}
         <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
-          <Reveal as="p" className="col-span-4 max-sm:col-start-2 max-sm:col-span-3 sm:col-[2/5] lg:col-[8/12] font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[clamp(18px,5vw,22px)] lg:max-dt:text-[clamp(18px,2.133vw-3.84px,26px)] dt:text-[clamp(26px,1.923vw-0.92px,36px)]">
+          <Reveal as="p" className="col-span-4 max-sm:col-start-1 max-sm:col-span-4 sm:col-[2/5] lg:col-[8/12] font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[clamp(18px,5vw,22px)] lg:max-dt:text-[clamp(18px,2.133vw-3.84px,26px)] dt:text-[clamp(26px,1.923vw-0.92px,36px)]">
             <span className="max-sm:pl-0 pl-[calc((100%+20px)/4)] sm:pl-[calc((100%+20px)/3)] block">
               Senior Product Designer
             </span>
             crafting measurable, bilingual experiences for travel, banking, and fintech
           </Reveal>
 
-          <Reveal delay={0.1} as="p" className="col-span-4 max-sm:col-start-2 max-sm:col-span-3 sm:col-[3/5] lg:col-[9/12] mt-[30px] max-sm:mt-4 max-sm:text-sm sm:mt-[10px] font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] text-[clamp(16px,0.8vw+0.8px,16px)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md">
+          <Reveal delay={0.1} as="p" className="col-span-4 max-sm:col-start-1 max-sm:col-span-4 sm:col-[3/5] lg:col-[9/12] mt-[30px] max-sm:mt-4 max-sm:text-sm sm:mt-[10px] font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] text-[clamp(16px,0.8vw+0.8px,16px)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md">
             Currently at Almosafer, the GCC&apos;s leading travel platform, after Al Rajhi Bank, AZMX, and Contact Financial Holding, delivering high-converting products.
           </Reveal>
         </div>
 
-        <WavyString className="mt-20" />
+        <WavyString className="max-sm:mt-10 mt-20" />
         <BrandsGrid />
-        <WavyString className="mt-20" />
+        <WavyString className="max-sm:mt-10 mt-20" />
         <PluginsGrid />
-        <WavyString className="mt-20" />
+        <WavyString className="max-sm:mt-10 mt-20" />
         <DevPlayground />
-        <WavyString className="mt-20" />
+        <WavyString className="max-sm:mt-10 mt-20" />
         <BadgesGrid />
 
       </section>
 
       {/* 10. Interactive Divider 3 */}
-      <WavyString className="mt-20" />
+      <WavyString className="max-sm:mt-10 mt-20" />
 
       {/* 11. Footer Section */}
       <footer className="pb-10">

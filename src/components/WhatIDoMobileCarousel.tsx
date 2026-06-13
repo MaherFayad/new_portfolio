@@ -58,22 +58,22 @@ export default function WhatIDoMobileCarousel({
   return (
     <div ref={rootRef} className="lg:hidden">
       {!ready ? (
-        <div className="-mx-3 px-3 flex gap-5 overflow-hidden" aria-hidden="true">
+        <div className="flex gap-4 overflow-hidden" aria-hidden="true">
           {services.map((serv) => (
             <div
               key={`placeholder-${serv.id}`}
               className="shrink-0 bg-white/[0.04] border border-white/5"
-              style={{ width: "min(calc(100vw - 24px), 455px)", height: 420 }}
+              style={{ width: "min(82vw, 420px)", height: 420 }}
             />
           ))}
         </div>
       ) : (
-        <MobileHorizontalScroll className="-mx-3 px-3">
+        <MobileHorizontalScroll className="">
           {services.map((serv, index) => (
             <div
               key={serv.id}
-              className="shrink-0 snap-center overflow-hidden"
-              style={{ width: "min(calc(100vw - 24px), 455px)" }}
+              className="shrink-0 snap-start overflow-hidden"
+              style={{ width: "min(82vw, 420px)" }}
             >
               <button
                 type="button"
@@ -85,7 +85,7 @@ export default function WhatIDoMobileCarousel({
                   src={serv.mobileImage}
                   alt=""
                   fill
-                  sizes="(max-width: 1023px) min(calc(100vw - 24px), 455px), 0px"
+                  sizes="(max-width: 1023px) 82vw, 0px"
                   className="object-cover -z-10"
                   priority
                   loading="eager"

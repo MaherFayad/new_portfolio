@@ -9,6 +9,7 @@ import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
 import { PROJECTS } from "@/data/projects";
 import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
+import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 // Load Three.js displacement canvas only on wide desktop viewports
 const DisplacementHover = dynamic(() => import("./DisplacementHover"), {
@@ -198,15 +199,21 @@ export default function ProjectsList() {
       </Reveal>
 
       {isMobile ? (
-        /* Mobile Layout: 2-column grid cards list */
+        /* Mobile Layout: horizontal scroll cards, ~2.5 visible for scroll teasing */
         <>
-          <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 max-sm:grid-cols-1">
+          <MobileHorizontalScroll className="mt-8">
             {projects.map((project, index) => (
-              <Reveal key={project.slug} delay={0.05 * index} className="flex flex-col">
+              <Reveal
+                key={project.slug}
+                delay={0.04 * index}
+                className="shrink-0 snap-start overflow-hidden flex flex-col"
+                style={{ width: "clamp(220px, 68vw, 320px)" }}
+              >
                 <button
                   type="button"
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                  className="relative w-full aspect-square overflow-hidden border border-white/10 bg-[#050505] cursor-pointer"
+                  className="relative w-full overflow-hidden bg-[#050505] cursor-pointer"
+                  style={{ aspectRatio: "4/5" }}
                   onClick={() => openProject(project)}
                 >
                   {project.images[0] && (
@@ -214,7 +221,7 @@ export default function ProjectsList() {
                       src={project.images[0]}
                       alt={project.title}
                       fill
-                      sizes="(min-width: 640px) and (max-width: 1023px) 50vw, 100vw"
+                      sizes="(max-width: 1023px) 70vw, 100vw"
                       className="object-cover"
                     />
                   )}
@@ -223,13 +230,13 @@ export default function ProjectsList() {
                   type="button"
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
                   onClick={() => openProject(project)}
-                  className="mt-5 text-left font-medium text-[1.125rem] leading-[1.15] tracking-[-0.06em] text-[#c5c5c5] no-underline"
+                  className="mt-3 text-left font-medium text-[1rem] leading-[1.15] tracking-[-0.06em] text-[#c5c5c5] no-underline"
                 >
                   <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
                 </button>
               </Reveal>
             ))}
-          </div>
+          </MobileHorizontalScroll>
         </>
       ) : (
         /* Desktop Layout: Interactive Hover list and Three.js canvas */

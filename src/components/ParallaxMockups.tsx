@@ -13,9 +13,9 @@ function ParallaxMockupsStatic() {
           <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
           <div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]">
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-              <div className="absolute mt-[-10%] md:mt-0 left-[-80%] md:left-[-25%] bg-[#1146F2] blur-[180px] w-[1537px] md:w-[1809px] h-[1444px] rounded-full opacity-60" />
-              <div className="absolute right-[-80%] md:right-[-10%] bg-[#873AE3] blur-[150px] w-[1710px] h-[1367px] rounded-full opacity-60" />
-              <div className="absolute ml-[-90%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[142px] w-[1502px] md:w-[2774px] h-[1174px] md:h-[1444px] rounded-full opacity-90" />
+              <div className="absolute mt-[-10%] md:mt-0 left-[-30%] md:left-[-25%] bg-[#1146F2] blur-[100px] md:blur-[180px] w-[600px] md:w-[1809px] h-[600px] md:h-[1444px] rounded-full opacity-60" />
+              <div className="absolute right-[-30%] md:right-[-10%] top-0 bg-[#873AE3] blur-[100px] md:blur-[150px] w-[600px] md:w-[1710px] h-[600px] md:h-[1367px] rounded-full opacity-60" />
+              <div className="absolute left-[-20%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[80px] md:blur-[142px] w-[800px] md:w-[2774px] h-[600px] md:h-[1444px] rounded-full opacity-90" />
             </div>
           </div>
         </Reveal>
@@ -71,9 +71,9 @@ function ParallaxMockupsInteractive() {
           <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
           <motion.div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]" style={{ y: bgY }}>
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-              <div className="absolute mt-[-10%] md:mt-0 left-[-80%] md:left-[-25%] bg-[#1146F2] blur-[180px] w-[1537px] md:w-[1809px] h-[1444px] rounded-full opacity-60" />
-              <div className="absolute right-[-80%] md:right-[-10%] bg-[#873AE3] blur-[150px] w-[1710px] h-[1367px] rounded-full opacity-60" />
-              <div className="absolute ml-[-90%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[142px] w-[1502px] md:w-[2774px] h-[1174px] md:h-[1444px] rounded-full opacity-90" />
+              <div className="absolute mt-[-10%] md:mt-0 left-[-30%] md:left-[-25%] bg-[#1146F2] blur-[100px] md:blur-[180px] w-[600px] md:w-[1809px] h-[600px] md:h-[1444px] rounded-full opacity-60" />
+              <div className="absolute right-[-30%] md:right-[-10%] top-0 bg-[#873AE3] blur-[100px] md:blur-[150px] w-[600px] md:w-[1710px] h-[600px] md:h-[1367px] rounded-full opacity-60" />
+              <div className="absolute left-[-20%] md:ml-[-50%] lg:ml-[-32%] mt-[10%] md:mt-[7%] bg-[#070707] blur-[80px] md:blur-[142px] w-[800px] md:w-[2774px] h-[600px] md:h-[1444px] rounded-full opacity-90" />
             </div>
           </motion.div>
         </Reveal>
