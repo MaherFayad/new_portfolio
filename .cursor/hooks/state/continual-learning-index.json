@@ -1,14 +1,30 @@
 {
   "version": 1,
-  "lastUpdatedAtMs": 1781285757285,
+  "lastUpdatedAtMs": 1781375472319,
   "transcripts": {
+    "C:\\Users\\Admin\\.cursor\\projects\\c-Users-Admin-Documents-GitHub-New-folder\\agent-transcripts\\3985538f-47e9-44ed-b3ed-87754d695dcc\\3985538f-47e9-44ed-b3ed-87754d695dcc.jsonl": {
+      "mtimeMs": 1781375404938,
+      "mtimeIso": "2026-06-13T18:30:04.938Z"
+    },
+    "C:\\Users\\Admin\\.cursor\\projects\\c-Users-Admin-Documents-GitHub-New-folder\\agent-transcripts\\3985538f-47e9-44ed-b3ed-87754d695dcc\\subagents\\b8cbd351-6e39-4c61-822a-36137891a02b.jsonl": {
+      "mtimeMs": 1781375472319,
+      "mtimeIso": "2026-06-13T18:31:12.319Z"
+    },
     "C:\\Users\\Admin\\.cursor\\projects\\c-Users-Admin-Documents-GitHub-New-folder\\agent-transcripts\\610927e8-b2a8-4835-83f7-a5e645ca235a\\610927e8-b2a8-4835-83f7-a5e645ca235a.jsonl": {
-      "mtimeMs": 1781285757285,
-      "mtimeIso": "2026-06-12T17:35:57.2849479Z"
+      "mtimeMs": 1781296890118,
+      "mtimeIso": "2026-06-12T20:41:30.118Z"
+    },
+    "C:\\Users\\Admin\\.cursor\\projects\\c-Users-Admin-Documents-GitHub-New-folder\\agent-transcripts\\610927e8-b2a8-4835-83f7-a5e645ca235a\\subagents\\8a746cb4-480c-498d-8f43-275f38de7c35.jsonl": {
+      "mtimeMs": 1781285826625,
+      "mtimeIso": "2026-06-12T17:37:06.625Z"
+    },
+    "C:\\Users\\Admin\\.cursor\\projects\\c-Users-Admin-Documents-GitHub-New-folder\\agent-transcripts\\77f2d874-c743-4cec-9c1f-ca48f9b81cd6\\77f2d874-c743-4cec-9c1f-ca48f9b81cd6.jsonl": {
+      "mtimeMs": 1781365271171,
+      "mtimeIso": "2026-06-13T15:41:11.171Z"
     },
     "C:\\Users\\Admin\\.cursor\\projects\\c-Users-Admin-Documents-GitHub-New-folder\\agent-transcripts\\fc085d1a-28fb-4e95-bc5a-ad83a70ba2ba\\fc085d1a-28fb-4e95-bc5a-ad83a70ba2ba.jsonl": {
       "mtimeMs": 1781281594265,
-      "mtimeIso": "2026-06-12T16:26:34.2654131Z"
+      "mtimeIso": "2026-06-12T16:26:34.265Z"
     }
   }
 }

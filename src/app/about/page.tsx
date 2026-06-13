@@ -9,6 +9,7 @@ import Magnetic from "@/components/Magnetic";
 import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
 import PluginsGrid from "@/components/PluginsGrid";
+import AboutProjectsScroll from "@/components/AboutProjectsScroll";
 import SiteHeader from "@/components/SiteHeader";
 
 const STATS = [
@@ -142,50 +143,52 @@ export default function AboutPage() {
         <SiteHeader variant="static" />
       </Reveal>
 
-      {/* 1. Intro Heading (atomic hero geometry: side label, indented display H1, stats right) */}
+      {/* 1. Intro Heading (side label, stats + display H1) */}
       <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start mt-[clamp(120px,16vw,220px)] max-sm:mt-20">
-        <Reveal aboveFold className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-start [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        {/* About Me side label */}
+        <Reveal aboveFold className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-start lg:row-start-1 [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>About</span>
           <span>Me</span>
         </Reveal>
 
-        <Reveal aboveFold as="h1" className="col-[3/10] max-sm:col-[1/5] sm:col-[1/5] lg:col-[3/10] text-[#c5c5c5] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] max-sm:text-[clamp(28px,8vw,40px)] sm:text-[clamp(40px,4.688vw,56px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)] leading-[100%] tracking-[-0.06em] self-start">
+        <Reveal aboveFold className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-1 sm:col-[1/5] sm:row-start-1 lg:col-[3/10] lg:row-start-1 flex flex-wrap items-start gap-x-[clamp(28px,3.4vw,64px)] gap-y-4">
+          <div className="flex flex-col gap-[14px]">
+            <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
+              90+
+            </span>
+            <span className="flex flex-col [&>span]:block">
+              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+                UX COURSES
+              </span>
+              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+                TAKEN
+              </span>
+            </span>
+          </div>
+          <div className="flex flex-col gap-[14px]">
+            <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
+              40+
+            </span>
+            <span className="flex flex-col [&>span]:block">
+              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+                BRANDS
+              </span>
+              <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+                WORKED WITH
+              </span>
+            </span>
+          </div>
+        </Reveal>
+
+        <Reveal aboveFold as="h1" className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-2 sm:col-[1/5] sm:row-start-2 lg:col-[3/10] lg:row-start-2 text-[#c5c5c5] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] max-sm:text-[clamp(28px,8vw,40px)] sm:text-[clamp(40px,4.688vw,56px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)] leading-[100%] tracking-[-0.06em] self-start min-w-0">
           <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
             Senior Product Designer
           </span>
           shipping bilingual experiences that move business numbers
         </Reveal>
 
-        <Reveal aboveFold className="col-[11/12] max-sm:mt-5 max-sm:col-[1/3] sm:col-[3/4] sm:row-start-2 lg:row-start-1 sm:mt-5 lg:mt-[90px] flex flex-col gap-[14px] self-start">
-          <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
-            90+
-          </span>
-          <span className="flex flex-col [&>span]:block">
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
-              UX COURSES
-            </span>
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
-              TAKEN
-            </span>
-          </span>
-        </Reveal>
-
-        <Reveal aboveFold className="col-[12/13] max-sm:mt-5 max-sm:col-[3/5] sm:col-[4/5] sm:row-start-2 lg:row-start-1 sm:mt-5 lg:mt-[90px] flex flex-col gap-[14px] self-start">
-          <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
-            40+
-          </span>
-          <span className="flex flex-col [&>span]:block">
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
-              BRANDS
-            </span>
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
-              WORKED WITH
-            </span>
-          </span>
-        </Reveal>
-
         {/* CV link */}
-        <Reveal aboveFold delay={0.15} className="col-[3/10] max-sm:col-[1/5] sm:col-[1/5] lg:col-[3/10] mt-8 max-sm:mt-6">
+        <Reveal aboveFold delay={0.15} className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-3 sm:col-[1/5] sm:row-start-3 lg:col-[3/10] lg:row-start-3 mt-8 max-sm:mt-6">
           <Magnetic range={60} strength={0.4}>
             <a
               href="https://drive.google.com/file/d/17gjXpoyjISAdNi6Jw8E-3052SkGq1TRc/view?usp=sharing"
@@ -255,7 +258,12 @@ export default function AboutPage() {
 
       <WavyString className="mt-20" />
 
-      {/* 3. Experience (bordered rows, atomic table rhythm) */}
+      {/* 3. Projects (horizontal scroll) */}
+      <AboutProjectsScroll />
+
+      <WavyString className="mt-20" />
+
+      {/* 4. Experience (bordered rows, atomic table rhythm) */}
       <section className="mt-16">
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3">
           <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
@@ -297,7 +305,7 @@ export default function AboutPage() {
 
       <WavyString className="mt-20" />
 
-      {/* 4. Expertise (numbered bordered rows) */}
+      {/* 5. Expertise (numbered bordered rows) */}
       <section className="mt-16">
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3">
           <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
