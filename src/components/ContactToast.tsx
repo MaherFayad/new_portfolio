@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 export type ContactToastData = {
@@ -113,9 +113,16 @@ function ToastConfetti() {
 
 export default function ContactToast({ toast }: { toast: ContactToastData }) {
   const [phase, setPhase] = useState<ToastPhase>("ball");
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [targetWidth, setTargetWidth] = useState(52);
   const isSuccess = toast.type === "success";
   const showContent = phase === "text" || phase === "icon";
   const showIcon = phase === "icon";
+
+  useLayoutEffect(() => {
+    if (!measureRef.current) return;
+    setTargetWidth(measureRef.current.offsetWidth);
+  }, [toast.message, toast.type]);
 
   useEffect(() => {
     setPhase("ball");
@@ -143,13 +150,26 @@ export default function ContactToast({ toast }: { toast: ContactToastData }) {
       exit={{ y: 44, opacity: 0, scale: 0.94 }}
       transition={riseSpring}
     >
+      <div
+        ref={measureRef}
+        aria-hidden="true"
+        className="pointer-events-none invisible fixed -left-[9999px] top-0 flex min-h-[52px] max-w-[min(92vw,28rem)] items-center px-5 py-4"
+      >
+        <div className="flex min-h-[20px] items-center pl-8">
+          <div className="h-5 w-5 shrink-0" />
+          <p className="font-semibold text-sm leading-[140%] tracking-[-0.03em] text-[#c5c5c5]">
+            {toast.message}
+          </p>
+        </div>
+      </div>
+
       <motion.div
         className={`relative overflow-hidden bg-[#141414]/95 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md min-h-[52px] ${
           shellWide ? "px-5 py-4" : "p-0"
         }`}
         initial={false}
         animate={{
-          width: shellWide ? "min(92vw, 28rem)" : 52,
+          width: shellWide ? targetWidth : 52,
           borderRadius: expanded ? 16 : 26,
         }}
         transition={{
@@ -160,7 +180,7 @@ export default function ContactToast({ toast }: { toast: ContactToastData }) {
         {showIcon && isSuccess && <ToastConfetti />}
 
         {showContent && (
-          <div className="relative flex min-h-[20px] items-center pl-8">
+          <div className="relative flex min-h-[20px] w-fit max-w-[min(92vw,28rem)] items-center pl-8">
             <div className="absolute left-0 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center">
               {showIcon && (
                 <motion.div
