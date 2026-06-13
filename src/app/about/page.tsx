@@ -205,34 +205,37 @@ export default function AboutPage() {
       <WavyString className="mt-20" />
 
       {/* 2. Who am I (photo left, display lead + body right, flat stats row) */}
-      <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-16 items-start">
-        <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+      <section className="grid grid-cols-12 max-[999px]:grid-cols-4 min-[1000px]:grid-cols-12 gap-5 max-[999px]:gap-3 mt-16 items-start">
+        <Reveal className="col-span-1 max-[999px]:hidden min-[1000px]:flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Who</span>
           <span>I am</span>
         </Reveal>
 
-        <Reveal className="col-[3/6] max-sm:col-span-3 sm:col-[1/3] lg:col-[3/6] self-stretch relative z-10">
-          <img
-            src="/assets/Maher.png"
-            alt="Maher Fayad"
-            className="w-full border border-white/5 object-cover max-sm:relative sm:absolute sm:top-0 sm:left-0 sm:h-[calc(100%+180px)]"
-            style={{ transform: "scaleX(-1)" }}
-          />
+        <Reveal className="col-[3/6] max-[999px]:col-[1/3] min-[1000px]:col-[3/6] self-stretch relative z-10">
+          <picture className="block w-full min-[1200px]:h-full">
+            <source media="(max-width: 1199px)" srcSet="/assets/Maher-cropped.png" />
+            <img
+              src="/assets/Maher.png"
+              alt="Maher Fayad"
+              className="w-full border border-white/5 max-[1199px]:relative max-[1199px]:h-auto min-[1200px]:absolute min-[1200px]:top-0 min-[1200px]:left-0 min-[1200px]:h-[calc(100%+180px)] min-[1200px]:object-cover"
+              style={{ transform: "scaleX(-1)" }}
+            />
+          </picture>
         </Reveal>
 
-        <div className="col-[7/12] max-sm:col-[1/5] sm:col-[3/5] lg:col-[7/12] flex flex-col max-sm:mt-6">
+        <div className="col-[7/12] max-[999px]:col-[1/5] min-[1000px]:col-[7/12] flex flex-col max-[999px]:mt-6">
           <Reveal as="p" className="font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[clamp(18px,5vw,22px)] lg:max-dt:text-[clamp(18px,2.133vw-3.84px,26px)] dt:text-[clamp(26px,1.923vw-0.92px,36px)]">
-            <span className="max-sm:pl-0 pl-[calc((100%+20px)/4)] sm:pl-[calc((100%+20px)/3)] block">
+            <span className="max-[999px]:pl-0 min-[1000px]:pl-[calc((100%+20px)/4)] block">
               Senior Product Designer
             </span>
             at Almosafer, the GCC&apos;s leading travel platform, crafting measurable bilingual experiences
           </Reveal>
 
-          <Reveal delay={0.1} as="p" className="mt-[30px] max-sm:mt-4 ml-[25%] max-sm:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
+          <Reveal delay={0.1} as="p" className="mt-[30px] max-sm:mt-4 ml-[25%] max-[999px]:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
             My professional trajectory is marked by significant roles at Almosafer, Al Rajhi Bank, AZMX, Contact Financial Holding, GameIT, Algoriza, and British Council. I run a flourishing freelance career on Upwork collaborating with Supersight, Theradome, the Milt Olin Foundation, Solidity Studios, Brackets, and IterationX.
           </Reveal>
 
-          <Reveal delay={0.15} as="p" className="mt-[16px] max-sm:mt-3 ml-[25%] max-sm:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
+          <Reveal delay={0.15} as="p" className="mt-[16px] max-sm:mt-3 ml-[25%] max-[999px]:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
             My journey spans volunteering with the United Nations, TEDx, Enactus, ASME, and Mansoura Motorsport.
           </Reveal>
 
