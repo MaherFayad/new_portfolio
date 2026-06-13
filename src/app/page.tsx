@@ -453,15 +453,15 @@ export default function HomePage() {
 
       {/* 7c. Services (dual-audience, outcome-led) */}
       <section className="mt-16">
-        <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
-          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        <Reveal className="grid max-lg:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
+          <span className="col-span-1 max-lg:hidden lg:flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>How I</span>
             <span>Help</span>
           </span>
-          <h2 className="col-[3/6] max-sm:col-[1/5] sm:col-[1/5] lg:col-[3/6] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(28px,8vw,36px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)]">
+          <h2 className="max-lg:col-[1/5] lg:col-[3/6] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(28px,8vw,36px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)]">
             Services
           </h2>
-          <p className="col-[8/12] max-sm:col-[1/5] sm:col-[1/5] lg:col-[8/12] max-sm:mt-4 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] self-end">
+          <p className="max-lg:col-[1/5] lg:col-[8/12] max-lg:mt-4 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] lg:self-end">
             For teams hiring senior individual contributors across the GCC and remote, and for founders and agencies who need a designer who ships. Every engagement is scoped to a business result.
           </p>
         </Reveal>
@@ -469,17 +469,17 @@ export default function HomePage() {
         <div className="mt-[50px] max-sm:mt-6 border-t border-white/10">
           {SERVICES_OFFERED.map((svc, idx) => (
             <Reveal key={svc.name} delay={idx * 0.04}>
-              <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 py-10 max-sm:py-6 border-b border-white/10 items-start">
-                <span className="col-[3/4] max-sm:col-[1/5] sm:col-[1/2] lg:col-[3/4] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)]">
+              <div className="grid max-lg:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 py-10 max-sm:py-6 border-b border-white/10 items-start">
+                <span className="max-lg:col-[1/5] lg:col-[3/4] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)]">
                   {svc.ref}
                 </span>
-                <h3 className="col-[4/8] max-sm:col-[1/5] sm:col-[2/5] lg:col-[4/8] font-medium text-[clamp(24px,1.8vw,32px)] max-sm:text-[20px] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
+                <h3 className="max-lg:col-[1/5] lg:col-[4/8] font-medium text-[clamp(24px,1.8vw,32px)] max-sm:text-[20px] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] max-lg:mt-1">
                   <span className="lg:hidden">{svc.name}</span>
                   <span className="hidden lg:inline">
                     <AnimatedText text={svc.name} className="projects-name-text" />
                   </span>
                 </h3>
-                <div className="col-[8/12] max-sm:col-[1/5] sm:col-[1/5] lg:col-[8/12] flex flex-col gap-3 max-sm:mt-2">
+                <div className="max-lg:col-[1/5] lg:col-[8/12] flex flex-col gap-3 max-lg:mt-2">
                   <p className="font-medium text-sm text-[#c5c5c5] opacity-70 leading-[150%]">
                     {svc.description}
                   </p>
