@@ -11,6 +11,7 @@ interface DevProject {
   description: string;
   tech: string[];
   url: string;
+  heroImage: string;
 }
 
 const DEV_PROJECTS: DevProject[] = [
@@ -20,6 +21,7 @@ const DEV_PROJECTS: DevProject[] = [
     description: "An interactive Rive-powered weapon customizer with real-time part swapping and state machine logic. No AI, pure craftsmanship.",
     tech: ["Rive", "WebGL2", "State Machines"],
     url: "https://ar-15.vercel.app/",
+    heroImage: "/dev-playground/ar15-hero.webp",
   },
   {
     id: "project-ath",
@@ -28,6 +30,7 @@ const DEV_PROJECTS: DevProject[] = [
       "A crypto All-Time-High tracker dashboard built with Rive animations and Unicorn Studio, featuring animated gauges and live data.",
     tech: ["Rive", "Unicorn Studio", "WebGL2"],
     url: "https://rive-test-omega.vercel.app/",
+    heroImage: "/dev-playground/project-ath-hero.webp",
   },
   {
     id: "gta-vi",
@@ -36,6 +39,7 @@ const DEV_PROJECTS: DevProject[] = [
       "A cinematic GTA VI fan landing page with GSAP-powered scroll animations, parallax layers, and immersive transitions.",
     tech: ["GSAP", "React", "Vite"],
     url: "https://gta-6-gsap.netlify.app/",
+    heroImage: "/dev-playground/gta-vi-hero.webp",
   },
 ];
 
@@ -127,56 +131,67 @@ export default function DevPlayground() {
               aria-label={`Visit ${project.title}, opens in new tab`}
             >
               {/* Card Content */}
-              <div className="relative z-10 p-8 max-sm:p-6 h-full flex flex-col justify-between min-h-[280px] max-sm:min-h-[240px] border border-white/[0.06] rounded-xl bg-[rgba(255,255,255,0.02)] backdrop-blur-sm transition-all duration-500 group-hover:border-white/[0.12] group-hover:bg-[rgba(255,255,255,0.04)]">
+              <div className="relative z-10 h-full flex flex-col overflow-hidden border border-white/[0.06] rounded-xl bg-[rgba(255,255,255,0.02)] backdrop-blur-sm transition-all duration-500 group-hover:border-white/[0.12] group-hover:bg-[rgba(255,255,255,0.04)]">
+                <div className="relative w-full aspect-video overflow-hidden">
+                  <img
+                    src={project.heroImage}
+                    alt={`${project.title} hero`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                  />
+                </div>
 
-                {/* Top Row: Number & Arrow */}
-                <div className="flex justify-between items-start">
-                  <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-[rgba(197,197,197,0.25)]">
-                    {String(DEV_PROJECTS.indexOf(project) + 1).padStart(2, "0")}
-                  </span>
+                <div className="p-8 max-sm:p-6 flex flex-col justify-between flex-1 min-h-[220px] max-sm:min-h-[200px]">
+                  {/* Top Row: Number & Arrow */}
+                  <div className="flex justify-between items-start">
+                    <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-[rgba(197,197,197,0.25)]">
+                      {String(DEV_PROJECTS.indexOf(project) + 1).padStart(2, "0")}
+                    </span>
 
-                  {/* External link arrow */}
-                  <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:border-white/30 group-hover:bg-white/5 group-hover:rotate-[0deg] rotate-[-45deg]">
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-[rgba(197,197,197,0.4)] transition-colors duration-300 group-hover:text-[#c5c5c5]"
-                    >
-                      <line x1="7" y1="17" x2="17" y2="7" />
-                      <polyline points="7 7 17 7 17 17" />
-                    </svg>
+                    {/* External link arrow */}
+                    <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:border-white/30 group-hover:bg-white/5 group-hover:rotate-[0deg] rotate-[-45deg]">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-[rgba(197,197,197,0.4)] transition-colors duration-300 group-hover:text-[#c5c5c5]"
+                      >
+                        <line x1="7" y1="17" x2="17" y2="7" />
+                        <polyline points="7 7 17 7 17 17" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Middle: Title */}
+                  <div className="mt-auto">
+                    <h3 className="font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(22px,5vw,28px)] lg:max-dt:text-[clamp(22px,2.133vw-3.84px,30px)]">
+                      <AnimatedText text={project.title} className="projects-name-text" />
+                    </h3>
+                    <p className="mt-3 font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)] max-w-[90%] max-sm:max-w-full">
+                      {project.description}
+                    </p>
+                  </div>
+
+                  {/* Bottom: Tech Tags */}
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {project.tech.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)] transition-all duration-300 group-hover:border-white/[0.15] group-hover:text-[rgba(197,197,197,0.55)]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                {/* Middle: Title */}
-                <div className="mt-auto">
-                  <h3 className="font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(22px,5vw,28px)] lg:max-dt:text-[clamp(22px,2.133vw-3.84px,30px)]">
-                    <AnimatedText text={project.title} className="projects-name-text" />
-                  </h3>
-                  <p className="mt-3 font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)] max-w-[90%] max-sm:max-w-full">
-                    {project.description}
-                  </p>
-                </div>
-
-                {/* Bottom: Tech Tags */}
-                <div className="flex flex-wrap gap-2 mt-6">
-                  {project.tech.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)] transition-all duration-300 group-hover:border-white/[0.15] group-hover:text-[rgba(197,197,197,0.55)]"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Hover Glow Accent */}
                 <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.5)] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               </div>
             </motion.a>
