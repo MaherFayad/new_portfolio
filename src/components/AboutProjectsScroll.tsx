@@ -92,7 +92,7 @@ export default function AboutProjectsScroll() {
             ))}
           </MobileHorizontalScroll>
 
-          <div className="flex gap-2 mt-8 max-sm:mt-6">
+          <div className="flex gap-2 mt-8 max-sm:hidden">
             <button
               onClick={() => scrollByCard(-1)}
               aria-label="Previous project"
