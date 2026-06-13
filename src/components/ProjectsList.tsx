@@ -193,7 +193,7 @@ export default function ProjectsList() {
           <span>Best</span>
           <span>Cases</span>
         </span>
-        <h2 className="col-[10/12] max-sm:col-[3/5] sm:col-[3/5] lg:col-[10/12] font-medium text-[clamp(28px,2.308vw-4.3px,40px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] text-right max-sm:text-[clamp(22px,6vw,28px)] lg:max-dt:text-[clamp(28px,3.2vw-4.77px,40px)] dt:text-[clamp(28px,2.308vw-4.3px,40px)]">
+        <h2 className="col-[10/12] max-sm:col-[1/5] sm:col-[3/5] lg:col-[10/12] font-medium text-[clamp(28px,2.308vw-4.3px,40px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] text-right max-sm:text-left max-sm:text-[clamp(22px,6vw,28px)] lg:max-dt:text-[clamp(28px,3.2vw-4.77px,40px)] dt:text-[clamp(28px,2.308vw-4.3px,40px)]">
           Projects
         </h2>
       </Reveal>
