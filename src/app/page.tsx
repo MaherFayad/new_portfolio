@@ -49,6 +49,17 @@ const SERVICES = [
     label: "Open Design & Prototyping details",
   },
   {
+    id: "design-systems",
+    title: "Design Systems",
+    image: "/card4.webp",
+    mobileImage: "/card4_compressed.webp",
+    popupImage: "/sliderpopup/ppbg4.svg",
+    subtitle: "Building scalable, token-driven systems that keep large products consistent",
+    paragraph: "I architect design systems from primitive tokens to documented component libraries, and I build the Figma plugins that automate them. Two of my token-generation plugins are live on Figma Community, used by teams beyond my own.",
+    points: ["Token Architecture", "Component Libraries", "Figma Plugin Automation", "Theming & Dark Mode", "System Documentation"],
+    label: "Open Design Systems details",
+  },
+  {
     id: "testing",
     title: "Testing & Iteration",
     image: "/card3.webp",
@@ -58,6 +69,17 @@ const SERVICES = [
     paragraph: "I test prototypes with real users, audit against accessibility standards, and iterate with analytics in hand, collaborating closely with development teams until designs ship exactly as intended.",
     points: ["Usability Testing", "Accessibility Audits", "Product Analytics", "Dev Collaboration", "Continuous Improvement"],
     label: "Open Testing & Iteration details",
+  },
+  {
+    id: "analytics",
+    title: "Product Analytics",
+    image: "/card6.webp",
+    mobileImage: "/card6_compressed.webp",
+    popupImage: "/sliderpopup/ppbg6.svg",
+    subtitle: "Turning funnel data into design decisions with measurable outcomes",
+    paragraph: "Every redesign I ship starts and ends with the numbers. I build funnels in Amplitude, find the drop-offs, design against them, and verify the lift. That process is how I got +47% account openings and +81% transactions at Al Rajhi.",
+    points: ["Funnel Analysis", "Drop-off Diagnosis", "A/B Test Design", "Dashboard Building", "Impact Measurement"],
+    label: "Open Product Analytics details",
   },
 ];
 

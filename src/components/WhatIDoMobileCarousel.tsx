@@ -7,6 +7,7 @@ import MobileHorizontalScroll from "./MobileHorizontalScroll";
 export interface WhatIDoService {
   id: string;
   title: string;
+  image: string;
   mobileImage: string;
   popupImage: string;
   label: string;
