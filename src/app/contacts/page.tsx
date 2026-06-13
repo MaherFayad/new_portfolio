@@ -7,6 +7,7 @@ import Reveal from "@/components/Reveal";
 import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import ContactToast, { type ContactToastData } from "@/components/ContactToast";
+import BookMeetingButton from "@/components/BookMeetingButton";
 import emailjs from "@emailjs/browser";
 
 type ContactToast = ContactToastData;
@@ -218,6 +219,11 @@ export default function ContactsPage() {
           <p className="mt-[0.625rem] font-semibold text-[0.75rem] leading-[117%] tracking-[-0.03em] text-[#c5c5c5] opacity-50">
             Saturday to Thursday GMT+3
           </p>
+          <div className="mt-[2rem] max-sm:mt-[1.5rem]">
+            <Magnetic range={60} strength={0.4}>
+              <BookMeetingButton>BOOK A MEETING</BookMeetingButton>
+            </Magnetic>
+          </div>
         </Reveal>
 
         {/* Right Column: Parallax Riyadh Clock Widget */}
