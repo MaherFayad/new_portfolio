@@ -98,7 +98,11 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
   }, [shouldRender, isOpen]);
 
   useEffect(() => {
-    if (!shouldRender) return;
+    if (!isOpen) {
+      document.documentElement.classList.remove("slider-popup-open");
+      lenis?.start();
+      return;
+    }
 
     document.documentElement.classList.add("slider-popup-open");
     lenis?.stop();
@@ -107,7 +111,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
       document.documentElement.classList.remove("slider-popup-open");
       lenis?.start();
     };
-  }, [shouldRender, lenis]);
+  }, [isOpen, lenis]);
 
   useEffect(() => {
     if (!isOpen || !currentCard?.popupImage) return;

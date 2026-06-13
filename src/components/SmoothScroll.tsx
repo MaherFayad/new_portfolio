@@ -3,6 +3,7 @@
 import { ReactLenis } from "lenis/react";
 import { ReactNode } from "react";
 import ScrollBoundsGuard from "./ScrollBoundsGuard";
+import LenisScrollRecovery from "./LenisScrollRecovery";
 
 interface SmoothScrollProps {
   children: ReactNode;
@@ -21,11 +22,11 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
         smoothWheel: true,
         wheelMultiplier: 1,
         touchMultiplier: 1,
-        syncTouch: true,
         infinite: false,
       }}
     >
       <ScrollBoundsGuard />
+      <LenisScrollRecovery />
       {children}
     </LenisWrapper>
   );

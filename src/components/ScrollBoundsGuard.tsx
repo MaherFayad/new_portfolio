@@ -2,6 +2,9 @@
 
 import { useEffect } from "react";
 import { useLenis } from "lenis/react";
+import type Lenis from "lenis";
+
+const BOUND_EPSILON = 2;
 
 function getNativeMaxScroll() {
   return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -10,10 +13,24 @@ function getNativeMaxScroll() {
 function clampNativeScroll() {
   const max = getNativeMaxScroll();
   const y = window.scrollY;
-  if (y > max) {
+  if (y > max + BOUND_EPSILON) {
     window.scrollTo(0, max);
-  } else if (y < 0) {
+  } else if (y < -BOUND_EPSILON) {
     window.scrollTo(0, 0);
+  }
+}
+
+function clampLenisScroll(lenis: Lenis) {
+  if (lenis.isStopped) return;
+
+  const max = lenis.limit;
+  if (!Number.isFinite(max)) return;
+
+  const scroll = lenis.scroll;
+  if (scroll > max + BOUND_EPSILON) {
+    lenis.scrollTo(max, { immediate: true });
+  } else if (scroll < -BOUND_EPSILON) {
+    lenis.scrollTo(0, { immediate: true });
   }
 }
 
@@ -27,17 +44,10 @@ export default function ScrollBoundsGuard() {
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
         rafId = 0;
-        clampNativeScroll();
-
         if (lenis) {
-          const max = lenis.limit;
-          if (typeof max === "number" && Number.isFinite(max)) {
-            if (lenis.scroll > max) {
-              lenis.scrollTo(max, { immediate: true });
-            } else if (lenis.scroll < 0) {
-              lenis.scrollTo(0, { immediate: true });
-            }
-          }
+          clampLenisScroll(lenis);
+        } else {
+          clampNativeScroll();
         }
       });
     };
@@ -49,11 +59,20 @@ export default function ScrollBoundsGuard() {
 
     scheduleClamp();
 
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            handleResize();
+          })
+        : null;
+
+    resizeObserver?.observe(document.documentElement);
+    resizeObserver?.observe(document.body);
+
     if (lenis) {
       lenis.on("scroll", scheduleClamp);
     }
 
-    window.addEventListener("scroll", scheduleClamp, { passive: true });
     window.addEventListener("resize", handleResize, { passive: true });
     window.addEventListener("scrollend", scheduleClamp, { passive: true });
     window.visualViewport?.addEventListener("resize", handleResize);
@@ -63,8 +82,8 @@ export default function ScrollBoundsGuard() {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
+      resizeObserver?.disconnect();
       lenis?.off("scroll", scheduleClamp);
-      window.removeEventListener("scroll", scheduleClamp);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scrollend", scheduleClamp);
       window.visualViewport?.removeEventListener("resize", handleResize);
