@@ -163,14 +163,11 @@ export default function HomePage() {
 
       const heroEl = document.getElementById("hero-section");
       const projectsEl = document.getElementById("projects-section");
-      const agencyEl = document.getElementById("agency-section");
       const contactsEl = document.getElementById("contacts-section");
 
       let nextSection = "honors";
       if (contactsEl && scrollPos >= contactsEl.offsetTop) {
         nextSection = "contacts";
-      } else if (agencyEl && scrollPos >= agencyEl.offsetTop) {
-        nextSection = "agency";
       } else if (projectsEl && scrollPos >= projectsEl.offsetTop) {
         nextSection = "work";
       } else if (heroEl) {
