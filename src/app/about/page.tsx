@@ -250,7 +250,7 @@ export default function AboutPage() {
           <span>I am</span>
         </Reveal>
 
-        <Reveal className="col-[3/6] max-sm:col-[1/5] sm:col-[1/3] lg:col-[3/6] self-stretch relative z-10">
+        <Reveal className="col-[3/6] max-sm:col-[1/3] sm:col-[1/3] lg:col-[3/6] self-stretch relative z-10">
           <img
             src="/assets/Maher.png"
             alt="Maher Fayad"
