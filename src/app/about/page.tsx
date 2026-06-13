@@ -5,11 +5,11 @@ import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import WavyString from "@/components/WavyString";
 import FooterStripe from "@/components/FooterStripe";
-import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import BrandsGrid from "@/components/BrandsGrid";
 import BadgesGrid from "@/components/BadgesGrid";
 import PluginsGrid from "@/components/PluginsGrid";
+import SiteHeader from "@/components/SiteHeader";
 
 const STATS = [
   { name: ["YEARS OF", "EXPERIENCE"], value: "4+" },
@@ -139,49 +139,7 @@ export default function AboutPage() {
 
       {/* Header (Static layout) */}
       <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
-        <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
-          <div className="col-span-1 lg:col-span-3">
-            <Glitch>
-              <Link href="/">
-                <img
-                  alt="Maher Fayad"
-                  src="/assets/logo.svg"
-                  width="115"
-                  height="32"
-                  className="w-[115px] h-8"
-                />
-              </Link>
-            </Glitch>
-          </div>
-          <nav aria-label="Primary" className="col-start-2 lg:col-start-5 lg:col-span-4 max-sm:col-start-3 self-end flex justify-center gap-8 pointer-events-auto">
-            <Magnetic range={40} strength={0.4}>
-              <Link href="/about" className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70">
-                ABOUT
-              </Link>
-            </Magnetic>
-            <Magnetic range={40} strength={0.4}>
-              <Link href="/contacts" className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70">
-                CONTACTS
-              </Link>
-            </Magnetic>
-          </nav>
-          <div className="col-start-3 lg:col-start-11 max-sm:hidden flex flex-col text-right self-end">
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              MAHER
-            </span>
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              FAYAD
-            </span>
-          </div>
-          <div className="col-start-4 lg:col-start-12 max-sm:hidden flex flex-col text-left self-end">
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              PRODUCT
-            </span>
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              DESIGNER
-            </span>
-          </div>
-        </div>
+        <SiteHeader variant="static" />
       </Reveal>
 
       {/* 1. Intro Heading (atomic hero geometry: side label, indented display H1, stats right) */}

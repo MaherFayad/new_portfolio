@@ -4,11 +4,11 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
-import Glitch from "@/components/Glitch";
 import Magnetic from "@/components/Magnetic";
 import ContactToast, { type ContactToastData } from "@/components/ContactToast";
 import BookMeetingButton from "@/components/BookMeetingButton";
 import emailjs from "@emailjs/browser";
+import SiteHeader from "@/components/SiteHeader";
 
 type ContactToast = ContactToastData;
 
@@ -134,49 +134,7 @@ export default function ContactsPage() {
 
       {/* Header bar */}
       <Reveal aboveFold as="header" className="w-full mt-5 relative z-10">
-        <div className="grid grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-5 w-full h-8 items-end">
-          <div className="col-span-1 lg:col-span-3">
-            <Glitch>
-              <Link href="/">
-                <img
-                  alt="Maher Fayad"
-                  src="/assets/logo.svg"
-                  width="115"
-                  height="32"
-                  className="w-[115px] h-8"
-                />
-              </Link>
-            </Glitch>
-          </div>
-          <nav aria-label="Primary" className="col-start-2 lg:col-start-5 lg:col-span-4 max-sm:col-start-3 self-end flex justify-center gap-8 pointer-events-auto">
-            <Magnetic range={40} strength={0.4}>
-              <Link href="/about" className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70">
-                ABOUT
-              </Link>
-            </Magnetic>
-            <Magnetic range={40} strength={0.4}>
-              <Link href="/contacts" className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70">
-                CONTACTS
-              </Link>
-            </Magnetic>
-          </nav>
-          <div className="col-start-3 lg:col-start-11 max-sm:hidden flex flex-col text-right self-end">
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              Maher
-            </span>
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              Fayad
-            </span>
-          </div>
-          <div className="col-start-4 lg:col-start-12 max-sm:hidden flex flex-col text-left self-end">
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              Product
-            </span>
-            <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
-              Designer
-            </span>
-          </div>
-        </div>
+        <SiteHeader variant="static" />
       </Reveal>
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 sm:gap-5 md:gap-5 lg:gap-5 mt-[5rem] max-sm:mt-8 items-start">
 

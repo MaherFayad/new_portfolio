@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Reveal from "./Reveal";
 import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
+import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 interface Plugin {
   name: string;
@@ -193,7 +194,23 @@ export default function PluginsGrid() {
             </h2>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6" style={{ perspective: 1000 }}>
+          {/* Mobile: horizontal scroll */}
+          <div className="lg:hidden">
+            <MobileHorizontalScroll className="">
+              {PLUGINS.map((plugin, idx) => (
+                <div
+                  key={plugin.name}
+                  className="shrink-0 snap-start"
+                  style={{ width: "min(82vw, 420px)" }}
+                >
+                  <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />
+                </div>
+              ))}
+            </MobileHorizontalScroll>
+          </div>
+
+          {/* Desktop: grid */}
+          <div className="hidden lg:grid grid-cols-2 gap-6" style={{ perspective: 1000 }}>
             {PLUGINS.map((plugin, idx) => (
               <Reveal key={plugin.name} delay={idx * 0.04}>
                 <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />

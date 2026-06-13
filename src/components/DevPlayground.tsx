@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Reveal from "./Reveal";
 import AnimatedText from "./AnimatedText";
+import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 interface DevProject {
   id: string;
@@ -101,15 +102,63 @@ export default function DevPlayground() {
         </p>
       </Reveal>
 
+      {/* Mobile: horizontal scroll */}
+      <div className="lg:hidden mt-8">
+        <MobileHorizontalScroll className="">
+          {DEV_PROJECTS.map((project) => (
+            <a
+              key={project.id}
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 snap-start block"
+              style={{ width: "min(82vw, 360px)" }}
+              aria-label={`Visit ${project.title}, opens in new tab`}
+            >
+              <div className="relative z-10 h-full flex flex-col overflow-hidden border border-white/[0.06] rounded-xl bg-[rgba(255,255,255,0.02)]">
+                <div className="relative w-full aspect-video overflow-hidden">
+                  <img
+                    src={project.heroImage}
+                    alt={`${project.title} hero`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                  />
+                </div>
+                <div className="p-5 flex flex-col gap-3">
+                  <h3 className="font-medium text-[clamp(20px,5vw,26px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5]">
+                    {project.title}
+                  </h3>
+                  <p className="font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)]">
+                    {project.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {project.tech.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </MobileHorizontalScroll>
+      </div>
+
+      {/* Desktop: motion grid with hover/fade effects */}
       <motion.div
-        className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-[50px] max-sm:mt-8"
+        className="hidden lg:grid grid-cols-12 gap-5 mt-[50px]"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        {/* Spacer columns to align with title at col-3 */}
-        <div className="col-span-2 max-sm:hidden sm:max-lg:hidden" />
+        <div className="col-span-2" />
         {DEV_PROJECTS.map((project) => {
           const isHovered = hoveredId === project.id;
           const isFaded = hoveredId !== null && !isHovered;
@@ -121,7 +170,7 @@ export default function DevPlayground() {
               target="_blank"
               rel="noopener noreferrer"
               variants={cardVariants}
-              className="col-span-4 max-sm:col-span-4 sm:max-lg:col-span-4 lg:col-span-3 group relative block overflow-hidden cursor-pointer"
+              className="col-span-3 group relative block overflow-hidden cursor-pointer"
               onMouseEnter={() => setHoveredId(project.id)}
               onMouseLeave={() => setHoveredId(null)}
               style={{
@@ -130,7 +179,6 @@ export default function DevPlayground() {
               }}
               aria-label={`Visit ${project.title}, opens in new tab`}
             >
-              {/* Card Content */}
               <div className="relative z-10 h-full flex flex-col overflow-hidden border border-white/[0.06] rounded-xl bg-[rgba(255,255,255,0.02)] backdrop-blur-sm transition-all duration-500 group-hover:border-white/[0.12] group-hover:bg-[rgba(255,255,255,0.04)]">
                 <div className="relative w-full aspect-video overflow-hidden">
                   <img
@@ -142,56 +190,34 @@ export default function DevPlayground() {
                     draggable={false}
                   />
                 </div>
-
-                <div className="p-8 max-sm:p-6 flex flex-col justify-between flex-1 min-h-[220px] max-sm:min-h-[200px]">
-                  {/* Top Row: Number & Arrow */}
+                <div className="p-8 flex flex-col justify-between flex-1 min-h-[220px]">
                   <div className="flex justify-between items-start">
                     <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-[rgba(197,197,197,0.25)]">
                       {String(DEV_PROJECTS.indexOf(project) + 1).padStart(2, "0")}
                     </span>
-
-                    {/* External link arrow */}
                     <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:border-white/30 group-hover:bg-white/5 group-hover:rotate-[0deg] rotate-[-45deg]">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-[rgba(197,197,197,0.4)] transition-colors duration-300 group-hover:text-[#c5c5c5]"
-                      >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(197,197,197,0.4)] transition-colors duration-300 group-hover:text-[#c5c5c5]">
                         <line x1="7" y1="17" x2="17" y2="7" />
                         <polyline points="7 7 17 7 17 17" />
                       </svg>
                     </div>
                   </div>
-
-                  {/* Middle: Title */}
                   <div className="mt-auto">
-                    <h3 className="font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(22px,5vw,28px)] lg:max-dt:text-[clamp(22px,2.133vw-3.84px,30px)]">
+                    <h3 className="font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] lg:max-dt:text-[clamp(22px,2.133vw-3.84px,30px)]">
                       <AnimatedText text={project.title} className="projects-name-text" />
                     </h3>
-                    <p className="mt-3 font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)] max-w-[90%] max-sm:max-w-full">
+                    <p className="mt-3 font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)] max-w-[90%]">
                       {project.description}
                     </p>
                   </div>
-
-                  {/* Bottom: Tech Tags */}
                   <div className="flex flex-wrap gap-2 mt-6">
                     {project.tech.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)] transition-all duration-300 group-hover:border-white/[0.15] group-hover:text-[rgba(197,197,197,0.55)]"
-                      >
+                      <span key={tag} className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)] transition-all duration-300 group-hover:border-white/[0.15] group-hover:text-[rgba(197,197,197,0.55)]">
                         {tag}
                       </span>
                     ))}
                   </div>
                 </div>
-
                 <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.5)] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               </div>
             </motion.a>
