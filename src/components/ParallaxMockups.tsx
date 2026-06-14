@@ -8,7 +8,7 @@ import { MOUSE_EFFECTS_MIN_WIDTH } from "@/hooks/useMouseEffectsEnabled";
 function ParallaxMockupsStatic() {
   return (
     <Reveal>
-      <section className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]">
+      <section className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[120px] sm:h-[18vw] md:h-[200px] lg:h-[240px]">
         <Reveal className="absolute inset-0 z-0 overflow-hidden">
           <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
           <div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]">
@@ -20,34 +20,8 @@ function ParallaxMockupsStatic() {
           </div>
         </Reveal>
 
-        <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
-          <div className="relative w-full max-w-[1200px] h-full flex justify-center items-end">
-            <div
-              className="absolute left-1/2 z-[1] float-back-phone-anim"
-              style={{ bottom: "clamp(-100px, -15vw, -60px)", width: "fit-content" }}
-            >
-              <img
-                alt="Back Phone"
-                className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/back-phone.webp"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <div
-              className="absolute left-1/2 z-[5] float-top-phone-anim"
-              style={{ bottom: "clamp(-60px, -10vw, -30px)", width: "fit-content" }}
-            >
-              <img
-                alt="Top Phone"
-                className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/top-phone.webp"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </div>
-        </div>
+        {/* Bottom fade-out gradient to blend into projects section */}
+        <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none z-[2]" />
       </section>
     </Reveal>
   );
@@ -65,7 +39,7 @@ function ParallaxMockupsInteractive() {
     <Reveal>
       <section
         ref={parallaxRef}
-        className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[300px] sm:h-[45vw] md:h-[500px] lg:h-[730px]"
+        className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[120px] sm:h-[18vw] md:h-[200px] lg:h-[240px]"
       >
         <Reveal className="absolute inset-0 z-0 overflow-hidden">
           <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
@@ -78,32 +52,8 @@ function ParallaxMockupsInteractive() {
           </motion.div>
         </Reveal>
 
-        <div className="absolute inset-0 flex justify-center items-end pointer-events-none">
-          <div className="relative w-full max-w-[1200px] h-full flex justify-center items-end">
-            <div
-              className="absolute left-1/2 z-[1] float-back-phone-anim"
-              style={{ bottom: "clamp(-100px, -15vw, -60px)", width: "fit-content" }}
-            >
-              <img
-                alt="Back Phone"
-                className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/back-phone.webp"
-                loading="lazy"
-              />
-            </div>
-            <div
-              className="absolute left-1/2 z-[5] float-top-phone-anim"
-              style={{ bottom: "clamp(-60px, -10vw, -30px)", width: "fit-content" }}
-            >
-              <img
-                alt="Top Phone"
-                className="w-[180px] max-sm:w-[160px] md:w-[320px] lg:w-[480px] h-auto block"
-                src="/top-phone.webp"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
+        {/* Bottom fade-out gradient to blend into projects section */}
+        <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none z-[2]" />
       </section>
     </Reveal>
   );

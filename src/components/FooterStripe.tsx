@@ -18,24 +18,22 @@ export default function FooterStripe() {
 
   const generatePath = (s: number, t: number, mouseVal: number) => {
     const points = [];
-    const amplitude = 50 + 24 * (2.5 - Math.abs(s - 2.5));
-    const freqMultiplier = 1 + 0.15 * s;
-    const phaseShift = 0.8 * s;
+    const scaledS = (s / 11) * 5;
+    const amplitude = 240 + 30 * (2.5 - Math.abs(scaledS - 2.5));
+    const freqMultiplier = 1 + 0.15 * scaledS;
+    const phaseShift = 0.8 * scaledS;
 
     for (let pct = 0; pct <= 100; pct += 1) {
       const i = pct / 100;
-      let envelope = 0;
-      if (i >= 0.25 && i <= 0.75) {
-        envelope = Math.sin(((i - 0.25) / 0.5) * Math.PI);
-      }
+      const envelope = Math.abs(Math.sin((i - 0.5) * Math.PI));
       const centerPull = Math.sin(i * Math.PI);
       const y =
         250 +
         Math.sin(i * freqMultiplier * Math.PI * 2 + 1.5 * t + phaseShift) *
-          amplitude *
-          envelope +
+        amplitude *
+        envelope +
         mouseVal *
-          centerPull;
+        centerPull;
       points.push(`${pct},${y}`);
     }
     return `M ${points.join(" L ")}`;
@@ -52,7 +50,7 @@ export default function FooterStripe() {
       const elapsedSeconds = (now - startTime - totalPausedMs) / 1000;
       const mouseVal = mouseEffectsEnabled ? mouseSpring.get() : 0;
 
-      for (let s = 0; s < 6; s += 1) {
+      for (let s = 0; s < 12; s += 1) {
         const pathD = generatePath(s, elapsedSeconds, mouseVal);
         const ref = pathRefs.current[s];
         if (ref) {
@@ -158,7 +156,7 @@ export default function FooterStripe() {
           </linearGradient>
         </defs>
 
-        {Array.from({ length: 6 }).map((_, index) => (
+        {Array.from({ length: 12 }).map((_, index) => (
           <path
             key={index}
             ref={(el) => {
@@ -167,9 +165,9 @@ export default function FooterStripe() {
             d="M 0 250 L 100 250"
             fill="none"
             stroke="url(#footer-stripe-gradient)"
-            strokeWidth={2}
+            strokeWidth={1.5}
             style={{ vectorEffect: "non-scaling-stroke" }}
-            opacity={1}
+            opacity={0.85}
           />
         ))}
       </svg>

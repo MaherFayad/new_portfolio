@@ -185,7 +185,7 @@ export default function ProjectsList() {
   const activeTitle = projects[activeIdx]?.title ?? projects[0]?.title ?? "";
 
   return (
-    <section id="projects-section" className="mt-[clamp(80px,9.615vw-54.6px,130px)] lg:max-dt:mt-[clamp(90px,5.333vw-16.3px,90px)] sm:max-lg:mt-[60px] max-sm:mt-10">
+    <section id="projects-section" className="mt-[clamp(20px,3vw,40px)] lg:max-dt:mt-[30px] sm:max-lg:mt-[25px] max-sm:mt-[15px]">
 
       {/* Viewport heading reveal */}
       <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-[last_baseline]">
