@@ -523,9 +523,7 @@ export default function HomePage() {
           {/* Copyright details right */}
           <div className="col-[11/12] max-sm:col-start-2 max-sm:col-span-1 max-sm:mt-0 flex flex-col items-end">
             <Reveal delay={0.3} className="text-left max-sm:text-right [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none text-[clamp(11px,0.8vw+0.8px,11px)] lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
-              <span>Don&apos;t ask why there</span>
-              <span>is a fireball here.</span>
-              <span>I don&apos;t know either.</span>
+              Don't ask about the fireball. <br /> I'm as confused as you are. <br /> But come on kinda sick, right?
             </Reveal>
           </div>
         </div>
