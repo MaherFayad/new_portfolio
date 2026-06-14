@@ -72,17 +72,21 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
     prevPathRef.current = pathname;
   }, [pathname]);
 
-  // Lock scroll while preloader is active
+  // Lock scroll while preloader is active, but unlock once the page starts revealing
   useEffect(() => {
-    if (preloaderActive) {
+    if (preloaderActive && !pageActive) {
       document.documentElement.classList.add("preloader-active");
     } else {
       document.documentElement.classList.remove("preloader-active");
+      if (typeof window !== "undefined") {
+        window.focus();
+        document.body.focus();
+      }
     }
     return () => {
       document.documentElement.classList.remove("preloader-active");
     };
-  }, [preloaderActive]);
+  }, [preloaderActive, pageActive]);
 
   const showPreloader = preloaderActive;
   const showPage = true; // Always mount page and transition provider for page-to-page transitions
