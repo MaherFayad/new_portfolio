@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import WavyString from "@/components/WavyString";
-import ConcentricCircles from "@/components/ConcentricCircles";
+import ToonFireball from "@/components/ToonFireball";
 import ProjectsList from "@/components/ProjectsList";
 import FooterStripe from "@/components/FooterStripe";
 import Glitch from "@/components/Glitch";
@@ -494,11 +494,11 @@ export default function HomePage() {
       </section>
 
       {/* 8. Interactive Divider 2 */}
-      <WavyString className="max-sm:mt-10 mt-20" />
+      <WavyString className="max-sm:mt-10 mt-20 relative z-10" />
 
       {/* 9. About section */}
       <section className="relative">
-        <div className="grid grid-cols-12 max-sm:grid-cols-2 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
+        <div className="relative z-[1] grid grid-cols-12 max-sm:grid-cols-2 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
 
           {/* Header left */}
           <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
@@ -528,11 +528,11 @@ export default function HomePage() {
 
         {/* 3D Concentric holographic circles */}
         <Reveal duration={1.5} y={50} className="lg:-mt-[100px] -mt-[40px] max-sm:mt-0 max-sm:mb-4" style={{ perspective: 800 }}>
-          <ConcentricCircles />
+          <ToonFireball />
         </Reveal>
 
         {/* About description paragraphs */}
-        <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
+        <div className="relative z-[1] grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
           <Reveal as="p" className="col-span-4 max-sm:col-start-1 max-sm:col-span-4 sm:col-[2/5] lg:col-[8/12] font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[clamp(18px,5vw,22px)] lg:max-dt:text-[clamp(18px,2.133vw-3.84px,26px)] dt:text-[clamp(26px,1.923vw-0.92px,36px)]">
             <span className="max-sm:pl-0 pl-[calc((100%+20px)/4)] sm:pl-[calc((100%+20px)/3)] block">
               Senior Product Designer
