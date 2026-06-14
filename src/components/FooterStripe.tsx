@@ -23,10 +23,20 @@ export default function FooterStripe() {
     const freqMultiplier = 1 + 0.15 * scaledS;
     const phaseShift = 0.8 * scaledS;
 
+    const pinchX = 0.65; // Shift pinch point to the right (65%)
     for (let pct = 0; pct <= 100; pct += 1) {
       const i = pct / 100;
-      const envelope = Math.abs(Math.sin((i - 0.5) * Math.PI));
-      const centerPull = Math.sin(i * Math.PI);
+      
+      let envelope = 0;
+      let centerPull = 0;
+      if (i <= pinchX) {
+        envelope = Math.sin(((pinchX - i) / pinchX) * Math.PI / 2);
+        centerPull = Math.sin((i / pinchX) * Math.PI / 2);
+      } else {
+        envelope = Math.sin(((i - pinchX) / (1 - pinchX)) * Math.PI / 2);
+        centerPull = Math.sin(((1 - i) / (1 - pinchX)) * Math.PI / 2);
+      }
+
       const y =
         250 +
         Math.sin(i * freqMultiplier * Math.PI * 2 + 1.5 * t + phaseShift) *
