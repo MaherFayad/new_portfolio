@@ -43,12 +43,21 @@ export const metadata: Metadata = {
     siteName: "Maher Fayad | Senior Product Designer",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1024,
+        height: 1024,
+        alt: "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Maher Fayad | Senior Product Designer",
     description:
       "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design.",
+    images: ["/opengraph-image.png"],
   },
 };
 

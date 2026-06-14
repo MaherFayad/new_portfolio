@@ -36,6 +36,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `https://maherfayad.com/projects/${project.slug}`,
       type: "article",
+      images: [
+        {
+          url: "/opengraph-image.png",
+          width: 1024,
+          height: 1024,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/opengraph-image.png"],
     },
   };
 }
