@@ -3,12 +3,17 @@
 import { getCalApi } from "@calcom/embed-react";
 import { useEffect, type ReactNode } from "react";
 
-const CAL_NAMESPACE = "30min";
-const CAL_LINK = "maher-fayad-chnujh/30min";
+export const CAL_NAMESPACE = "30min";
+export const CAL_LINK = "maher-fayad-chnujh/30min";
 const CAL_CONFIG = JSON.stringify({
   layout: "month_view",
   useSlotsViewOnSmallScreen: "true",
 });
+
+export async function initCalEmbed() {
+  const cal = await getCalApi({ namespace: CAL_NAMESPACE });
+  cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
+}
 
 type BookMeetingButtonProps = {
   className?: string;
@@ -20,10 +25,7 @@ export default function BookMeetingButton({
   children = "Book a meeting",
 }: BookMeetingButtonProps) {
   useEffect(() => {
-    (async function () {
-      const cal = await getCalApi({ namespace: CAL_NAMESPACE });
-      cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
-    })();
+    void initCalEmbed();
   }, []);
 
   return (

@@ -167,7 +167,7 @@ export default function AboutPage() {
               rel="noopener noreferrer"
               className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
             >
-              VIEW FULL CV ↗
+              VIEW FULL CV
             </a>
           </Magnetic>
         </Reveal>

@@ -7,6 +7,7 @@ import { useLenis } from "lenis/react";
 import SmoothScroll from "@/components/SmoothScroll";
 import { HomeRevealGateProvider } from "@/components/HomeRevealGate";
 import { PageTransitionProvider } from "@/components/PageTransition";
+import { initCalEmbed } from "@/components/BookMeetingButton";
 
 const Preloader = dynamic(() => import("@/components/Preloader"), {
   ssr: false,
@@ -77,6 +78,12 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
   useEffect(() => {
     void import("@/components/Preloader");
+  }, []);
+
+  // Preload the Cal.com embed script app-wide so the "Book a meeting" button
+  // is ready to open even when reaching /contacts via client-side navigation.
+  useEffect(() => {
+    void initCalEmbed();
   }, []);
 
   useEffect(() => {

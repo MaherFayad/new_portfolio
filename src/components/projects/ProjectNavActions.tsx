@@ -44,8 +44,57 @@ export default function ProjectNavActions({ nextProject }: ProjectNavActionsProp
       </div>
 
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-10 max-sm:mt-8 items-start">
+        {/* Next project */}
+        {nextProject && nextHref && (
+          <Reveal delay={0.08} className="col-[3/6] max-sm:col-[1/5] sm:col-[1/3] lg:col-[3/6]">
+            <span className={sideLabelClass}>
+              <span>Next</span>
+              <span>Project</span>
+            </span>
+
+            <Magnetic range={52} strength={0.1} className="block w-full">
+              <Link
+                href={nextHref}
+                target={nextIsExternal ? "_blank" : undefined}
+                rel={nextIsExternal ? "noopener noreferrer" : undefined}
+                className="group block mt-4 max-sm:mt-3 no-underline w-full"
+              >
+                {nextProject.images[0] && (
+                  <div className="relative w-full aspect-[2/1] max-sm:aspect-[16/10] border border-white/10 overflow-hidden bg-[#050505] mb-5 max-sm:mb-4">
+                    <img
+                      alt=""
+                      src={nextProject.images[0]}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  </div>
+                )}
+
+                <span className="font-medium text-[clamp(28px,2.8vw,44px)] max-sm:text-[clamp(22px,6vw,28px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] block">
+                  <AnimatedText text={nextProject.title} className="projects-name-text" />
+                </span>
+
+                <p className={`${proseClass} mt-3 max-w-lg line-clamp-2`}>
+                  {nextProject.subtitle}
+                </p>
+
+                <span className="mt-5 max-sm:mt-4 inline-flex items-center gap-3 font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] group-hover:text-[#c5c5c5] transition-colors duration-300">
+                  {nextIsExternal ? "View on Behance" : "View case study"}
+                  <img
+                    alt=""
+                    src="/arr.svg"
+                    width="24"
+                    height="24"
+                    className="w-6 h-6 opacity-60 transition-transform duration-300 group-hover:translate-x-1 group-hover:opacity-100"
+                  />
+                </span>
+              </Link>
+            </Magnetic>
+          </Reveal>
+        )}
+
         {/* Contact */}
-        <Reveal className="col-[3/6] max-sm:col-[1/5] sm:col-[1/3] lg:col-[3/6]">
+        <Reveal className="col-[7/12] max-sm:col-[1/5] sm:col-[2/5] lg:col-[7/12] max-sm:mt-10">
           <span className={`${sideLabelClass} max-sm:flex sm:hidden`}>
             <span>Contact</span>
           </span>
@@ -96,55 +145,6 @@ export default function ProjectNavActions({ nextProject }: ProjectNavActionsProp
             Senior roles, freelance work, or design systems.
           </p>
         </Reveal>
-
-        {/* Next project */}
-        {nextProject && nextHref && (
-          <Reveal delay={0.08} className="col-[7/12] max-sm:col-[1/5] sm:col-[2/5] lg:col-[7/12] max-sm:mt-10">
-            <span className={sideLabelClass}>
-              <span>Next</span>
-              <span>Project</span>
-            </span>
-
-            <Magnetic range={52} strength={0.1} className="block w-full">
-              <Link
-                href={nextHref}
-                target={nextIsExternal ? "_blank" : undefined}
-                rel={nextIsExternal ? "noopener noreferrer" : undefined}
-                className="group block mt-4 max-sm:mt-3 no-underline w-full"
-              >
-                {nextProject.images[0] && (
-                  <div className="relative w-full aspect-[2/1] max-sm:aspect-[16/10] border border-white/10 overflow-hidden bg-[#050505] mb-5 max-sm:mb-4">
-                    <img
-                      alt=""
-                      src={nextProject.images[0]}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-                )}
-
-                <span className="font-medium text-[clamp(28px,2.8vw,44px)] max-sm:text-[clamp(22px,6vw,28px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] block">
-                  <AnimatedText text={nextProject.title} className="projects-name-text" />
-                </span>
-
-                <p className={`${proseClass} mt-3 max-w-lg line-clamp-2`}>
-                  {nextProject.subtitle}
-                </p>
-
-                <span className="mt-5 max-sm:mt-4 inline-flex items-center gap-3 font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] group-hover:text-[#c5c5c5] transition-colors duration-300">
-                  {nextIsExternal ? "View on Behance" : "View case study"}
-                  <img
-                    alt=""
-                    src="/arr.svg"
-                    width="24"
-                    height="24"
-                    className="w-6 h-6 opacity-60 transition-transform duration-300 group-hover:translate-x-1 group-hover:opacity-100"
-                  />
-                </span>
-              </Link>
-            </Magnetic>
-          </Reveal>
-        )}
       </div>
     </section>
   );

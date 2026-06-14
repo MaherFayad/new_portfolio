@@ -20,7 +20,7 @@ export default function AnimatedText({ text, className = "", externalHover }: An
       onMouseLeave={() => setHovered(false)}
     >
       {chars.map((char, index) => (
-        <span key={index} className="inline-block relative overflow-hidden">
+        <span key={index} className="inline-block relative overflow-hidden pb-[0.2em] -mb-[0.2em]">
           <span className="inline-block relative">
             <span
               className="inline-block absolute left-0 top-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"

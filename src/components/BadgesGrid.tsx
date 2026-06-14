@@ -155,7 +155,10 @@ export default function BadgesGrid() {
           </div>
 
           {/* Desktop: transform carousel */}
-          <div className="hidden lg:block overflow-hidden">
+          <div
+            data-lenis-prevent
+            className="hidden lg:block overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
           <div
             className={`flex gap-5 select-none will-change-transform ${
               isTransitioning ? "transition-transform duration-500 ease-in-out" : ""
