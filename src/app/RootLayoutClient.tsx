@@ -3,8 +3,6 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useLenis } from "lenis/react";
-import SmoothScroll from "@/components/SmoothScroll";
 import { HomeRevealGateProvider } from "@/components/HomeRevealGate";
 import { PageTransitionProvider } from "@/components/PageTransition";
 import { initCalEmbed } from "@/components/BookMeetingButton";
@@ -16,22 +14,16 @@ const Preloader = dynamic(() => import("@/components/Preloader"), {
 
 function PreloaderScrollReset({
   pageActive,
-  preloaderActive,
 }: {
   pageActive: boolean;
-  preloaderActive: boolean;
 }) {
-  const lenis = useLenis();
   const didInitialScrollReset = useRef(false);
 
   const scrollPageToTop = useCallback(() => {
-    if (lenis) {
-      lenis.scrollTo(0, { immediate: true });
-    }
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, [lenis]);
+  }, []);
 
   useEffect(() => {
     if (typeof history !== "undefined" && "scrollRestoration" in history) {
@@ -39,23 +31,13 @@ function PreloaderScrollReset({
     }
   }, []);
 
-  // Reset scroll once when the page first reveals — not again when preloader unmounts or Lenis mounts.
+  // Reset scroll once when the page first reveals
   useEffect(() => {
     if (pageActive && !didInitialScrollReset.current) {
       didInitialScrollReset.current = true;
       scrollPageToTop();
     }
   }, [pageActive, scrollPageToTop]);
-
-  useEffect(() => {
-    if (!lenis) return;
-
-    if (preloaderActive && !pageActive) {
-      lenis.stop();
-    } else if (pageActive) {
-      lenis.start();
-    }
-  }, [preloaderActive, pageActive, lenis]);
 
   return null;
 }
@@ -90,13 +72,25 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
     prevPathRef.current = pathname;
   }, [pathname]);
 
+  // Lock scroll while preloader is active
+  useEffect(() => {
+    if (preloaderActive) {
+      document.documentElement.classList.add("preloader-active");
+    } else {
+      document.documentElement.classList.remove("preloader-active");
+    }
+    return () => {
+      document.documentElement.classList.remove("preloader-active");
+    };
+  }, [preloaderActive]);
+
   const showPreloader = preloaderActive;
   const showPage = true; // Always mount page and transition provider for page-to-page transitions
   const gateValue = pageActive; // Reveal components wait for the preloader to complete
 
   return (
-    <SmoothScroll>
-      <PreloaderScrollReset pageActive={pageActive} preloaderActive={preloaderActive} />
+    <>
+      <PreloaderScrollReset pageActive={pageActive} />
       <HomeRevealGateProvider value={gateValue}>
         {showPreloader && (
           <Preloader
@@ -123,6 +117,6 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
           </PageTransitionProvider>
         )}
       </HomeRevealGateProvider>
-    </SmoothScroll>
+    </>
   );
 }

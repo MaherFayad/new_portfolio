@@ -163,24 +163,7 @@ html {
   animation: float-top-phone 8s ease-in-out infinite;
 }
 
-/* Smooth Scrolling Customizations */
-html.lenis {
-  height: auto;
-  overscroll-behavior-y: none;
-}
 
-html.lenis body {
-  overscroll-behavior-y: none;
-}
-
-.lenis-clean {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.lenis-clean::-webkit-scrollbar {
-  display: none;
-}
 
 .lg\:\!mt-\[calc\(843\.5658px-17\.7514vw\)\] {
   @media (width >=64rem) {
@@ -246,9 +229,11 @@ html.lenis body {
   }
 }
 
-/* Slider popup — CSS-driven open/close (avoids inline style recalc on mobile) */
+/* Slider popup & preloader — CSS-driven scroll lock */
 html.slider-popup-open,
-html.slider-popup-open body {
+html.slider-popup-open body,
+html.preloader-active,
+html.preloader-active body {
   overflow: hidden;
   overscroll-behavior: none;
 }

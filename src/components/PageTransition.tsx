@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLenis } from "lenis/react";
 import { HomeRevealGateProvider, useHomeRevealGate } from "./HomeRevealGate";
 
 type TransitionStatus = "idle" | "entering" | "exiting";
@@ -37,7 +36,6 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
   const prevPathnameRef = useRef(pathname);
   const enterCompletedRef = useRef(false);
   const routeChangedRef = useRef(false);
-  const lenis = useLenis();
 
   // Gate content reveal until 300ms after transition clears
   useEffect(() => {
@@ -128,11 +126,7 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
       routeChangedRef.current = true;
 
       // Scroll to top instantly on page navigation
-      if (lenis) {
-        lenis.scrollTo(0, { immediate: true });
-      } else {
-        window.scrollTo(0, 0);
-      }
+      window.scrollTo(0, 0);
 
       // If enter animation has already completed, start exiting immediately.
       // Otherwise, the enter timer will trigger the exiting phase once it finishes.
@@ -140,7 +134,7 @@ export function PageTransitionProvider({ children }: { children: React.ReactNode
         setStatus("exiting");
       }
     }
-  }, [pathname, lenis]);
+  }, [pathname]);
 
   // Handle setting status back to idle when exit animation completes
   useEffect(() => {

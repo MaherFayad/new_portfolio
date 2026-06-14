@@ -14,7 +14,6 @@ const MobileHorizontalScroll = forwardRef<HTMLDivElement, MobileHorizontalScroll
     return (
       <div
         ref={ref}
-        data-lenis-prevent
         className={`overflow-x-auto overflow-y-hidden overscroll-x-contain snap-x snap-mandatory [touch-action:pan-x_pan-y] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}
       >
         <div className="flex gap-4 w-max pb-2">

@@ -3,7 +3,6 @@
 import { useEffect, useLayoutEffect, useState, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useLenis } from "lenis/react";
 
 interface CardData {
   title: string;
@@ -26,7 +25,6 @@ const REVEAL_EASING = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 const MOBILE_BREAKPOINT = "(max-width: 1023px)";
 
 export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps) {
-  const lenis = useLenis();
   const [mounted, setMounted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [active, setActive] = useState(false);
@@ -100,18 +98,15 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
   useEffect(() => {
     if (!isOpen) {
       document.documentElement.classList.remove("slider-popup-open");
-      lenis?.start();
       return;
     }
 
     document.documentElement.classList.add("slider-popup-open");
-    lenis?.stop();
 
     return () => {
       document.documentElement.classList.remove("slider-popup-open");
-      lenis?.start();
     };
-  }, [isOpen, lenis]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || !currentCard?.popupImage) return;
@@ -211,8 +206,7 @@ export default function SliderPopup({ isOpen, onClose, card }: SliderPopupProps)
         </button>
 
         <div
-          className="slider-popup-scroll relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden lenis-clean"
-          data-lenis-prevent
+          className="slider-popup-scroll relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
         >
           <div className="flex w-full flex-col p-10 max-sm:p-5 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
             <h2
