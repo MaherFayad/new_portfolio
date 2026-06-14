@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactLenis } from "lenis/react";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import ScrollBoundsGuard from "./ScrollBoundsGuard";
 import LenisScrollRecovery from "./LenisScrollRecovery";
 
@@ -11,6 +11,20 @@ interface SmoothScrollProps {
 
 export default function SmoothScroll({ children }: SmoothScrollProps) {
   const LenisWrapper = ReactLenis as any;
+  const [smoothScrollEnabled, setSmoothScrollEnabled] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1200px)");
+    const update = () => setSmoothScrollEnabled(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  if (!smoothScrollEnabled) {
+    return <>{children}</>;
+  }
+
   return (
     <LenisWrapper
       root
