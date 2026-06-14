@@ -10,7 +10,6 @@ import BookMeetingButton from "@/components/BookMeetingButton";
 import emailjs from "@emailjs/browser";
 import SiteHeader from "@/components/SiteHeader";
 import AnimatedText from "@/components/AnimatedText";
-import WavyString from "@/components/WavyString";
 
 type ContactToast = ContactToastData;
 
@@ -201,84 +200,73 @@ export default function ContactsPage() {
           <span>Touch</span>
         </Reveal>
 
-        {/* Title */}
-        <Reveal aboveFold as="h1" className="col-[3/7] max-sm:col-[1/5] sm:col-[1/5] lg:col-[3/7] text-[#c5c5c5] font-medium text-[clamp(40px,5vw,64px)] max-sm:text-[clamp(28px,8vw,36px)] sm:text-[clamp(36px,4.588vw,52px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(40px,5vw,64px)] leading-[100%] tracking-[-0.06em] self-start min-w-0">
-          <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
-            Let&apos;s build
-          </span>
-          the next great product together
-        </Reveal>
-
-        {/* Riyadh Clock Card (Top Right) */}
-        <Reveal
-          aboveFold
-          delay={0.2}
-          className="col-[8/12] max-sm:col-[1/5] sm:col-[1/5] lg:col-[8/12] w-full max-w-[460px] max-sm:max-w-none ml-auto max-sm:ml-0"
-        >
-          <div className="w-full aspect-[1.8/1] rounded-2xl border border-white/10 bg-[#0d0d0d]/80 backdrop-blur-md relative overflow-hidden flex flex-col justify-between p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-            {/* Ambient Gradient Mesh Background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-              <div
-                className="absolute -top-[40%] -right-[20%] w-[90%] h-[90%] rounded-full bg-[#1B67E8] opacity-[0.16] blur-[70px] pulse-slow-1"
-              />
-              <div
-                className="absolute -bottom-[40%] -left-[20%] w-[90%] h-[90%] rounded-full bg-[#927FAE] opacity-[0.12] blur-[70px] pulse-slow-2"
-              />
-            </div>
-
-            {/* Card Top: Details & Status Indicator */}
-            <div className="flex justify-between items-start relative z-10 w-full">
-              <div className="flex flex-col">
-                <span className="font-semibold text-[9px] tracking-widest uppercase text-[rgba(197,197,197,0.3)]">
-                  LOCATION
-                </span>
-                <span className="font-medium text-[14px] leading-none tracking-[-0.02em] text-[#c5c5c5] mt-1.5">
-                  Riyadh, Saudi Arabia
-                </span>
-                <span className="font-medium text-[10px] text-[rgba(197,197,197,0.4)] mt-1">
-                  UTC/GMT +3 hours
-                </span>
-              </div>
-
-              {/* Status Indicator */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/5 bg-[#141414]/40 backdrop-blur-md">
-                <span className={`w-1.5 h-1.5 rounded-full ${isAvailableNow ? "bg-[#1CCECB] animate-pulse" : "bg-[rgba(197,197,197,0.4)]"}`} />
-                <span className="font-semibold text-[8px] tracking-wider uppercase text-[#c5c5c5]">
-                  {isAvailableNow ? "Active Now" : "Resting"}
-                </span>
-              </div>
-            </div>
-
-            {/* Card Bottom: Clock Display */}
-            <div className="flex items-baseline pointer-events-none mt-auto relative z-10 w-full select-none">
-              <span className="font-medium text-[#c5c5c5] text-[72px] sm:text-[80px] md:text-[80px] lg:text-[90px] leading-none tracking-[-0.07em]">
-                {timeState.hours}
-              </span>
-              <span
-                className="font-medium text-[#c5c5c5] text-[72px] sm:text-[80px] md:text-[80px] lg:text-[90px] leading-none tracking-[-0.07em]"
-                style={{
-                  opacity: timeState.colonVisible ? 1 : 0.2,
-                  transition: "opacity 0.15s ease",
-                }}
-              >
-                :
-              </span>
-              <span className="font-medium text-[#c5c5c5] text-[72px] sm:text-[80px] md:text-[80px] lg:text-[90px] leading-none tracking-[-0.07em]">
-                {timeState.minutes}
-              </span>
-            </div>
-          </div>
-        </Reveal>
       </section>
 
-      {/* Separation Divider */}
-      <WavyString className="mt-12 mb-14 max-sm:mt-8 max-sm:mb-10" />
-
       {/* 2. Unified Two-Column Dashboard Layout */}
-      <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-10 items-start w-full">
+      <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-24 items-stretch w-full mt-12 max-sm:mt-8">
 
         {/* Left Column: Direct Contact & Availability */}
-        <div className="col-[2/6] max-sm:col-[1/5] sm:col-[1/3] lg:col-[2/6] flex flex-col gap-10">
+        <div className="col-[2/6] max-sm:col-[1/5] sm:col-[1/3] lg:col-[2/6] flex flex-col gap-10 max-sm:gap-12">
+
+          {/* Riyadh Clock Card */}
+          <Reveal aboveFold delay={0.15} className="w-full">
+            <div className="w-full aspect-[1.8/1] rounded-2xl border border-white/10 bg-[#0d0d0d]/80 backdrop-blur-md relative overflow-hidden flex flex-col justify-between p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+              {/* Ambient Gradient Mesh Background */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div
+                  className="absolute -top-[40%] -right-[20%] w-[90%] h-[90%] rounded-full bg-[#1B67E8] opacity-[0.16] blur-[70px] pulse-slow-1"
+                />
+                <div
+                  className="absolute -bottom-[40%] -left-[20%] w-[90%] h-[90%] rounded-full bg-[#927FAE] opacity-[0.12] blur-[70px] pulse-slow-2"
+                />
+              </div>
+
+              {/* Card Top: Details & Status Indicator */}
+              <div className="flex justify-between items-start relative z-10 w-full">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-[9px] tracking-widest uppercase text-[rgba(197,197,197,0.3)]">
+                    LOCATION
+                  </span>
+                  <span className="font-medium text-[14px] leading-none tracking-[-0.02em] text-[#c5c5c5] mt-1.5">
+                    Riyadh, Saudi Arabia
+                  </span>
+                  <span className="font-medium text-[10px] text-[rgba(197,197,197,0.4)] mt-1">
+                    UTC/GMT +3 hours
+                  </span>
+                </div>
+
+                {/* Status Indicator */}
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/5 bg-[#141414]/40 backdrop-blur-md">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isAvailableNow ? "bg-[#1CCECB] animate-pulse" : "bg-[rgba(197,197,197,0.4)]"}`} />
+                  <span className="font-semibold text-[8px] tracking-wider uppercase text-[#c5c5c5]">
+                    {isAvailableNow ? "Active Now" : "Resting"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Card Bottom: Clock Display */}
+              <div className="flex items-baseline pointer-events-none mt-auto relative z-10 w-full select-none">
+                <span className="font-medium text-[#c5c5c5] text-[72px] sm:text-[80px] md:text-[80px] lg:text-[90px] leading-none tracking-[-0.07em]">
+                  {timeState.hours}
+                </span>
+                <span
+                  className="font-medium text-[#c5c5c5] text-[72px] sm:text-[80px] md:text-[80px] lg:text-[90px] leading-none tracking-[-0.07em]"
+                  style={{
+                    opacity: timeState.colonVisible ? 1 : 0.2,
+                    transition: "opacity 0.15s ease",
+                  }}
+                >
+                  :
+                </span>
+                <span className="font-medium text-[#c5c5c5] text-[72px] sm:text-[80px] md:text-[80px] lg:text-[90px] leading-none tracking-[-0.07em]">
+                  {timeState.minutes}
+                </span>
+                <span className="font-semibold text-[9px] tracking-widest uppercase text-[rgba(197,197,197,0.6)] ml-2.5 mb-2">
+                  Time Now
+                </span>
+              </div>
+            </div>
+          </Reveal>
 
           {/* Direct Email */}
           <Reveal aboveFold delay={0.15} className="flex flex-col">
@@ -338,7 +326,7 @@ export default function ContactsPage() {
         </div>
 
         {/* Right Column: Dynamic Form Section */}
-        <div className="col-[7/13] max-sm:col-[1/5] sm:col-[3/5] lg:col-[7/13] flex flex-col w-full">
+        <div className="col-[7/13] max-sm:col-[1/5] sm:col-[3/5] lg:col-[7/13] flex flex-col justify-end w-full">
           <Reveal delay={0.15} className="flex flex-col mb-8">
             <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)]">
               SEND A MESSAGE
@@ -351,7 +339,7 @@ export default function ContactsPage() {
           <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className="flex flex-col gap-10 w-full"
+            className="flex flex-col gap-10 max-sm:gap-12 w-full"
           >
             {/* Name input */}
             <Reveal delay={0.2} className="relative w-full text-[clamp(1.2rem,1.6vw,2rem)]">

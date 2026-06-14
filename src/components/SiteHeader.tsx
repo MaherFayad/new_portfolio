@@ -49,6 +49,15 @@ export default function SiteHeader({ variant = "static" }: SiteHeaderProps) {
         </Magnetic>
         <Magnetic range={40} strength={0.4}>
           <Link
+            href="/work"
+            className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
+            tabIndex={isSticky ? -1 : undefined}
+          >
+            WORK
+          </Link>
+        </Magnetic>
+        <Magnetic range={40} strength={0.4}>
+          <Link
             href="/contacts"
             className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
             tabIndex={isSticky ? -1 : undefined}
