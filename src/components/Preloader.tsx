@@ -314,7 +314,8 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
 
       // Helper to generate text ribbons procedurally without solid background strip
       const makeRibbonTexture = (text: string, fontCSS: string, stripHeight: number, letterSpacing = 0, textColor = "#ffffff") => {
-        const W = 2048, H = 1024;
+        const scale = mobile ? 0.5 : 1.0;
+        const W = Math.round(2048 * scale), H = Math.round(1024 * scale);
         const cnv = document.createElement("canvas");
         cnv.width = W;
         cnv.height = H;
@@ -324,13 +325,20 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
         // Clear the canvas to be completely transparent - no background strip!
         ctx.clearRect(0, 0, W, H);
 
+        let finalFontCSS = fontCSS;
+        if (mobile) {
+          finalFontCSS = fontCSS
+            .replace("150px", "75px")
+            .replace("30px", "15px");
+        }
+
         // Draw text
         ctx.fillStyle = textColor;
-        ctx.font = fontCSS;
+        ctx.font = finalFontCSS;
         ctx.textBaseline = "middle";
 
         const metrics = ctx.measureText(text);
-        const pad = 24;
+        const pad = 24 * scale;
         const scaleX = (W - pad * 2) / (metrics.width + letterSpacing * text.length);
 
         ctx.save();
@@ -360,28 +368,16 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
 
       const geo = new THREE.SphereGeometry(1, mobile ? 40 : 64, mobile ? 40 : 64);
 
-      const RIBBON_A = mobile
-        ? {
-            text: "DESIGN THAT CHANGES THE WORLD",
-            stripHeight: 88,
-            fontCSS: '400 88px "Bebas Neue", sans-serif',
-          }
-        : {
-            text: "DESIGN THAT CHANGES THE WORLD",
-            stripHeight: 150,
-            fontCSS: '400 150px "Bebas Neue", sans-serif',
-          };
-      const RIBBON_B = mobile
-        ? {
-            text: "UX/UI • PRODUCT DESIGN • DEVELOPMENT",
-            stripHeight: 30,
-            fontCSS: '400 22px "Space Mono", monospace',
-          }
-        : {
-            text: "WEB DESIGN • UX/UI DESIGN • CREATIVE DESIGN • PRODUCT AND APP DESIGN • DEVELOPMENT",
-            stripHeight: 44,
-            fontCSS: '400 30px "Space Mono", monospace',
-          };
+      const RIBBON_A = {
+        text: "DESIGN THAT CHANGES THE WORLD",
+        stripHeight: 150,
+        fontCSS: '400 150px "Bebas Neue", sans-serif',
+      };
+      const RIBBON_B = {
+        text: "WEB DESIGN • UX/UI DESIGN • CREATIVE DESIGN • PRODUCT AND APP DESIGN • DEVELOPMENT",
+        stripHeight: 44,
+        fontCSS: '400 30px "Space Mono", monospace',
+      };
 
       const texA = makeRibbonTexture(RIBBON_A.text, RIBBON_A.fontCSS, RIBBON_A.stripHeight, 0, "#D9D9D9");
       const texB = makeRibbonTexture(RIBBON_B.text, RIBBON_B.fontCSS, RIBBON_B.stripHeight, 0, "#757575");
@@ -402,16 +398,16 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
 
       // Wait for the fonts to load, then swap textures and play entrance GSAP timeline
       Promise.all([
-        document.fonts.load(RIBBON_A.fontCSS),
-        document.fonts.load(RIBBON_B.fontCSS),
+        document.fonts.load(mobile ? '400 75px "Bebas Neue", sans-serif' : RIBBON_A.fontCSS),
+        document.fonts.load(mobile ? '400 15px "Space Mono", monospace' : RIBBON_B.fontCSS),
       ]).catch(() => { }).then(() => {
         if (disposed) return;
         (ringA.material as THREE.ShaderMaterial).uniforms.map.value = makeRibbonTexture(RIBBON_A.text, RIBBON_A.fontCSS, RIBBON_A.stripHeight, 0, "#D9D9D9");
         (ringB.material as THREE.ShaderMaterial).uniforms.map.value = makeRibbonTexture(RIBBON_B.text, RIBBON_B.fontCSS, RIBBON_B.stripHeight, 0, "#757575");
 
         gsap.timeline()
-          .to(ringA.position, { y: mobile ? 0.11 : 0.18, duration: 2.0, delay: 0.5, ease: "power4.out" })
-          .to(ringB.position, { y: mobile ? -0.11 : -0.18, duration: 1.5, ease: "power4.out" }, "-=1.5");
+          .to(ringA.position, { y: 0.18, duration: 2.0, delay: 0.5, ease: "power4.out" })
+          .to(ringB.position, { y: -0.18, duration: 1.5, ease: "power4.out" }, "-=1.5");
       });
 
       // Animation render loop
