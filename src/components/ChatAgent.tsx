@@ -408,7 +408,7 @@ const parseEmail = (text: string) => {
   if (parts.length === 1) {
     return text;
   }
-
+  //.
   return parts.map((part, idx) => {
     if (part.toLowerCase() === "contact@maherfayad.com") {
       return <EmailCopyButton key={idx} email={part} />;
