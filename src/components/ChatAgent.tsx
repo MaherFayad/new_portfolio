@@ -59,7 +59,7 @@ const BACKEND_URL = "https://maherfayad-portfolio.hf.space";
 
 const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode }[] = [
   {
-    label: "Show me his strongest case study",
+    label: "Show me some of his work",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
         <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -163,22 +163,76 @@ const staggerContainer = {
   show: {
     opacity: 1,
     transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.7,
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: {
       staggerChildren: 0.08,
-      delayChildren: 0.1,
+      staggerDirection: -1,
+      when: "afterChildren"
+    }
+  }
+};
+
+const nestedStagger = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0,
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+      when: "afterChildren"
+    }
+  }
+};
+
+const messageListContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03,
+      delayChildren: 0.5,
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.02,
+      staggerDirection: -1,
+      when: "afterChildren"
     }
   }
 };
 
 const springItem = {
-  hidden: { y: 24, opacity: 0 },
+  hidden: { y: -24, opacity: 0 },
   show: {
     y: 0,
     opacity: 1,
     transition: {
       type: "spring" as const,
-      stiffness: 120,
-      damping: 12,
+      stiffness: 80,
+      damping: 15,
       mass: 0.8,
+    }
+  },
+  exit: {
+    y: -24,
+    opacity: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut" as const
     }
   }
 };
@@ -964,16 +1018,16 @@ export default function ChatAgent() {
                           >
 
                             {messages.length === 0 ? (
-                              /* Centered Welcome State with stagger container animation */
                               <motion.div
                                 variants={staggerContainer}
                                 initial="hidden"
                                 animate="show"
-                                className="relative flex flex-col justify-center items-center gap-7 px-4 max-w-md mx-auto text-center"
+                                exit="exit"
+                                className="relative flex flex-col justify-center items-start gap-6 px-4 max-w-3xl mx-auto text-left w-full"
                               >
                                 <motion.div
                                   variants={springItem}
-                                  className="relative z-10 w-20 h-20"
+                                  className="relative z-10 w-16 h-16"
                                 >
                                   <img
                                     src="/assets/Maher-cropped.png"
@@ -982,70 +1036,86 @@ export default function ChatAgent() {
                                     style={{ transform: "scaleX(-1)" }}
                                   />
                                   {/* AI sparkle badge anchored to the avatar */}
-                                  <span className="absolute z-20 -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#0a0a0b] border border-white/10 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                                    <AIIcon className="w-4 h-4" />
+                                  <span className="absolute z-20 -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#0a0a0b] border border-white/10 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                                    <AIIcon className="w-3.5 h-3.5" />
                                   </span>
                                 </motion.div>
 
-                                <motion.div variants={springItem} className="relative z-10 flex flex-col items-center gap-3">
-                                  <h4 className="text-2xl md:text-[27px] font-semibold text-white tracking-tight leading-[1.15]">
+                                <motion.div variants={springItem} className="relative z-10 flex flex-col items-start gap-2">
+                                  <h4 className="text-2xl md:text-[28px] font-bold text-white tracking-tight leading-[1.15]">
                                     Ask me anything about Maher
                                   </h4>
-                                  <p className="text-sm text-white/45 leading-relaxed max-w-sm">
+                                  <p className="text-[14px] text-white/50 leading-relaxed max-w-md">
                                     His case studies, design process, the results he's driven, or how to work with him. I'll answer in seconds.
                                   </p>
                                 </motion.div>
 
-                                {/* Suggested prompt rows: a tap-to-ask launcher */}
-                                <motion.div
-                                  variants={staggerContainer}
-                                  className="relative z-10 w-full mt-1 flex flex-col gap-2"
+                                {/* Suggested prompt rows: a tap-to-ask launcher (grid layout for side-by-side cards) */}
+                                <div
+                                  className="relative z-10 w-full mt-2 grid grid-cols-1 md:grid-cols-3 gap-4"
                                 >
                                   {SUGGESTED_PROMPTS.map((prompt, index) => (
                                     <motion.button
                                       key={index}
                                       variants={springItem}
                                       onClick={() => handleSendMessage(prompt.label)}
-                                      whileHover={{ y: -2 }}
+                                      whileHover={{ y: -4 }}
                                       whileTap={{ scale: 0.98 }}
                                       transition={{ type: "spring", stiffness: 400, damping: 26 }}
-                                      className="group/prompt relative flex items-center gap-3 w-full text-left rounded-xl border border-white/[0.07] bg-white/[0.02] pl-2.5 pr-3.5 py-2.5 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-300 cursor-pointer overflow-hidden"
+                                      className="group/prompt relative flex flex-col items-start justify-between gap-6 w-full text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-300 cursor-pointer overflow-hidden shadow-sm min-h-[150px]"
                                     >
                                       {/* Brand-tinted glow that blooms from the icon on hover */}
-                                      <span className="pointer-events-none absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-[radial-gradient(closest-side,rgba(77,171,91,0.28),rgba(61,87,193,0.18)_45%,transparent_75%)] opacity-0 blur-md group-hover/prompt:opacity-100 transition-opacity duration-300" />
-                                      <span className="relative flex-shrink-0 grid place-items-center w-9 h-9 rounded-lg border border-white/[0.06] bg-white/[0.03] text-white/40 group-hover/prompt:text-white group-hover/prompt:border-white/15 group-hover/prompt:bg-white/[0.07] transition-colors duration-300">
-                                        <span className="w-4 h-4">{prompt.icon}</span>
+                                      <span className="pointer-events-none absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-[radial-gradient(closest-side,rgba(77,171,91,0.2),rgba(61,87,193,0.12)_45%,transparent_75%)] opacity-0 blur-md group-hover/prompt:opacity-100 transition-opacity duration-300" />
+                                      <span className="relative flex-shrink-0 text-white/50 group-hover/prompt:text-white transition-colors duration-300">
+                                        <span className="w-5.5 h-5.5 block">{prompt.icon}</span>
                                       </span>
-                                      <span className="relative flex-1 text-[13px] font-medium text-[#c5c5c5] group-hover/prompt:text-white transition-colors duration-300">
-                                        {prompt.label}
-                                      </span>
-                                      <svg
-                                        className="relative w-4 h-4 flex-shrink-0 text-white/30 opacity-0 -translate-x-1.5 group-hover/prompt:opacity-100 group-hover/prompt:translate-x-0 group-hover/prompt:text-white/70 transition-all duration-300"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                      >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                      </svg>
+
+                                      <div className="relative w-full flex items-end justify-between gap-2">
+                                        <span className="text-[13.5px] font-normal text-white/50 group-hover/prompt:text-white transition-colors duration-300 leading-snug">
+                                          {prompt.label}
+                                        </span>
+                                        <svg
+                                          className="relative w-4.5 h-4.5 flex-shrink-0 text-white/35 opacity-0 translate-y-1 group-hover/prompt:opacity-100 group-hover/prompt:translate-y-0 group-hover/prompt:text-white/80 transition-all duration-300"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth="2.5"
+                                        >
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                      </div>
                                     </motion.button>
                                   ))}
-                                </motion.div>
+                                </div>
                               </motion.div>
                             ) : (
-                              <div className="flex flex-col gap-8">
+                              <motion.div
+                                variants={messageListContainer}
+                                initial="hidden"
+                                animate="show"
+                                exit="exit"
+                                className="flex flex-col gap-8 w-full"
+                              >
                                 {messages.map((msg, index) => {
                                   if (msg.role === "user") {
                                     return (
-                                      <div key={index} className="flex flex-col gap-1.5 max-w-[85%] self-end items-end">
+                                      <motion.div
+                                        key={index}
+                                        variants={springItem}
+                                        className="flex flex-col gap-1.5 max-w-[85%] self-end items-end w-full"
+                                      >
                                         <div className="px-4 py-3.5 text-left bg-white/[0.05] text-[#e2e2e2] rounded-2xl rounded-tr-md shadow-[0_4px_16px_rgba(0,0,0,0.25)] text-sm font-medium leading-relaxed">
                                           {msg.content}
                                         </div>
-                                      </div>
+                                      </motion.div>
                                     );
                                   } else {
                                     return (
-                                      <div key={index} className="flex items-start gap-4 w-full self-start max-w-full my-4">
+                                      <motion.div
+                                        key={index}
+                                        variants={springItem}
+                                        className="flex items-start gap-4 w-full self-start max-w-full my-4"
+                                      >
                                         {/* AI Icon */}
                                         <AIIcon className="w-8 h-8 mt-1" />
                                         {/* Message content - Containerless */}
@@ -1054,11 +1124,11 @@ export default function ChatAgent() {
                                             {renderMessageContent(msg.content)}
                                           </div>
                                         </div>
-                                      </div>
+                                      </motion.div>
                                     );
                                   }
                                 })}
-                              </div>
+                              </motion.div>
                             )}
 
                             {/* SSE Live Streaming thoughts console */}
