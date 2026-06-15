@@ -14,13 +14,79 @@ interface Message {
   status?: string;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_CHAT_AGENT_URL || "https://maher-fayad-portfolio-agent.hf.space";
+const BACKEND_URL = "https://maherfayad-portfolio.hf.space";
 
 const SUGGESTED_CHIPS = [
-  "What did he design for Al Rajhi Bank?",
-  "Tell me about his mobile design outcomes",
-  "How can I contact or hire him?",
+  "Show me his strongest case study",
+  "What results has he driven for clients?",
+  "Is he available for new opportunities?",
 ];
+
+const PLACEHOLDER_PREFIX = "Ask me ";
+
+const PLACEHOLDER_EXAMPLES = [
+  "about his Al Rajhi Bank project",
+  "what his design process looks like",
+  "what results he's driven for clients",
+  "if he's available for new work",
+  "what design systems he's built",
+  "to show his strongest case study",
+];
+
+// Dev-only mock scenarios for exercising chat UI states without spending LLM tokens.
+// Usage: type "/mock <key>" in the chat input (e.g. "/mock projects").
+const MOCK_SCENARIOS: Record<string, { thoughts: string[]; text: string }> = {
+  project: {
+    thoughts: ["Looking up project details...", "Found a strong match..."],
+    text: "Here's a project that highlights his fintech work for Al Rajhi Bank. [ProjectCard: alrajhi-bank-payroll]",
+  },
+  projects: {
+    thoughts: ["Scanning portfolio...", "Selecting highlights..."],
+    text: "Here are a few projects worth a look. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][ProjectCard: sanarte]",
+  },
+  plugin: {
+    thoughts: ["Checking design system tools..."],
+    text: "He also published a Figma plugin for token generation. [PluginCard: numeric-tokens-generator]",
+  },
+  plugins: {
+    thoughts: ["Listing Figma plugins..."],
+    text: "Maher has published a couple of Figma plugins. [PluginCard: primitive-semantic-colors-generator][PluginCard: numeric-tokens-generator]",
+  },
+  mixed: {
+    thoughts: ["Compiling a mixed recommendation..."],
+    text: "Here's a project and a tool that pair well together. [ProjectCard: alrajhi-bank-payroll][PluginCard: numeric-tokens-generator]",
+  },
+  booking: {
+    thoughts: ["Preparing contact details..."],
+    text: "You can reach Maher directly via email (Contact@maherfayad.com) or book time on his calendar. [BookMeetingButton]",
+  },
+  long: {
+    thoughts: ["Compiling a detailed answer..."],
+    text: "Maher's approach to product design starts with discovery: understanding user pain points through research, analytics, and stakeholder interviews. From there he maps the problem space, sketches multiple directions, and validates early concepts with lightweight prototypes. For the Al Rajhi Bank Payroll project, this meant restructuring a dense enterprise workflow into a guided, step-by-step experience that reduced processing time and support tickets. For consumer apps like LFG, the focus shifted to onboarding clarity and motion design that reinforced trust. Across both, the throughline is outcome-first design: every screen, component, and interaction is justified by a measurable improvement, whether that's conversion, task completion, or satisfaction scores. [ProjectCard: alrajhi-bank-payroll]",
+  },
+  thinking: {
+    thoughts: [
+      "Connecting to representative board...",
+      "Analyzing query context...",
+      "Retrieving biography details...",
+      "Cross-referencing project outcomes...",
+      "Drafting representative response...",
+    ],
+    text: "Thanks for waiting! That was a longer thinking sequence to test the live status console.",
+  },
+};
+
+const MOCK_HELP_TEXT = `Mock test commands (dev only, no tokens used):
+/mock project — single project card
+/mock projects — multiple project cards (horizontal scroll)
+/mock plugin — single Figma plugin card
+/mock plugins — multiple plugin cards (horizontal scroll)
+/mock mixed — project + plugin card together
+/mock booking — booking button
+/mock long — long response (scroll test)
+/mock thinking — long live-thinking sequence
+/mock error — simulated network error
+/mock ratelimit — simulated 429 rate limit`;
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -110,15 +176,12 @@ interface AIIconProps {
 
 function AIIcon({ className = "w-8 h-8", pulse = false }: AIIconProps) {
   return (
-    <div className={`relative flex items-center justify-center flex-shrink-0 rounded-full p-[1.5px] ai-icon-ring shadow-sm ${className}`}>
-      <div className="relative w-full h-full rounded-full bg-[#0a0a0c] flex items-center justify-center">
-        <svg
-          className={`w-1/2 h-1/2 text-indigo-300 ${pulse ? "ai-icon-spark" : ""}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
-        </svg>
+    <div className={`relative flex-shrink-0 ${className}`}>
+      <div className={`ai-orb absolute inset-0 ${pulse ? "ai-orb-active" : ""}`}>
+        <div className="ai-orb-blob ai-orb-blob-1" />
+        <div className="ai-orb-blob ai-orb-blob-2" />
+        <div className="ai-orb-blob ai-orb-blob-3" />
+        <div className="ai-orb-highlight" />
       </div>
     </div>
   );
@@ -199,6 +262,9 @@ export default function ChatAgent() {
   const [streamingText, setStreamingText] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
 
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [placeholderText, setPlaceholderText] = useState("");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -235,6 +301,65 @@ export default function ChatAgent() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
+  // Track mobile keyboard height via visualViewport so the input pill and
+  // close button stay anchored to the visible area instead of behind the keyboard
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleResize = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+    };
+
+    vv.addEventListener("resize", handleResize);
+    vv.addEventListener("scroll", handleResize);
+    handleResize();
+
+    return () => {
+      vv.removeEventListener("resize", handleResize);
+      vv.removeEventListener("scroll", handleResize);
+    };
+  }, []);
+
+  // Typewriter animation cycling through example prompts in the input placeholder
+  useEffect(() => {
+    if (!isOpen || isInputFocused || inputValue) return;
+
+    let exampleIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      const current = PLACEHOLDER_EXAMPLES[exampleIndex];
+
+      if (!isDeleting) {
+        charIndex++;
+        setPlaceholderText(current.slice(0, charIndex));
+        if (charIndex === current.length) {
+          isDeleting = true;
+          timeoutId = setTimeout(tick, 1800);
+          return;
+        }
+        timeoutId = setTimeout(tick, 45);
+      } else {
+        charIndex--;
+        setPlaceholderText(current.slice(0, charIndex));
+        if (charIndex === 0) {
+          isDeleting = false;
+          exampleIndex = (exampleIndex + 1) % PLACEHOLDER_EXAMPLES.length;
+          timeoutId = setTimeout(tick, 400);
+          return;
+        }
+        timeoutId = setTimeout(tick, 25);
+      }
+    };
+
+    timeoutId = setTimeout(tick, 400);
+    return () => clearTimeout(timeoutId);
+  }, [isOpen, isInputFocused, inputValue]);
+
   // Lock scroll in full screen mode
   useEffect(() => {
     if (isOpen) {
@@ -247,8 +372,77 @@ export default function ChatAgent() {
     };
   }, [isOpen]);
 
+  // Dev-only: simulate SSE responses locally so UI states can be tested without
+  // hitting the backend or spending LLM tokens. Trigger with "/mock <key>".
+  const handleMockMessage = async (text: string) => {
+    const key = text.slice("/mock".length).trim().toLowerCase();
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    setInputValue("");
+    setIsTyping(true);
+    setStreamingText("");
+    setCurrentThoughts([]);
+    setCurrentStatus("Connecting to representative board...");
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+
+    try {
+      if (key === "error") {
+        await delay(500);
+        throw new Error("Failed to communicate with representative server.");
+      }
+      if (key === "ratelimit" || key === "rate-limit" || key === "429") {
+        await delay(500);
+        throw new Error("Rate limit exceeded. Please wait a moment before sending another message.");
+      }
+
+      const scenario = MOCK_SCENARIOS[key];
+      if (!scenario) {
+        await delay(300);
+        setMessages((prev) => [...prev, { role: "assistant", content: MOCK_HELP_TEXT }]);
+        return;
+      }
+
+      for (const thought of scenario.thoughts) {
+        setCurrentStatus(thought);
+        setCurrentThoughts((prev) => [...prev, thought]);
+        await delay(400);
+      }
+
+      const words = scenario.text.split(" ");
+      let assembled = "";
+      for (const word of words) {
+        assembled += (assembled ? " " : "") + word;
+        setStreamingText(assembled);
+        await delay(35);
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: scenario.text, thoughts: scenario.thoughts },
+      ]);
+    } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: err.message || "An unexpected error occurred. Please try again.",
+          status: "Error",
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+      setCurrentStatus("");
+      setCurrentThoughts([]);
+    }
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
+
+    if (process.env.NODE_ENV !== "production" && text.trim().toLowerCase().startsWith("/mock")) {
+      await handleMockMessage(text.trim());
+      return;
+    }
 
     // Reset input
     setInputValue("");
@@ -491,19 +685,85 @@ export default function ChatAgent() {
         .chat-scroll-container:hover {
           scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
         }
-        @keyframes ai-icon-rotate {
-          to { transform: rotate(360deg); }
+        @keyframes ai-circle-float-1 {
+          0%, 100% { transform: translate(-50%, -50%) translate(-16%, -14%) scale(1); }
+          50% { transform: translate(-50%, -50%) translate(-10%, -20%) scale(1.06); }
         }
-        @keyframes ai-icon-pulse {
-          0%, 100% { opacity: 0.75; transform: scale(0.92); }
-          50% { opacity: 1; transform: scale(1.08); }
+        @keyframes ai-circle-float-2 {
+          0%, 100% { transform: translate(-50%, -50%) translate(15%, -10%) scale(1); }
+          50% { transform: translate(-50%, -50%) translate(20%, -4%) scale(0.95); }
         }
-        .ai-icon-ring {
-          background: conic-gradient(from 0deg, #818cf8, #c084fc, #38bdf8, #818cf8);
-          animation: ai-icon-rotate 5s linear infinite;
+        @keyframes ai-circle-float-3 {
+          0%, 100% { transform: translate(-50%, -50%) translate(2%, 16%) scale(1); }
+          50% { transform: translate(-50%, -50%) translate(-4%, 10%) scale(1.04); }
         }
-        .ai-icon-spark {
-          animation: ai-icon-pulse 1.8s ease-in-out infinite;
+        @keyframes ai-circle-orbit-1 {
+          0% { transform: translate(-50%, -50%) translate(-18%, -16%) scale(1); }
+          25% { transform: translate(-50%, -50%) translate(16%, -18%) scale(0.82); }
+          50% { transform: translate(-50%, -50%) translate(18%, 16%) scale(1.15); }
+          75% { transform: translate(-50%, -50%) translate(-16%, 18%) scale(0.9); }
+          100% { transform: translate(-50%, -50%) translate(-18%, -16%) scale(1); }
+        }
+        @keyframes ai-circle-orbit-2 {
+          0% { transform: translate(-50%, -50%) translate(16%, -14%) scale(1); }
+          25% { transform: translate(-50%, -50%) translate(-18%, -16%) scale(1.1); }
+          50% { transform: translate(-50%, -50%) translate(-16%, 18%) scale(0.85); }
+          75% { transform: translate(-50%, -50%) translate(18%, 16%) scale(1.05); }
+          100% { transform: translate(-50%, -50%) translate(16%, -14%) scale(1); }
+        }
+        @keyframes ai-circle-orbit-3 {
+          0% { transform: translate(-50%, -50%) translate(0%, 18%) scale(1); }
+          20% { transform: translate(-50%, -50%) translate(17%, 4%) scale(0.9); }
+          40% { transform: translate(-50%, -50%) translate(8%, -16%) scale(1.1); }
+          60% { transform: translate(-50%, -50%) translate(-12%, -10%) scale(0.85); }
+          80% { transform: translate(-50%, -50%) translate(-16%, 10%) scale(1.05); }
+          100% { transform: translate(-50%, -50%) translate(0%, 18%) scale(1); }
+        }
+        .ai-orb {
+          filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+        }
+        .ai-orb-blob {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 60%;
+          height: 60%;
+          border-radius: 50%;
+          will-change: transform;
+        }
+        .ai-orb-blob-1 {
+          background: radial-gradient(circle at 32% 30%, #bae6fd, #38bdf8 50%, #6366f1 100%);
+          animation: ai-circle-float-1 6s ease-in-out infinite;
+        }
+        .ai-orb-blob-2 {
+          background: radial-gradient(circle at 68% 70%, #fed7aa, #fb923c 55%, #f97316 100%);
+          mix-blend-mode: screen;
+          animation: ai-circle-float-2 7s ease-in-out infinite;
+        }
+        .ai-orb-blob-3 {
+          background: radial-gradient(circle at 50% 50%, #f5d0fe, #c084fc 55%, #818cf8 100%);
+          mix-blend-mode: screen;
+          animation: ai-circle-float-3 5.5s ease-in-out infinite;
+        }
+        .ai-orb-highlight {
+          position: absolute;
+          top: 12%;
+          left: 18%;
+          width: 32%;
+          height: 32%;
+          border-radius: 9999px;
+          background: rgba(255, 255, 255, 0.6);
+          filter: blur(1px);
+          mix-blend-mode: overlay;
+        }
+        .ai-orb-active .ai-orb-blob-1 {
+          animation: ai-circle-orbit-1 3.2s ease-in-out infinite;
+        }
+        .ai-orb-active .ai-orb-blob-2 {
+          animation: ai-circle-orbit-2 2.8s ease-in-out infinite;
+        }
+        .ai-orb-active .ai-orb-blob-3 {
+          animation: ai-circle-orbit-3 3.6s ease-in-out infinite;
         }
       ` }} />
 
@@ -550,7 +810,7 @@ export default function ChatAgent() {
                     <motion.button
                       onClick={handleClose}
                       aria-label="Close Chat"
-                      className="absolute top-6 right-8 w-11 h-11 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 bg-white/[0.02] backdrop-blur-md cursor-pointer z-50 font-semibold"
+                      className="fixed top-6 right-8 w-11 h-11 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 bg-white/[0.02] backdrop-blur-md cursor-pointer z-[60] font-semibold"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -585,12 +845,12 @@ export default function ChatAgent() {
                               >
                                 <motion.div
                                   variants={springItem}
-                                  className="w-16 h-16 rounded-full border border-white/10 overflow-hidden shadow-inner bg-white/[0.01]"
+                                  className="w-16 h-16"
                                 >
                                   <img
                                     src="/assets/Maher-cropped.png"
                                     alt="Maher Fayad"
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                     style={{ transform: "scaleX(-1)" }}
                                   />
                                 </motion.div>
@@ -600,7 +860,7 @@ export default function ChatAgent() {
                                     Maher's AI Agent
                                   </h4>
                                   <p className="text-xs text-white/40 leading-relaxed">
-                                    Ask about design systems, mobile outcomes, Al Rajhi payroll, or how to contact Maher.
+                                    Ask about his case studies, design process, measurable results, or how to work with him.
                                   </p>
                                 </motion.div>
 
@@ -709,21 +969,25 @@ export default function ChatAgent() {
           }
         }}
         style={{ borderRadius: "9999px" }}
-        initial={{ y: 120, opacity: 0, bottom: "24px" }}
+        initial={{ y: 120, opacity: 0, bottom: 24 }}
         animate={{
           y: 0,
           opacity: 1,
           width: isOpen ? "min(672px, calc(100vw - 3rem))" : "180px",
           height: isOpen ? "56px" : "48px",
-          bottom: isOpen ? "32px" : "24px",
-          backgroundColor: isOpen ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.08)",
+          bottom: (isOpen ? 32 : 24) + keyboardInset,
+          backgroundColor: isOpen
+            ? isInputFocused
+              ? "rgba(255, 255, 255, 0.06)"
+              : "rgba(255, 255, 255, 0.03)"
+            : "rgba(255, 255, 255, 0.08)",
           borderColor: isOpen
             ? isInputFocused
-              ? "rgba(255, 255, 255, 0.30)"
+              ? "rgba(255, 255, 255, 0.40)"
               : "rgba(255, 255, 255, 0.15)"
             : "rgba(255, 255, 255, 0.10)",
           boxShadow: isOpen && isInputFocused
-            ? "0 0 20px rgba(99, 102, 241, 0.06), 0 8px 32px rgba(0, 0, 0, 0.5)"
+            ? "0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 24px rgba(99, 102, 241, 0.12), 0 8px 32px rgba(0, 0, 0, 0.5)"
             : "0 8px 32px rgba(0, 0, 0, 0.5)",
           backdropFilter: isOpen ? "none" : "blur(12px)",
         }}
@@ -772,8 +1036,8 @@ export default function ChatAgent() {
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setIsInputFocused(false)}
                 disabled={isTyping}
-                placeholder={isTyping ? "Agent is drafting..." : "Ask Maher's Agent..."}
-                className="w-full bg-transparent pl-6 pr-14 py-4 text-sm text-white placeholder-white/25 outline-none rounded-full disabled:opacity-50"
+                placeholder={isTyping ? "Agent is drafting..." : `${PLACEHOLDER_PREFIX}${placeholderText}`}
+                className="w-full bg-transparent pl-6 pr-14 py-4 text-sm text-white placeholder-white/45 outline-none rounded-full disabled:opacity-50"
               />
               <button
                 type="submit"
