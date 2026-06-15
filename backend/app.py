@@ -180,9 +180,9 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
             messages.append({"role": "user", "content": f"<user_query>{user_query}</user_query>"})
 
             models_to_try = [
+                "openrouter/free",
                 "google/gemma-4-26b-a4b-it:free",
-                "google/gemma-4-31b-it:free",
-                "openrouter/free"
+                "google/gemma-4-31b-it:free"
             ]
             response = None
             chosen_model = None
