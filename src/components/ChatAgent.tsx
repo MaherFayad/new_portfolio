@@ -1332,7 +1332,7 @@ export default function ChatAgent() {
         animate={{
           y: 0,
           opacity: 1,
-          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "190px",
+          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "170px",
           height: isOpen ? "56px" : "48px",
           bottom: (isOpen ? 32 : 24) + keyboardInset,
           backgroundColor: isOpen
