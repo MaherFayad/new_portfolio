@@ -230,7 +230,7 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
                     break
 
             if not response:
-                event_queue.put(("result", "I'm receiving a high volume of queries at the moment. Let's stay in touch! You can email me directly at Contact@maherfayad.com or book a slot on my calendar. [BookMeetingButton]"))
+                event_queue.put(("result", "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]"))
                 event_queue.put(("done", ""))
                 return
 
@@ -284,7 +284,7 @@ async def chat_endpoint(request: Request):
     # Rate Limiting check
     if not limiter.is_allowed(client_ip):
         async def immediate_rate_limit():
-            yield {"event": "result", "data": "I'm receiving a high volume of queries at the moment. Let's stay in touch! You can email me directly at Contact@maherfayad.com or book a slot on my calendar. [BookMeetingButton]"}
+            yield {"event": "result", "data": "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]"}
         return EventSourceResponse(immediate_rate_limit())
 
     # Parse request body

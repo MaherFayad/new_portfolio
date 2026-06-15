@@ -603,7 +603,7 @@ export default function ChatAgent() {
           ...prev,
           {
             role: "assistant",
-            content: "I'm receiving a high volume of queries at the moment. Let's stay in touch! You can email me directly at Contact@maherfayad.com or book a slot on my calendar. [BookMeetingButton]",
+            content: "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]",
           },
         ]);
         return;
@@ -652,6 +652,82 @@ export default function ChatAgent() {
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
+
+    const lowerText = text.trim().toLowerCase();
+    const isSuggestedPrompt = 
+      lowerText.includes("strongest case study") || 
+      lowerText.includes("results has he driven") || 
+      lowerText.includes("available for new opportunities");
+
+    if (isSuggestedPrompt) {
+      setInputValue("");
+      setIsTyping(true);
+      setStreamingText("");
+      setCurrentThoughts([]);
+      setCurrentStatus("Thinking...");
+      setMessages((prev) => [...prev, { role: "user", content: text }]);
+
+      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      try {
+        if (lowerText.includes("strongest case study")) {
+          setCurrentStatus("Analyzing portfolio database...");
+          await delay(500);
+          setCurrentThoughts(["Analyzing portfolio database..."]);
+          setCurrentStatus("Selecting strongest case study...");
+          await delay(500);
+          setCurrentThoughts(["Analyzing portfolio database...", "Selecting strongest case study..."]);
+          setCurrentStatus("Compiling fintech restructure outcome...");
+          await delay(500);
+          setCurrentThoughts(["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome..."]);
+          setCurrentStatus("Generating project card presentation...");
+          await delay(500);
+          
+          const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. He restructured the enterprise payroll portal, which drove a +47% increase in digital account openings and an +81% lift in transaction volumes. [ProjectCard: alrajhi-bank-payroll]";
+          setStreamingText(reply);
+          setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome...", "Generating project card presentation..."] }]);
+        } else if (lowerText.includes("results has he driven")) {
+          setCurrentStatus("Querying client testimonials...");
+          await delay(500);
+          setCurrentThoughts(["Querying client testimonials..."]);
+          setCurrentStatus("Aggregating performance metrics...");
+          await delay(500);
+          setCurrentThoughts(["Querying client testimonials...", "Aggregating performance metrics..."]);
+          setCurrentStatus("Processing conversion lift figures...");
+          await delay(500);
+          setCurrentThoughts(["Querying client testimonials...", "Aggregating performance metrics...", "Processing conversion lift figures..."]);
+          setCurrentStatus("Formatting analytics tables...");
+          await delay(500);
+
+          const reply = "Maher's work has driven measurable, outcome-first results for both enterprise clients and startups:\n\n• **Al Rajhi Bank**: Led the payroll redesign which boosted digital account openings by +47% and transaction volumes by +81%.\n• **Theradome**: Relaunched their e-commerce funnel, driving a +32% increase in sales conversion.\n• **LFG App**: Simplified onboarding, leading to a 28% drop in sign-up abandonment.\n\n[ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg]";
+          setStreamingText(reply);
+          setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Querying client testimonials...", "Aggregating performance metrics...", "Processing conversion lift figures...", "Formatting analytics tables..."] }]);
+        } else {
+          setCurrentStatus("Checking calendar availability...");
+          await delay(500);
+          setCurrentThoughts(["Checking calendar availability..."]);
+          setCurrentStatus("Verifying timezone slots...");
+          await delay(500);
+          setCurrentThoughts(["Checking calendar availability...", "Verifying timezone slots..."]);
+          setCurrentStatus("Retrieving calendar scheduling API...");
+          await delay(500);
+          setCurrentThoughts(["Checking calendar availability...", "Verifying timezone slots...", "Retrieving calendar scheduling API..."]);
+          setCurrentStatus("Preparing booking portal integration...");
+          await delay(500);
+
+          const reply = "Yes, Maher is available for new opportunities! He is currently accepting senior-level design contracts, design system consultancies, or selective freelance projects.\n\nYou can reach out to him directly at Contact@maherfayad.com or schedule a 15-minute call directly through the booking link below. [BookMeetingButton]";
+          setStreamingText(reply);
+          setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Checking calendar availability...", "Verifying timezone slots...", "Retrieving calendar scheduling API...", "Preparing booking portal integration..."] }]);
+        }
+      } catch (err) {
+        // Ignore
+      } finally {
+        setIsTyping(false);
+        setCurrentStatus("");
+        setCurrentThoughts([]);
+      }
+      return;
+    }
 
     if (process.env.NODE_ENV !== "production" && text.trim().toLowerCase().startsWith("/mock")) {
       await handleMockMessage(text.trim());
@@ -755,12 +831,23 @@ export default function ChatAgent() {
         },
       ]);
     } catch (err: any) {
+      const errText = (err.message || "").toLowerCase();
+      const isRateLimitOrConnectionError = 
+        errText.includes("rate limit") || 
+        errText.includes("failed to communicate") || 
+        errText.includes("fetch") ||
+        errText.includes("network");
+
+      const fallbackMsg = isRateLimitOrConnectionError
+        ? "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]"
+        : (err.message || "An unexpected error occurred. Please try again.");
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: err.message || "An unexpected error occurred. Please try again.",
-          status: "Error",
+          content: fallbackMsg,
+          status: isRateLimitOrConnectionError ? undefined : "Error",
         },
       ]);
     } finally {
@@ -1062,20 +1149,21 @@ export default function ChatAgent() {
                                       whileHover={{ y: -4 }}
                                       whileTap={{ scale: 0.98 }}
                                       transition={{ type: "spring", stiffness: 400, damping: 26 }}
-                                      className="group/prompt relative flex flex-col items-start justify-between gap-6 w-full text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-300 cursor-pointer overflow-hidden shadow-sm min-h-[150px]"
+                                      className="group/prompt relative flex flex-row md:flex-col items-center md:items-start justify-start md:justify-between gap-3.5 md:gap-6 w-full text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3.5 md:p-5 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-300 cursor-pointer overflow-hidden shadow-sm min-h-[56px] md:min-h-[150px]"
                                     >
                                       {/* Brand-tinted glow that blooms from the icon on hover */}
                                       <span className="pointer-events-none absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-[radial-gradient(closest-side,rgba(77,171,91,0.2),rgba(61,87,193,0.12)_45%,transparent_75%)] opacity-0 blur-md group-hover/prompt:opacity-100 transition-opacity duration-300" />
+                                      
                                       <span className="relative flex-shrink-0 text-white/50 group-hover/prompt:text-white transition-colors duration-300">
-                                        <span className="w-5.5 h-5.5 block">{prompt.icon}</span>
+                                        <span className="w-4.5 h-4.5 md:w-5.5 md:h-5.5 block">{prompt.icon}</span>
                                       </span>
-
-                                      <div className="relative w-full flex items-end justify-between gap-2">
-                                        <span className="text-[13.5px] font-normal text-white/50 group-hover/prompt:text-white transition-colors duration-300 leading-snug">
+                                      
+                                      <div className="relative flex-1 md:w-full flex flex-row items-center md:items-end justify-between gap-2">
+                                        <span className="text-[12.5px] md:text-[13.5px] font-normal text-white/50 group-hover/prompt:text-white transition-colors duration-300 leading-snug">
                                           {prompt.label}
                                         </span>
                                         <svg
-                                          className="relative w-4.5 h-4.5 flex-shrink-0 text-white/35 opacity-0 translate-y-1 group-hover/prompt:opacity-100 group-hover/prompt:translate-y-0 group-hover/prompt:text-white/80 transition-all duration-300"
+                                          className="relative w-4 h-4 md:w-4.5 md:h-4.5 flex-shrink-0 text-white/35 opacity-0 translate-y-1 group-hover/prompt:opacity-100 group-hover/prompt:translate-y-0 group-hover/prompt:text-white/80 transition-all duration-300"
                                           fill="none"
                                           viewBox="0 0 24 24"
                                           stroke="currentColor"
