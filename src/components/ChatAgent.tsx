@@ -417,6 +417,36 @@ const parseEmail = (text: string) => {
   });
 };
 
+const parseMarkdown = (text: string) => {
+  const boldRegex = /(\*\*.*?\*\*)/g;
+  const parts = text.split(boldRegex);
+
+  if (parts.length === 1 && !text.includes("**")) {
+    return parseEmail(text);
+  }
+
+  const result: React.ReactNode[] = [];
+  parts.forEach((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const boldText = part.slice(2, -2);
+      result.push(
+        <strong key={`bold-${idx}`} className="font-bold text-white">
+          {boldText}
+        </strong>
+      );
+    } else {
+      const emailParsed = parseEmail(part);
+      if (Array.isArray(emailParsed)) {
+        result.push(...emailParsed);
+      } else {
+        result.push(emailParsed);
+      }
+    }
+  });
+
+  return result;
+};
+
 export default function ChatAgent() {
   const [isOpen, setIsOpen] = useState(false);
   const [isContentVisible, setIsContentVisible] = useState(false);
@@ -893,7 +923,7 @@ export default function ChatAgent() {
     }
 
     if (parts.length === 0) {
-      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseEmail(text)}</p>;
+      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseMarkdown(text)}</p>;
     }
 
     // Group consecutive project/plugin cards so multiple recommendations scroll horizontally
@@ -941,7 +971,7 @@ export default function ChatAgent() {
           }
           return (
             <p key={idx} className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">
-              {parseEmail(part.content || "")}
+              {parseMarkdown(part.content || "")}
             </p>
           );
         })}
