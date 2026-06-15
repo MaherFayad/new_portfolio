@@ -13,6 +13,7 @@ const inter = Inter({
 
 export const viewport: Viewport = {
   themeColor: "#000000",
+  colorScheme: "dark",
   interactiveWidget: "resizes-content",
 };
 
