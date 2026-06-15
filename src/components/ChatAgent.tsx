@@ -102,6 +102,27 @@ function ThoughtAccordion({ thoughts, status, isLive = false }: ThoughtAccordion
   );
 }
 
+interface AIIconProps {
+  className?: string;
+  pulse?: boolean;
+}
+
+function AIIcon({ className = "w-8 h-8", pulse = false }: AIIconProps) {
+  return (
+    <div className={`relative flex items-center justify-center flex-shrink-0 rounded-full p-[1.5px] ai-icon-ring shadow-sm ${className}`}>
+      <div className="relative w-full h-full rounded-full bg-[#0a0a0c] flex items-center justify-center">
+        <svg
+          className={`w-1/2 h-1/2 text-indigo-300 ${pulse ? "ai-icon-spark" : ""}`}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 interface EmailCopyButtonProps {
   email: string;
 }
@@ -340,10 +361,10 @@ export default function ChatAgent() {
     }
   };
 
-  // Helper to parse project tags [ProjectCard: slug] and booking buttons [BookMeetingButton]
+  // Helper to parse project tags [ProjectCard: slug], plugin tags [PluginCard: slug], and booking buttons [BookMeetingButton]
   const renderMessageContent = (text: string) => {
-    // Match [ProjectCard: slug] or [BookMeetingButton]
-    const regex = /\[(ProjectCard:\s*(.+?)|BookMeetingButton)\]/g;
+    // Match [ProjectCard: slug], [PluginCard: slug], or [BookMeetingButton]
+    const regex = /\[(ProjectCard:\s*(.+?)|PluginCard:\s*(.+?)|BookMeetingButton)\]/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -357,6 +378,10 @@ export default function ChatAgent() {
       const tagContent = match[1];
       if (tagContent === "BookMeetingButton") {
         parts.push({ type: "booking" });
+      } else if (match[3] !== undefined) {
+        // It's a PluginCard: slug
+        const slug = match[3].trim();
+        parts.push({ type: "plugin", slug });
       } else {
         // It's a ProjectCard: slug
         const slug = match[2].trim();
@@ -463,6 +488,20 @@ export default function ChatAgent() {
         .chat-scroll-container:hover {
           scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
         }
+        @keyframes ai-icon-rotate {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes ai-icon-pulse {
+          0%, 100% { opacity: 0.75; transform: scale(0.92); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+        .ai-icon-ring {
+          background: conic-gradient(from 0deg, #818cf8, #c084fc, #38bdf8, #818cf8);
+          animation: ai-icon-rotate 5s linear infinite;
+        }
+        .ai-icon-spark {
+          animation: ai-icon-pulse 1.8s ease-in-out infinite;
+        }
       ` }} />
 
       {/* 1. Fullscreen Chat Overlay */}
@@ -526,8 +565,12 @@ export default function ChatAgent() {
                           ref={chatContainerRef}
                           className="flex-1 overflow-y-auto chat-scroll-container w-full"
                         >
-                          {/* Inner Centered Container */}
-                          <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12 pb-36">
+                          {/* Inner Centered Container - anchored to bottom, grows upward */}
+                          <div
+                            className={`max-w-3xl mx-auto w-full px-6 md:px-12 py-12 pb-36 flex flex-col min-h-full ${
+                              messages.length === 0 ? "justify-center" : "justify-end"
+                            }`}
+                          >
 
                             {messages.length === 0 ? (
                               /* Centered Welcome State with stagger container animation */
@@ -535,16 +578,18 @@ export default function ChatAgent() {
                                 variants={staggerContainer}
                                 initial="hidden"
                                 animate="show"
-                                className="h-full flex flex-col justify-center items-center gap-6 px-4 max-w-xl mx-auto text-center mt-12 md:mt-24"
+                                className="flex flex-col justify-center items-center gap-6 px-4 max-w-xl mx-auto text-center"
                               >
                                 <motion.div
                                   variants={springItem}
-                                  className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center text-white/30 bg-white/[0.01] shadow-inner"
+                                  className="w-16 h-16 rounded-full border border-white/10 overflow-hidden shadow-inner bg-white/[0.01]"
                                 >
-                                  {/* Sparkle icon inside circle */}
-                                  <svg className="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
-                                  </svg>
+                                  <img
+                                    src="/assets/Maher-cropped.png"
+                                    alt="Maher Fayad"
+                                    className="w-full h-full object-cover"
+                                    style={{ transform: "scaleX(-1)" }}
+                                  />
                                 </motion.div>
 
                                 <motion.div variants={springItem} className="flex flex-col gap-2">
@@ -586,12 +631,8 @@ export default function ChatAgent() {
                                   } else {
                                     return (
                                       <div key={index} className="flex items-start gap-4 w-full self-start max-w-full my-4">
-                                        {/* AI Sparkle Star Icon */}
-                                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-indigo-400 mt-1 flex-shrink-0 shadow-sm">
-                                          <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
-                                          </svg>
-                                        </div>
+                                        {/* AI Icon */}
+                                        <AIIcon className="w-8 h-8 mt-1" />
                                         {/* Message content - Containerless */}
                                         <div className="flex-1 flex flex-col gap-1.5 min-w-0">
                                           <div className="text-left text-[#e2e2e2] leading-relaxed text-sm mt-2">
@@ -608,12 +649,8 @@ export default function ChatAgent() {
                             {/* SSE Live Streaming thoughts console */}
                             {isTyping && (
                               <div className="flex items-start gap-4 w-full mt-6">
-                                {/* AI Sparkle Star Icon */}
-                                <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-indigo-400 mt-1 flex-shrink-0 animate-pulse shadow-sm">
-                                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
-                                  </svg>
-                                </div>
+                                {/* AI Icon */}
+                                <AIIcon className="w-8 h-8 mt-1" pulse />
 
                                 {/* ChatGPT-style thinking block + streaming text */}
                                 <div className="flex-1 min-w-0 flex flex-col gap-1.5">
@@ -701,12 +738,7 @@ export default function ChatAgent() {
               exit={{ opacity: 0, y: 15, transition: { delay: 0, duration: 0.12 } }}
               className="flex items-center gap-2.5 whitespace-nowrap pl-6 pr-6"
             >
-              <div className="relative w-4 h-4 flex items-center justify-center">
-                {/* Sparkle icon */}
-                <svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
-                </svg>
-              </div>
+              <AIIcon className="w-5 h-5" pulse />
               <span className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap">Maher's Agent</span>
             </motion.div>
           ) : (

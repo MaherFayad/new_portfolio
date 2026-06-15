@@ -21,12 +21,12 @@ export default function ChatProjectCard({ slug, onNavigate, compact = false }: C
   const isExternal = !!externalUrl;
   const primaryImage = images && images.length > 0 ? images[0] : null;
 
-  return (
-    <div
-      className={`group my-6 flex flex-col gap-4 text-left ${
-        compact ? "shrink-0 snap-start w-[clamp(220px,72vw,300px)]" : "w-full"
-      }`}
-    >
+  const cardClassName = `group my-6 flex flex-col gap-4 text-left cursor-pointer ${
+    compact ? "shrink-0 snap-start w-[clamp(220px,72vw,300px)]" : "w-full"
+  }`;
+
+  const cardContent = (
+    <>
       {/* Tag Label */}
       <span className="text-[10px] font-bold tracking-widest text-white/30 uppercase">
         Project Case Study
@@ -54,30 +54,33 @@ export default function ChatProjectCard({ slug, onNavigate, compact = false }: C
         </p>
       </div>
 
-      {/* Call to Action - Uppercase Underlined Link CTA */}
+      {/* Call to Action - Uppercase Underlined CTA */}
       <div className="pt-2">
-        {isExternal ? (
-          <a
-            href={externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onNavigate}
-            className="group/cta inline-flex items-center text-xs font-bold tracking-wider text-white uppercase underline underline-offset-4 decoration-white/20 hover:decoration-white transition-all duration-300 gap-1.5"
-          >
-            VIEW CASE STUDY (BEHANCE)
-            <span className="inline-block transition-transform duration-300 group-hover/cta:translate-x-1 font-normal">&gt;</span>
-          </a>
-        ) : (
-          <Link
-            href={`/projects/${slug}`}
-            onClick={onNavigate}
-            className="group/cta inline-flex items-center text-xs font-bold tracking-wider text-white uppercase underline underline-offset-4 decoration-white/20 hover:decoration-white transition-all duration-300 gap-1.5"
-          >
-            VIEW CASE STUDY
-            <span className="inline-block transition-transform duration-300 group-hover/cta:translate-x-1 font-normal">&gt;</span>
-          </Link>
-        )}
+        <span className="group/cta inline-flex items-center text-xs font-bold tracking-wider text-white uppercase underline underline-offset-4 decoration-white/20 group-hover:decoration-white transition-all duration-300 gap-1.5">
+          {isExternal ? "VIEW CASE STUDY (BEHANCE)" : "VIEW CASE STUDY"}
+          <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 font-normal">&gt;</span>
+        </span>
       </div>
-    </div>
+    </>
+  );
+
+  if (isExternal) {
+    return (
+      <a
+        href={externalUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onNavigate}
+        className={cardClassName}
+      >
+        {cardContent}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={`/projects/${slug}`} onClick={onNavigate} className={cardClassName}>
+      {cardContent}
+    </Link>
   );
 }
