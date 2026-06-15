@@ -257,6 +257,7 @@ export default function ChatAgent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
   const [currentThoughts, setCurrentThoughts] = useState<string[]>([]);
   const [currentStatus, setCurrentStatus] = useState("");
   const [streamingText, setStreamingText] = useState("");
@@ -319,6 +320,16 @@ export default function ChatAgent() {
       window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
+
+  // Send a queued message (typed while the agent was still replying) once it's done
+  useEffect(() => {
+    if (!isTyping && queuedMessage) {
+      const msg = queuedMessage;
+      setQueuedMessage(null);
+      handleSendMessage(msg);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTyping, queuedMessage]);
 
   // Escape key closes chat
   useEffect(() => {
@@ -860,7 +871,7 @@ export default function ChatAgent() {
                         >
                           {/* Inner Centered Container - anchored to bottom, grows upward */}
                           <div
-                            className={`max-w-3xl mx-auto w-full px-6 md:px-12 py-12 pb-36 flex flex-col min-h-full ${
+                            className={`max-w-3xl mx-auto w-full px-6 md:px-12 pt-24 md:pt-28 pb-36 flex flex-col min-h-full ${
                               messages.length === 0 ? "justify-center" : "justify-end"
                             }`}
                           >
@@ -962,6 +973,18 @@ export default function ChatAgent() {
                                 </div>
                               </div>
                             )}
+                            {/* Queued message preview - sent automatically once the agent finishes */}
+                            {queuedMessage && (
+                              <div className="flex flex-col gap-1.5 max-w-[85%] self-end items-end mt-4 opacity-50">
+                                <div className="px-4 py-3.5 text-left bg-white/[0.04] border border-white/15 text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
+                                  {queuedMessage}
+                                </div>
+                                <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold pr-1">
+                                  Queued
+                                </span>
+                              </div>
+                            )}
+
                             {/* Spacing element to separate messages from the input box */}
                             <div className="h-16" />
                             <div ref={messagesEndRef} />
@@ -982,9 +1005,15 @@ export default function ChatAgent() {
       <motion.form
         onSubmit={(e) => {
           e.preventDefault();
-          if (isOpen) {
-            handleSendMessage(inputValue);
+          if (!isOpen) return;
+          if (isTyping) {
+            if (inputValue.trim()) {
+              setQueuedMessage(inputValue.trim());
+              setInputValue("");
+            }
+            return;
           }
+          handleSendMessage(inputValue);
         }}
         onClick={() => {
           if (!isOpen) handleOpen();
@@ -1065,13 +1094,18 @@ export default function ChatAgent() {
                 onChange={(e) => setInputValue(e.target.value)}
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setIsInputFocused(false)}
-                disabled={isTyping}
-                placeholder={isTyping ? "Agent is drafting..." : `${PLACEHOLDER_PREFIX}${placeholderText}`}
+                placeholder={
+                  isTyping
+                    ? queuedMessage
+                      ? "Message queued, will send when ready..."
+                      : "Agent is replying, you can keep typing..."
+                    : `${PLACEHOLDER_PREFIX}${placeholderText}`
+                }
                 className="w-full bg-transparent pl-6 pr-14 py-4 text-sm text-white placeholder-white/45 outline-none rounded-full disabled:opacity-50"
               />
               <button
                 type="submit"
-                disabled={isTyping || !inputValue.trim()}
+                disabled={!inputValue.trim()}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-[#c5c5c5] text-black w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-30 cursor-pointer shadow-md"
               >
                 <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
