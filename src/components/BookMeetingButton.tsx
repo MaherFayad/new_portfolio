@@ -8,6 +8,7 @@ export const CAL_LINK = "maher-fayad-chnujh/30min";
 const CAL_CONFIG = JSON.stringify({
   layout: "month_view",
   useSlotsViewOnSmallScreen: "true",
+  "ui.color-scheme": "dark",
 });
 
 export async function initCalEmbed() {

@@ -1,11 +1,52 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
 import ChatPluginCard from "./ChatPluginCard";
 import BookMeetingButton from "./BookMeetingButton";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
+
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  { ssr: false }
+);
+
+// Sparkle shape traced from Scene.lottie (shared by all three stars)
+const AI_ICON_SPARKLE_PATH =
+  "M-6.69,-85.362 C-4.604,-91.546 4.141,-91.546 6.227,-85.362 C6.227,-85.362 22.991,-35.658 22.991,-35.658 C24.148,-32.227 26.622,-29.398 29.868,-27.793 C29.868,-27.793 73.74,-6.11 73.74,-6.11 C78.802,-3.609 78.802,3.609 73.74,6.111 C73.74,6.111 29.868,27.794 29.868,27.794 C26.622,29.398 24.148,32.227 22.991,35.658 C22.991,35.658 6.227,85.362 6.227,85.362 C4.141,91.546 -4.604,91.546 -6.69,85.362 C-6.69,85.362 -23.454,35.658 -23.454,35.658 C-24.611,32.227 -27.085,29.398 -30.331,27.794 C-30.331,27.794 -74.204,6.111 -74.204,6.111 C-79.265,3.609 -79.265,-3.609 -74.204,-6.11 C-74.204,-6.11 -30.331,-27.793 -30.331,-27.793 C-27.085,-29.398 -24.611,-32.227 -23.454,-35.658 C-23.454,-35.658 -6.69,-85.362 -6.69,-85.362Z";
+
+// Position/scale/gradient for each star, frozen at frame 75 of Scene.lottie (the resting pose)
+const AI_ICON_STARS = [
+  {
+    transform: "translate(238.352 195.931) scale(0.579) translate(1 0)",
+    opacity: 0.7,
+    stops: [
+      { offset: 0.119, color: "#3D57C1" },
+      { offset: 0.715, color: "#4DAB5B" },
+    ],
+    x1: -222.183, y1: 4.04, x2: 93.267, y2: 235.649,
+  },
+  {
+    transform: "translate(228.853 333.306) scale(0.68) translate(1 0)",
+    opacity: 0.7,
+    stops: [
+      { offset: 0, color: "#4EAB5B" },
+      { offset: 1, color: "#3D57BF" },
+    ],
+    x1: 52.717, y1: 60.3, x2: -36.486, y2: -38.996,
+  },
+  {
+    transform: "translate(326.565 296.913) scale(0.82) translate(1 0)",
+    opacity: 1,
+    stops: [
+      { offset: 0.259, color: "#3D57C1" },
+      { offset: 0.982, color: "#4DAB5B" },
+    ],
+    x1: 0, y1: 0, x2: 132.752, y2: 111.796,
+  },
+];
 
 interface Message {
   role: "user" | "assistant";
@@ -16,11 +57,40 @@ interface Message {
 
 const BACKEND_URL = "https://maherfayad-portfolio.hf.space";
 
-const SUGGESTED_CHIPS = [
-  "Show me his strongest case study",
-  "What results has he driven for clients?",
-  "Is he available for new opportunities?",
+const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode }[] = [
+  {
+    label: "Show me his strongest case study",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "What results has he driven for clients?",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+        <polyline points="17 6 23 6 23 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "Is he available for new opportunities?",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    ),
+  },
 ];
+
+
 
 const PLACEHOLDER_PREFIX = "Ask me ";
 
@@ -175,13 +245,55 @@ interface AIIconProps {
 }
 
 function AIIcon({ className = "w-8 h-8", pulse = false }: AIIconProps) {
+  const dotLottieRef = useRef<any>(null);
+
+  useEffect(() => {
+    const player = dotLottieRef.current;
+    if (!player) return;
+
+    const syncPlayback = () => {
+      if (pulse) {
+        player.play();
+      } else {
+        player.pause();
+        player.setFrame(75);
+      }
+    };
+
+    player.addEventListener("load", syncPlayback);
+    player.addEventListener("ready", syncPlayback);
+
+    syncPlayback();
+
+    return () => {
+      player.removeEventListener("load", syncPlayback);
+      player.removeEventListener("ready", syncPlayback);
+    };
+  }, [pulse]);
+
   return (
-    <div className={`relative flex-shrink-0 ${className}`}>
-      <div className={`ai-orb absolute inset-0 ${pulse ? "ai-orb-active" : ""}`}>
-        <div className="ai-orb-blob ai-orb-blob-1" />
-        <div className="ai-orb-blob ai-orb-blob-2" />
-        <div className="ai-orb-blob ai-orb-blob-3" />
-        <div className="ai-orb-highlight" />
+    <div className={`relative flex-shrink-0 overflow-hidden ${className}`}>
+      <div
+        className="w-full h-full"
+        style={{ transformOrigin: "55.36% 52.52%", transform: "scale(1.75)" }}
+      >
+        <DotLottieReact
+          src="/lottie/ai-orb.lottie"
+          loop
+          autoplay={pulse}
+          dotLottieRefCallback={(dotLottie) => {
+            dotLottieRef.current = dotLottie;
+            if (dotLottie) {
+              if (pulse) {
+                dotLottie.play();
+              } else {
+                dotLottie.pause();
+                dotLottie.setFrame(75);
+              }
+            }
+          }}
+          className="block w-full h-full"
+        />
       </div>
     </div>
   );
@@ -238,11 +350,11 @@ function EmailCopyButton({ email }: EmailCopyButtonProps) {
 const parseEmail = (text: string) => {
   const emailRegex = /(Contact@maherfayad\.com)/gi;
   const parts = text.split(emailRegex);
-  
+
   if (parts.length === 1) {
     return text;
   }
-  
+
   return parts.map((part, idx) => {
     if (part.toLowerCase() === "contact@maherfayad.com") {
       return <EmailCopyButton key={idx} email={part} />;
@@ -726,85 +838,48 @@ export default function ChatAgent() {
         .chat-scroll-container:hover {
           scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
         }
-        @keyframes ai-circle-float-1 {
-          0%, 100% { transform: translate(-50%, -50%) translate(-16%, -14%) scale(1); }
-          50% { transform: translate(-50%, -50%) translate(-10%, -20%) scale(1.06); }
+        /* Ambient aurora behind the chat canvas so the surface reads as lit, not dead-flat */
+        @keyframes chat-aurora-drift {
+          0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.55; }
+          50% { transform: translate(-50%, -5%) scale(1.07); opacity: 0.85; }
         }
-        @keyframes ai-circle-float-2 {
-          0%, 100% { transform: translate(-50%, -50%) translate(15%, -10%) scale(1); }
-          50% { transform: translate(-50%, -50%) translate(20%, -4%) scale(0.95); }
-        }
-        @keyframes ai-circle-float-3 {
-          0%, 100% { transform: translate(-50%, -50%) translate(2%, 16%) scale(1); }
-          50% { transform: translate(-50%, -50%) translate(-4%, 10%) scale(1.04); }
-        }
-        @keyframes ai-circle-orbit-1 {
-          0% { transform: translate(-50%, -50%) translate(-18%, -16%) scale(1); }
-          25% { transform: translate(-50%, -50%) translate(16%, -18%) scale(0.82); }
-          50% { transform: translate(-50%, -50%) translate(18%, 16%) scale(1.15); }
-          75% { transform: translate(-50%, -50%) translate(-16%, 18%) scale(0.9); }
-          100% { transform: translate(-50%, -50%) translate(-18%, -16%) scale(1); }
-        }
-        @keyframes ai-circle-orbit-2 {
-          0% { transform: translate(-50%, -50%) translate(16%, -14%) scale(1); }
-          25% { transform: translate(-50%, -50%) translate(-18%, -16%) scale(1.1); }
-          50% { transform: translate(-50%, -50%) translate(-16%, 18%) scale(0.85); }
-          75% { transform: translate(-50%, -50%) translate(18%, 16%) scale(1.05); }
-          100% { transform: translate(-50%, -50%) translate(16%, -14%) scale(1); }
-        }
-        @keyframes ai-circle-orbit-3 {
-          0% { transform: translate(-50%, -50%) translate(0%, 18%) scale(1); }
-          20% { transform: translate(-50%, -50%) translate(17%, 4%) scale(0.9); }
-          40% { transform: translate(-50%, -50%) translate(8%, -16%) scale(1.1); }
-          60% { transform: translate(-50%, -50%) translate(-12%, -10%) scale(0.85); }
-          80% { transform: translate(-50%, -50%) translate(-16%, 10%) scale(1.05); }
-          100% { transform: translate(-50%, -50%) translate(0%, 18%) scale(1); }
-        }
-        .ai-orb {
-          filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
-        }
-        .ai-orb-blob {
+        .chat-aurora {
           position: absolute;
-          top: 50%;
+          top: -22%;
           left: 50%;
-          width: 60%;
-          height: 60%;
-          border-radius: 50%;
-          will-change: transform;
+          width: min(880px, 130vw);
+          height: 560px;
+          transform: translate(-50%, 0);
+          background:
+            radial-gradient(38% 50% at 40% 42%, rgba(56, 189, 248, 0.11), transparent 72%),
+            radial-gradient(36% 46% at 63% 56%, rgba(192, 132, 252, 0.09), transparent 74%),
+            radial-gradient(30% 40% at 52% 64%, rgba(251, 146, 60, 0.06), transparent 76%);
+          filter: blur(40px);
+          pointer-events: none;
+          animation: chat-aurora-drift 16s ease-in-out infinite;
         }
-        .ai-orb-blob-1 {
-          background: radial-gradient(circle at 32% 30%, #bae6fd, #38bdf8 50%, #6366f1 100%);
-          animation: ai-circle-float-1 6s ease-in-out infinite;
+        /* One-shot light sheen sweeping across the trigger pill on hover */
+        @keyframes chat-pill-sheen-sweep {
+          0% { transform: translateX(-130%) skewX(-14deg); }
+          100% { transform: translateX(260%) skewX(-14deg); }
         }
-        .ai-orb-blob-2 {
-          background: radial-gradient(circle at 68% 70%, #fed7aa, #fb923c 55%, #f97316 100%);
-          mix-blend-mode: screen;
-          animation: ai-circle-float-2 7s ease-in-out infinite;
-        }
-        .ai-orb-blob-3 {
-          background: radial-gradient(circle at 50% 50%, #f5d0fe, #c084fc 55%, #818cf8 100%);
-          mix-blend-mode: screen;
-          animation: ai-circle-float-3 5.5s ease-in-out infinite;
-        }
-        .ai-orb-highlight {
+        .chat-pill-sheen {
           position: absolute;
-          top: 12%;
-          left: 18%;
-          width: 32%;
-          height: 32%;
-          border-radius: 9999px;
-          background: rgba(255, 255, 255, 0.6);
-          filter: blur(1px);
-          mix-blend-mode: overlay;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 38%;
+          background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+          opacity: 0;
+          transform: translateX(-130%) skewX(-14deg);
+          pointer-events: none;
         }
-        .ai-orb-active .ai-orb-blob-1 {
-          animation: ai-circle-orbit-1 3.2s ease-in-out infinite;
+        .group:hover .chat-pill-sheen {
+          opacity: 1;
+          animation: chat-pill-sheen-sweep 0.9s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .ai-orb-active .ai-orb-blob-2 {
-          animation: ai-circle-orbit-2 2.8s ease-in-out infinite;
-        }
-        .ai-orb-active .ai-orb-blob-3 {
-          animation: ai-circle-orbit-3 3.6s ease-in-out infinite;
+        @media (prefers-reduced-motion: reduce) {
+          .chat-aurora { animation: none; }
         }
       ` }} />
 
@@ -815,13 +890,14 @@ export default function ChatAgent() {
             key="chat-overlay"
             className="fixed inset-0 z-50 overflow-hidden flex flex-col"
           >
-            {/* Backdrop filter blur overlay */}
+            {/* Frosted-glass backdrop: the page behind shows through, softly blurred */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="absolute inset-0 bg-[#050505]/98"
+              className="absolute inset-0 bg-[#050505]/72 backdrop-blur-2xl"
+              style={{ WebkitBackdropFilter: "blur(28px)" }}
             />
 
             {/* Chat Fullscreen Container */}
@@ -844,18 +920,23 @@ export default function ChatAgent() {
                     }}
                     className="absolute inset-0 flex flex-col z-10"
                   >
+                    {/* Ambient aurora so the dark canvas reads as lit, not flat black */}
+                    <div className="chat-aurora z-0" />
                     {/* Gradient Overlays for smooth text clipping at top and bottom */}
-                    <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-[#050505] via-[#050505]/70 to-transparent pointer-events-none z-20" />
-                    <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent pointer-events-none z-20" />
+                    <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-[#050505]/90 via-[#050505]/50 to-transparent pointer-events-none z-20" />
+                    <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent pointer-events-none z-20" />
                     {/* Close Button in Top-Right Corner */}
                     <motion.button
                       onClick={handleClose}
                       aria-label="Close Chat"
-                      className="fixed top-6 right-8 w-11 h-11 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 bg-white/[0.02] backdrop-blur-md cursor-pointer z-[60] font-semibold"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="fixed top-6 right-8 w-11 h-11 rounded-full border border-white/10 flex items-center justify-center text-white/55 hover:text-white hover:border-white/25 hover:bg-white/[0.06] bg-white/[0.03] backdrop-blur-md cursor-pointer z-[60] font-semibold transition-colors duration-200"
+                      whileHover={{ scale: 1.06, rotate: 90 }}
+                      whileTap={{ scale: 0.92 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      ✕
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                      </svg>
                     </motion.button>
 
                     {/* Split Pane Layout */}
@@ -871,9 +952,8 @@ export default function ChatAgent() {
                         >
                           {/* Inner Centered Container - anchored to bottom, grows upward */}
                           <div
-                            className={`max-w-3xl mx-auto w-full px-6 md:px-12 pt-24 md:pt-28 pb-36 flex flex-col min-h-full ${
-                              messages.length === 0 ? "justify-center" : "justify-end"
-                            }`}
+                            className={`max-w-3xl mx-auto w-full px-6 md:px-12 pt-24 md:pt-28 pb-36 flex flex-col min-h-full ${messages.length === 0 ? "justify-center" : "justify-end"
+                              }`}
                           >
 
                             {messages.length === 0 ? (
@@ -882,42 +962,66 @@ export default function ChatAgent() {
                                 variants={staggerContainer}
                                 initial="hidden"
                                 animate="show"
-                                className="flex flex-col justify-center items-center gap-6 px-4 max-w-xl mx-auto text-center"
+                                className="relative flex flex-col justify-center items-center gap-7 px-4 max-w-md mx-auto text-center"
                               >
                                 <motion.div
                                   variants={springItem}
-                                  className="w-16 h-16"
+                                  className="relative z-10 w-20 h-20"
                                 >
                                   <img
                                     src="/assets/Maher-cropped.png"
                                     alt="Maher Fayad"
-                                    className="avatar-photo w-full h-full object-contain"
+                                    className="avatar-photo relative z-10 w-full h-full object-contain"
                                     style={{ transform: "scaleX(-1)" }}
                                   />
+                                  {/* AI sparkle badge anchored to the avatar */}
+                                  <span className="absolute z-20 -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#0a0a0b] border border-white/10 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                                    <AIIcon className="w-4 h-4" />
+                                  </span>
                                 </motion.div>
 
-                                <motion.div variants={springItem} className="flex flex-col gap-2">
-                                  <h4 className="text-sm font-semibold text-white uppercase tracking-widest">
-                                    Maher's AI Agent
+                                <motion.div variants={springItem} className="relative z-10 flex flex-col items-center gap-3">
+                                  <h4 className="text-2xl md:text-[27px] font-semibold text-white tracking-tight leading-[1.15]">
+                                    Ask me anything about Maher
                                   </h4>
-                                  <p className="text-xs text-white/40 leading-relaxed">
-                                    Ask about his case studies, design process, measurable results, or how to work with him.
+                                  <p className="text-sm text-white/45 leading-relaxed max-w-sm">
+                                    His case studies, design process, the results he's driven, or how to work with him. I'll answer in seconds.
                                   </p>
                                 </motion.div>
 
-                                {/* Suggested Chips inside chat thread (Visible on all viewports) */}
+                                {/* Suggested prompt rows: a tap-to-ask launcher */}
                                 <motion.div
-                                  variants={springItem}
-                                  className="flex flex-col sm:flex-row gap-3 w-full mt-2 justify-center"
+                                  variants={staggerContainer}
+                                  className="relative z-10 w-full mt-1 flex flex-col gap-2"
                                 >
-                                  {SUGGESTED_CHIPS.map((chip, index) => (
-                                    <button
+                                  {SUGGESTED_PROMPTS.map((prompt, index) => (
+                                    <motion.button
                                       key={index}
-                                      onClick={() => handleSendMessage(chip)}
-                                      className="text-center text-xs text-[#c5c5c5] bg-white/[0.02] border border-white/10 hover:border-white/30 hover:bg-white/[0.04] px-4 py-2.5 transition-all rounded-full font-medium cursor-pointer"
+                                      variants={springItem}
+                                      onClick={() => handleSendMessage(prompt.label)}
+                                      whileHover={{ y: -2 }}
+                                      whileTap={{ scale: 0.98 }}
+                                      transition={{ type: "spring", stiffness: 400, damping: 26 }}
+                                      className="group/prompt relative flex items-center gap-3 w-full text-left rounded-xl border border-white/[0.07] bg-white/[0.02] pl-2.5 pr-3.5 py-2.5 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-300 cursor-pointer overflow-hidden"
                                     >
-                                      {chip}
-                                    </button>
+                                      {/* Brand-tinted glow that blooms from the icon on hover */}
+                                      <span className="pointer-events-none absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-[radial-gradient(closest-side,rgba(77,171,91,0.28),rgba(61,87,193,0.18)_45%,transparent_75%)] opacity-0 blur-md group-hover/prompt:opacity-100 transition-opacity duration-300" />
+                                      <span className="relative flex-shrink-0 grid place-items-center w-9 h-9 rounded-lg border border-white/[0.06] bg-white/[0.03] text-white/40 group-hover/prompt:text-white group-hover/prompt:border-white/15 group-hover/prompt:bg-white/[0.07] transition-colors duration-300">
+                                        <span className="w-4 h-4">{prompt.icon}</span>
+                                      </span>
+                                      <span className="relative flex-1 text-[13px] font-medium text-[#c5c5c5] group-hover/prompt:text-white transition-colors duration-300">
+                                        {prompt.label}
+                                      </span>
+                                      <svg
+                                        className="relative w-4 h-4 flex-shrink-0 text-white/30 opacity-0 -translate-x-1.5 group-hover/prompt:opacity-100 group-hover/prompt:translate-x-0 group-hover/prompt:text-white/70 transition-all duration-300"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                      </svg>
+                                    </motion.button>
                                   ))}
                                 </motion.div>
                               </motion.div>
@@ -927,7 +1031,7 @@ export default function ChatAgent() {
                                   if (msg.role === "user") {
                                     return (
                                       <div key={index} className="flex flex-col gap-1.5 max-w-[85%] self-end items-end">
-                                        <div className="px-4 py-3.5 text-left bg-white/[0.04] border border-white/15 text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
+                                        <div className="px-4 py-3.5 text-left bg-white/[0.05] text-[#e2e2e2] rounded-2xl rounded-tr-md shadow-[0_4px_16px_rgba(0,0,0,0.25)] text-sm font-medium leading-relaxed">
                                           {msg.content}
                                         </div>
                                       </div>
@@ -976,7 +1080,7 @@ export default function ChatAgent() {
                             {/* Queued message preview - sent automatically once the agent finishes */}
                             {queuedMessage && (
                               <div className="flex flex-col gap-1.5 max-w-[85%] self-end items-end mt-4 opacity-50">
-                                <div className="px-4 py-3.5 text-left bg-white/[0.04] border border-white/15 text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
+                                <div className="px-4 py-3.5 text-left bg-white/[0.04] text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
                                   {queuedMessage}
                                 </div>
                                 <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold pr-1">
@@ -1027,34 +1131,37 @@ export default function ChatAgent() {
             handleOpen();
           }
         }}
-        style={{ borderRadius: "9999px" }}
+        style={{ borderRadius: "9999px", WebkitBackdropFilter: "blur(20px)" }}
         initial={{ y: 120, opacity: 0, bottom: 24 }}
         animate={{
           y: 0,
           opacity: 1,
-          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "180px",
+          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "190px",
           height: isOpen ? "56px" : "48px",
           bottom: (isOpen ? 32 : 24) + keyboardInset,
           backgroundColor: isOpen
             ? isInputFocused
-              ? "rgba(255, 255, 255, 0.06)"
-              : "rgba(255, 255, 255, 0.03)"
+              ? "rgba(255, 255, 255, 0.08)"
+              : "rgba(255, 255, 255, 0.05)"
             : "rgba(255, 255, 255, 0.08)",
           borderColor: isOpen
             ? isInputFocused
               ? "rgba(255, 255, 255, 0.40)"
               : "rgba(255, 255, 255, 0.15)"
             : "rgba(255, 255, 255, 0.10)",
-          boxShadow: isOpen && isInputFocused
-            ? "0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 24px rgba(99, 102, 241, 0.12), 0 8px 32px rgba(0, 0, 0, 0.5)"
-            : "0 8px 32px rgba(0, 0, 0, 0.5)",
-          backdropFilter: isOpen ? "none" : "blur(12px)",
+          boxShadow: isOpen
+            ? isInputFocused
+              ? "0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 28px rgba(99, 102, 241, 0.18), 0 0 60px rgba(56, 189, 248, 0.08), 0 12px 40px rgba(0, 0, 0, 0.55)"
+              : "0 10px 36px rgba(0, 0, 0, 0.5)"
+            : "0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 30px rgba(99, 102, 241, 0.14), 0 0 64px rgba(56, 189, 248, 0.06)",
+          backdropFilter: isOpen ? "blur(24px)" : "blur(14px)",
         }}
         transition={chatLayoutTransition}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-55 flex items-center border cursor-pointer text-white overflow-hidden"
+        className="group fixed bottom-6 left-1/2 -translate-x-1/2 z-55 flex items-center border cursor-pointer text-white overflow-hidden"
         whileHover={isOpen ? undefined : { scale: 1.05 }}
         whileTap={isOpen ? undefined : { scale: 0.95 }}
       >
+        {!isOpen && <span className="chat-pill-sheen" aria-hidden="true" />}
         <AnimatePresence mode="wait">
           {!isOpen ? (
             <motion.div
@@ -1062,9 +1169,9 @@ export default function ChatAgent() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.15 } }}
               exit={{ opacity: 0, y: 15, transition: { delay: 0, duration: 0.12 } }}
-              className="flex items-center gap-2.5 whitespace-nowrap pl-6 pr-6"
+              className="relative flex items-center gap-2.5 whitespace-nowrap pl-6 pr-6"
             >
-              <AIIcon className="w-5 h-5" pulse />
+              <AIIcon className="w-6 h-6" pulse />
               <span className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap">Maher's Agent</span>
             </motion.div>
           ) : (
@@ -1085,8 +1192,11 @@ export default function ChatAgent() {
                   duration: 0.12
                 }
               }}
-              className="w-full flex items-center"
+              className="relative w-full flex items-center"
             >
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <AIIcon className="w-6 h-6" pulse={isTyping} />
+              </span>
               <input
                 type="text"
                 autoFocus
@@ -1101,17 +1211,20 @@ export default function ChatAgent() {
                       : "Agent is replying, you can keep typing..."
                     : `${PLACEHOLDER_PREFIX}${placeholderText}`
                 }
-                className="w-full bg-transparent pl-6 pr-14 py-4 text-sm text-white placeholder-white/45 outline-none rounded-full disabled:opacity-50"
+                className="w-full bg-transparent pl-12 pr-14 py-4 text-sm text-white placeholder-white/45 outline-none rounded-full disabled:opacity-50"
               />
-              <button
+              <motion.button
                 type="submit"
                 disabled={!inputValue.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-[#c5c5c5] text-black w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-30 cursor-pointer shadow-md"
+                whileHover={inputValue.trim() ? { scale: 1.08 } : undefined}
+                whileTap={inputValue.trim() ? { scale: 0.92 } : undefined}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-[#eaeaea] text-black w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 disabled:opacity-30 disabled:scale-100 cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.08)]"
               >
                 <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-              </button>
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
