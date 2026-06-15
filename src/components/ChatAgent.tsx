@@ -418,29 +418,56 @@ const parseEmail = (text: string) => {
 };
 
 const parseMarkdown = (text: string) => {
-  const boldRegex = /(\*\*.*?\*\*)/g;
-  const parts = text.split(boldRegex);
-
-  if (parts.length === 1 && !text.includes("**")) {
-    return parseEmail(text);
-  }
+  // 1. Split by link pattern [text](url)
+  const linkRegex = /(\[.*?\]\(.*?\))/g;
+  const parts = text.split(linkRegex);
 
   const result: React.ReactNode[] = [];
+
   parts.forEach((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      const boldText = part.slice(2, -2);
+    if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
+      // Extract text and url
+      const closeBracketIdx = part.indexOf("](");
+      const linkText = part.slice(1, closeBracketIdx);
+      const linkUrl = part.slice(closeBracketIdx + 2, -1);
+
+      // Check if it is an external link (like linkedin or Cal)
+      const isExternal = linkUrl.startsWith("http") || linkUrl.startsWith("www");
+
       result.push(
-        <strong key={`bold-${idx}`} className="font-bold text-white">
-          {boldText}
-        </strong>
+        <a
+          key={`link-${idx}`}
+          href={linkUrl}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+          className="text-white underline hover:text-[#c5c5c5] transition-colors font-semibold"
+        >
+          {linkText}
+        </a>
       );
     } else {
-      const emailParsed = parseEmail(part);
-      if (Array.isArray(emailParsed)) {
-        result.push(...emailParsed);
-      } else {
-        result.push(emailParsed);
-      }
+      // 2. Split by bold pattern **text**
+      const boldRegex = /(\*\*.*?\*\*)/g;
+      const subParts = part.split(boldRegex);
+
+      subParts.forEach((subPart, subIdx) => {
+        if (subPart.startsWith("**") && subPart.endsWith("**")) {
+          const boldText = subPart.slice(2, -2);
+          result.push(
+            <strong key={`bold-${idx}-${subIdx}`} className="font-bold text-white">
+              {boldText}
+            </strong>
+          );
+        } else {
+          // 3. Parse emails
+          const emailParsed = parseEmail(subPart);
+          if (Array.isArray(emailParsed)) {
+            result.push(...emailParsed);
+          } else {
+            result.push(emailParsed);
+          }
+        }
+      });
     }
   });
 
