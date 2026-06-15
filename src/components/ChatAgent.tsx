@@ -843,7 +843,7 @@ export default function ChatAgent() {
               thoughtsList = [...thoughtsList, data.trim()];
               setCurrentThoughts(thoughtsList);
             } else if (currentEvent === "result") {
-              assistantText += data;
+              assistantText += data.replace(/\\n/g, "\n");
               setStreamingText(assistantText);
             } else if (currentEvent === "error") {
               throw new Error(data.trim());

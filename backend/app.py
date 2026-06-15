@@ -251,7 +251,7 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
                             content = delta.get("content", "")
                             if content:
                                 print(content, end="", flush=True)
-                                event_queue.put(("result", content))
+                                event_queue.put(("result", content.replace("\n", "\\n")))
                         except Exception as e:
                             print(f"[STREAM PARSE ERROR] {e}")
             print("\n[STREAM END] Stream completed.")
