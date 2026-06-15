@@ -179,48 +179,62 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
 
             messages.append({"role": "user", "content": f"<user_query>{user_query}</user_query>"})
 
-            attempts = len(OPENROUTER_API_KEYS) * 2
+            models_to_try = [
+                "google/gemma-4-26b-a4b-it:free",
+                "google/gemma-4-31b-it:free",
+                "openrouter/free"
+            ]
             response = None
-            for attempt in range(attempts):
-                api_key = get_active_api_key()
-                headers = {
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://maherfayad.com",
-                    "X-Title": "Maher Fayad AI Portfolio Representative"
-                }
-                payload = {
-                    "model": "google/gemma-4-31b-it:free",
-                    "messages": messages,
-                    "stream": True
-                }
-                try:
-                    r = requests.post(
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        headers=headers,
-                        json=payload,
-                        stream=True,
-                        timeout=15
-                    )
-                    if r.status_code == 429:
-                        print(f"[RETRY] OpenRouter 429 hit. Key index {current_key_idx} rate-limited. Error: {r.text}")
+            chosen_model = None
+
+            for model in models_to_try:
+                attempts = max(len(OPENROUTER_API_KEYS) * 2, 2)
+                model_success = False
+                for attempt in range(attempts):
+                    api_key = get_active_api_key()
+                    headers = {
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://maherfayad.com",
+                        "X-Title": "Maher Fayad AI Portfolio Representative"
+                    }
+                    payload = {
+                        "model": model,
+                        "messages": messages,
+                        "stream": True
+                    }
+                    try:
+                        r = requests.post(
+                            "https://openrouter.ai/api/v1/chat/completions",
+                            headers=headers,
+                            json=payload,
+                            stream=True,
+                            timeout=15
+                        )
+                        if r.status_code == 429:
+                            print(f"[RETRY] OpenRouter 429 hit for model {model}. Key index {current_key_idx} rate-limited. Error: {r.text}")
+                            rotate_api_key()
+                            time.sleep(1)
+                            continue
+                        r.raise_for_status()
+                        response = r
+                        chosen_model = model
+                        model_success = True
+                        break
+                    except Exception as e:
+                        print(f"[RETRY] Error on model {model}, attempt {attempt+1}: {e}")
                         rotate_api_key()
-                        time.sleep(2)
+                        time.sleep(1)
                         continue
-                    r.raise_for_status()
-                    response = r
+                if model_success:
                     break
-                except Exception as e:
-                    print(f"[RETRY] Error on attempt {attempt+1}: {e}")
-                    rotate_api_key()
-                    time.sleep(2)
-                    continue
 
             if not response:
-                event_queue.put(("error", "Rate limit exceeded: free-models-per-min. Please wait a moment before sending another message."))
+                event_queue.put(("result", "I'm receiving a high volume of queries at the moment. Let's stay in touch! You can email me directly at Contact@maherfayad.com or book a slot on my calendar. [BookMeetingButton]"))
+                event_queue.put(("done", ""))
                 return
 
-            print(f"[STREAM START] Connected to OpenRouter. Model: {payload['model']}")
+            print(f"[STREAM START] Connected to OpenRouter. Model: {chosen_model}")
             for line in response.iter_lines():
                 if line:
                     decoded = line.decode("utf-8").strip()
@@ -269,10 +283,9 @@ async def chat_endpoint(request: Request):
 
     # Rate Limiting check
     if not limiter.is_allowed(client_ip):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Rate limit exceeded. Please wait a moment before sending another message."
-        )
+        async def immediate_rate_limit():
+            yield {"event": "result", "data": "I'm receiving a high volume of queries at the moment. Let's stay in touch! You can email me directly at Contact@maherfayad.com or book a slot on my calendar. [BookMeetingButton]"}
+        return EventSourceResponse(immediate_rate_limit())
 
     # Parse request body
     body = await request.json()

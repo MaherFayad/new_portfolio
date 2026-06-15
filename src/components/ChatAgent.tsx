@@ -545,7 +545,14 @@ export default function ChatAgent() {
       }
       if (key === "ratelimit" || key === "rate-limit" || key === "429") {
         await delay(500);
-        throw new Error("Rate limit exceeded. Please wait a moment before sending another message.");
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "I'm receiving a high volume of queries at the moment. Let's stay in touch! You can email me directly at Contact@maherfayad.com or book a slot on my calendar. [BookMeetingButton]",
+          },
+        ]);
+        return;
       }
 
       const scenario = MOCK_SCENARIOS[key];
