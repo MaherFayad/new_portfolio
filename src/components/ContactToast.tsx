@@ -144,7 +144,7 @@ export default function ContactToast({ toast }: { toast: ContactToastData }) {
     <motion.div
       role="status"
       aria-live="polite"
-      className="fixed bottom-8 max-sm:bottom-6 left-1/2 z-50 -translate-x-1/2 pointer-events-none"
+      className="fixed bottom-24 left-1/2 -translate-x-1/2 sm:bottom-8 sm:right-8 sm:left-auto sm:translate-x-0 z-50 pointer-events-none"
       initial={{ y: 96, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 44, opacity: 0, scale: 0.94 }}
