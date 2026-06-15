@@ -654,9 +654,9 @@ export default function ChatAgent() {
     if (!text.trim() || isTyping) return;
 
     const lowerText = text.trim().toLowerCase();
-    const isSuggestedPrompt = 
-      lowerText.includes("strongest case study") || 
-      lowerText.includes("results has he driven") || 
+    const isSuggestedPrompt =
+      lowerText.includes("strongest case study") ||
+      lowerText.includes("results has he driven") ||
       lowerText.includes("available for new opportunities");
 
     if (isSuggestedPrompt) {
@@ -682,7 +682,7 @@ export default function ChatAgent() {
           setCurrentThoughts(["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome..."]);
           setCurrentStatus("Generating project card presentation...");
           await delay(500);
-          
+
           const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. He restructured the enterprise payroll portal, which drove a +47% increase in digital account openings and an +81% lift in transaction volumes. [ProjectCard: alrajhi-bank-payroll]";
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome...", "Generating project card presentation..."] }]);
@@ -715,7 +715,7 @@ export default function ChatAgent() {
           setCurrentStatus("Preparing booking portal integration...");
           await delay(500);
 
-          const reply = "Yes, Maher is available for new opportunities! He is currently accepting senior-level design contracts, design system consultancies, or selective freelance projects.\n\nYou can reach out to him directly at Contact@maherfayad.com or schedule a 15-minute call directly through the booking link below. [BookMeetingButton]";
+          const reply = "Yes, Maher is available for new opportunities! He is currently accepting freelance opportunities.\n\nYou can reach out to him directly at Contact@maherfayad.com or schedule a 30-minute call directly through the booking link below. [BookMeetingButton]";
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Checking calendar availability...", "Verifying timezone slots...", "Retrieving calendar scheduling API...", "Preparing booking portal integration..."] }]);
         }
@@ -832,9 +832,9 @@ export default function ChatAgent() {
       ]);
     } catch (err: any) {
       const errText = (err.message || "").toLowerCase();
-      const isRateLimitOrConnectionError = 
-        errText.includes("rate limit") || 
-        errText.includes("failed to communicate") || 
+      const isRateLimitOrConnectionError =
+        errText.includes("rate limit") ||
+        errText.includes("failed to communicate") ||
         errText.includes("fetch") ||
         errText.includes("network");
 
@@ -1153,11 +1153,11 @@ export default function ChatAgent() {
                                     >
                                       {/* Brand-tinted glow that blooms from the icon on hover */}
                                       <span className="pointer-events-none absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-[radial-gradient(closest-side,rgba(77,171,91,0.2),rgba(61,87,193,0.12)_45%,transparent_75%)] opacity-0 blur-md group-hover/prompt:opacity-100 transition-opacity duration-300" />
-                                      
+
                                       <span className="relative flex-shrink-0 text-white/50 group-hover/prompt:text-white transition-colors duration-300">
                                         <span className="w-4.5 h-4.5 md:w-5.5 md:h-5.5 block">{prompt.icon}</span>
                                       </span>
-                                      
+
                                       <div className="relative flex-1 md:w-full flex flex-row items-center md:items-end justify-between gap-2">
                                         <span className="text-[12.5px] md:text-[13.5px] font-normal text-white/50 group-hover/prompt:text-white transition-colors duration-300 leading-snug">
                                           {prompt.label}
