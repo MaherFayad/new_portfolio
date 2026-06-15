@@ -188,7 +188,7 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                 "   - McKinsey Forward Program -> `mckinsey-forward`\n"
                 "   - Meta Front-End Developer Certificate -> `meta-front-end-dev`\n"
                 "   - Product Analytics Certification -> `product-analytics`\n\n"
-                "10. If the user asks about Maher's work experience, career history, employment timeline, where he has worked, or his professional journey, append the tag `[ExperienceTimeline]` at the end of your response (on its own, do not also list every role in prose). It renders an interactive visual career timeline. You may add one short intro sentence before the tag.\n\n"
+                "10. If the user asks about Maher's work experience, career history, employment timeline, where he has worked, or his professional journey, append the tag `[ExperienceTimeline]` at the end of your response. The tag renders an interactive visual career timeline of his full-time roles, so you MUST NOT also write those roles, companies, dates, or bullet points out in text. Never repeat in prose what the timeline already shows. Write at most ONE short intro sentence, then the tag. The timeline does NOT include his freelance work, so in that one intro sentence you may briefly weave in his freelance experience on Upwork (clients such as Theradome, Supersight, Solidity Studios, the Milt Olin Foundation, Brackets, and IterationX) to complement the timeline, then end with the [ExperienceTimeline] tag.\n\n"
                 f"CURRENT PAGE the user is viewing right now: {current_page or 'unknown'}\n\n"
                 f"CONTEXT:\n{MAHER_BIO_CONTENT}"
             )
