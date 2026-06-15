@@ -165,7 +165,14 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
                 "   - Numeric Tokens Generator -> `[PluginCard: numeric-tokens-generator]`\n\n"
                 "7. Refer users to other pages on the website using simple relative paths: About page (`/about`), Selected Work page (`/work`), or Contact page (`/contacts`).\n"
                 "8. If the user asks for Maher's social media, resume links, or professional network, refer them to his LinkedIn profile: `[LinkedIn](https://www.linkedin.com/in/maherfayad)`.\n"
-                "9. If the user asks about certificates, credentials, or badges, mention his Google, IBM, McKinsey, or Meta certifications and direct them to the About page (`/about`) to see the verified Credly links.\n\n"
+                "9. If the user asks about certificates, credentials, or badges, list them using their respective certificate card tags back-to-back, e.g. `[CertificateCard: google-ux-design][CertificateCard: google-data-analytics]`, so they render as a certificate gallery. Use correct slugs:\n"
+                "   - Google UX Design Professional Certificate -> `google-ux-design`\n"
+                "   - Google Data Analytics Professional Certificate -> `google-data-analytics`\n"
+                "   - Enterprise Design Thinking Practitioner (IBM) -> `ibm-design-thinking`\n"
+                "   - Enterprise Design Thinking Co-Creator (IBM) -> `ibm-co-creator`\n"
+                "   - McKinsey Forward Program -> `mckinsey-forward`\n"
+                "   - Meta Front-End Developer Certificate -> `meta-front-end-dev`\n"
+                "   - Product Analytics Certification -> `product-analytics`\n\n"
                 f"CONTEXT:\n{MAHER_BIO_CONTENT}"
             )
 

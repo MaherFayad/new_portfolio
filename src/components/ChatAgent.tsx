@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
 import ChatPluginCard from "./ChatPluginCard";
+import ChatCertificateCard from "./ChatCertificateCard";
 import BookMeetingButton from "./BookMeetingButton";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
@@ -417,7 +419,7 @@ const parseEmail = (text: string) => {
   });
 };
 
-const parseMarkdown = (text: string) => {
+const parseMarkdown = (text: string, onLinkClick?: () => void) => {
   // 1. Split by link pattern [text](url)
   const linkRegex = /(\[.*?\]\(.*?\))/g;
   const parts = text.split(linkRegex);
@@ -440,6 +442,11 @@ const parseMarkdown = (text: string) => {
           href={linkUrl}
           target={isExternal ? "_blank" : undefined}
           rel={isExternal ? "noopener noreferrer" : undefined}
+          onClick={() => {
+            if (!isExternal && onLinkClick) {
+              onLinkClick();
+            }
+          }}
           className="text-white underline hover:text-[#c5c5c5] transition-colors font-semibold"
         >
           {linkText}
@@ -459,13 +466,47 @@ const parseMarkdown = (text: string) => {
             </strong>
           );
         } else {
-          // 3. Parse emails
-          const emailParsed = parseEmail(subPart);
-          if (Array.isArray(emailParsed)) {
-            result.push(...emailParsed);
-          } else {
-            result.push(emailParsed);
-          }
+          // 3. Split by italic pattern *text*
+          const italicRegex = /(\*.*?\*)/g;
+          const italicParts = subPart.split(italicRegex);
+
+          italicParts.forEach((italicPart, italicIdx) => {
+            if (italicPart.startsWith("*") && italicPart.endsWith("*")) {
+              const italicText = italicPart.slice(1, -1);
+              result.push(
+                <em key={`italic-${idx}-${subIdx}-${italicIdx}`} className="italic font-bold text-white">
+                  {italicText}
+                </em>
+              );
+            } else {
+              // 4. Split by site path pattern /about, /work, /contacts, /projects
+              const pathRegex = /(\/(?:about|work|contacts|projects)\b)/gi;
+              const pathParts = italicPart.split(pathRegex);
+
+              pathParts.forEach((pathPart, pathIdx) => {
+                if (pathPart.match(/^\/(about|work|contacts|projects)$/i)) {
+                  result.push(
+                    <Link
+                      key={`path-${idx}-${subIdx}-${italicIdx}-${pathIdx}`}
+                      href={pathPart.toLowerCase()}
+                      onClick={onLinkClick}
+                      className="text-white underline hover:text-[#c5c5c5] transition-colors font-semibold"
+                    >
+                      {pathPart}
+                    </Link>
+                  );
+                } else {
+                  // 5. Parse emails
+                  const emailParsed = parseEmail(pathPart);
+                  if (Array.isArray(emailParsed)) {
+                    result.push(...emailParsed);
+                  } else {
+                    result.push(emailParsed);
+                  }
+                }
+              });
+            }
+          });
         }
       });
     }
@@ -915,10 +956,10 @@ export default function ChatAgent() {
     }
   };
 
-  // Helper to parse project tags [ProjectCard: slug], plugin tags [PluginCard: slug], and booking buttons [BookMeetingButton]
+  // Helper to parse project tags [ProjectCard: slug], plugin tags [PluginCard: slug], certificate tags [CertificateCard: slug], and booking buttons [BookMeetingButton]
   const renderMessageContent = (text: string) => {
-    // Match [ProjectCard: slug], [PluginCard: slug], or [BookMeetingButton]
-    const regex = /\[(ProjectCard:\s*(.+?)|PluginCard:\s*(.+?)|BookMeetingButton)\]/g;
+    // Match [ProjectCard: slug], [PluginCard: slug], [CertificateCard: slug], or [BookMeetingButton]
+    const regex = /\[(ProjectCard:\s*(.+?)|PluginCard:\s*(.+?)|CertificateCard:\s*(.+?)|BookMeetingButton)\]/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -936,6 +977,10 @@ export default function ChatAgent() {
         // It's a PluginCard: slug
         const slug = match[3].trim();
         parts.push({ type: "plugin", slug });
+      } else if (match[4] !== undefined) {
+        // It's a CertificateCard: slug
+        const slug = match[4].trim();
+        parts.push({ type: "certificate", slug });
       } else {
         // It's a ProjectCard: slug
         const slug = match[2].trim();
@@ -950,14 +995,18 @@ export default function ChatAgent() {
     }
 
     if (parts.length === 0) {
-      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseMarkdown(text)}</p>;
+      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseMarkdown(text, handleClose)}</p>;
     }
 
-    // Group consecutive project/plugin cards so multiple recommendations scroll horizontally
+    // Group consecutive project/plugin/certificate cards so multiple recommendations scroll horizontally
     const groupedParts: Array<{ type: string; content?: string; slugs?: string[] }> = [];
     for (const part of parts) {
-      if ((part.type === "card" || part.type === "plugin") && part.slug) {
-        const groupType = part.type === "plugin" ? "pluginGroup" : "cardGroup";
+      if ((part.type === "card" || part.type === "plugin" || part.type === "certificate") && part.slug) {
+        const groupType = part.type === "plugin"
+          ? "pluginGroup"
+          : part.type === "certificate"
+          ? "certificateGroup"
+          : "cardGroup";
         const last = groupedParts[groupedParts.length - 1];
         if (last && last.type === groupType) {
           last.slugs!.push(part.slug);
@@ -972,8 +1021,12 @@ export default function ChatAgent() {
     return (
       <div className="flex flex-col gap-2">
         {groupedParts.map((part, idx) => {
-          if ((part.type === "cardGroup" || part.type === "pluginGroup") && part.slugs) {
-            const CardComponent = part.type === "pluginGroup" ? ChatPluginCard : ChatProjectCard;
+          if ((part.type === "cardGroup" || part.type === "pluginGroup" || part.type === "certificateGroup") && part.slugs) {
+            const CardComponent = part.type === "pluginGroup"
+              ? ChatPluginCard
+              : part.type === "certificateGroup"
+              ? ChatCertificateCard
+              : ChatProjectCard;
             if (part.slugs.length === 1) {
               return <CardComponent key={idx} slug={part.slugs[0]} onNavigate={handleClose} />;
             }
@@ -998,7 +1051,7 @@ export default function ChatAgent() {
           }
           return (
             <p key={idx} className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">
-              {parseMarkdown(part.content || "")}
+              {parseMarkdown(part.content || "", handleClose)}
             </p>
           );
         })}
