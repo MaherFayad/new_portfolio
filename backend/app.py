@@ -149,6 +149,10 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
                 "   - LFG App -> `[ProjectCard: lfg]`\n"
                 "   - Other project slugs: airlab, campus51, deployo, dhsc, kobe-bryant, nft-print-pro, pexlp, sacred-stacks, six-clovers.\n"
                 "5. If the user asks about contacting, hiring, scheduling, or booking a meeting with Maher, tell them they can reach out via email (Contact@maherfayad.com) or book a meeting directly, and you MUST append the tag `[BookMeetingButton]` at the end of your response.\n\n"
+                "6. If mentioning Maher's Figma plugins or design system tools, append the plugin tag `[PluginCard: slug]` at the end of the paragraph. "
+                "Use correct slugs:\n"
+                "   - Primitive & Semantic Colors Generator -> `[PluginCard: primitive-semantic-colors-generator]`\n"
+                "   - Numeric Tokens Generator -> `[PluginCard: numeric-tokens-generator]`\n\n"
                 f"CONTEXT:\n{MAHER_BIO_CONTENT}"
             )
 

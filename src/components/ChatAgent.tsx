@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
+import ChatPluginCard from "./ChatPluginCard";
 import BookMeetingButton from "./BookMeetingButton";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
@@ -399,15 +400,16 @@ export default function ChatAgent() {
       return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseEmail(text)}</p>;
     }
 
-    // Group consecutive project cards so multiple recommendations scroll horizontally
+    // Group consecutive project/plugin cards so multiple recommendations scroll horizontally
     const groupedParts: Array<{ type: string; content?: string; slugs?: string[] }> = [];
     for (const part of parts) {
-      if (part.type === "card" && part.slug) {
+      if ((part.type === "card" || part.type === "plugin") && part.slug) {
+        const groupType = part.type === "plugin" ? "pluginGroup" : "cardGroup";
         const last = groupedParts[groupedParts.length - 1];
-        if (last && last.type === "cardGroup") {
+        if (last && last.type === groupType) {
           last.slugs!.push(part.slug);
         } else {
-          groupedParts.push({ type: "cardGroup", slugs: [part.slug] });
+          groupedParts.push({ type: groupType, slugs: [part.slug] });
         }
       } else {
         groupedParts.push(part);
@@ -417,14 +419,15 @@ export default function ChatAgent() {
     return (
       <div className="flex flex-col gap-2">
         {groupedParts.map((part, idx) => {
-          if (part.type === "cardGroup" && part.slugs) {
+          if ((part.type === "cardGroup" || part.type === "pluginGroup") && part.slugs) {
+            const CardComponent = part.type === "pluginGroup" ? ChatPluginCard : ChatProjectCard;
             if (part.slugs.length === 1) {
-              return <ChatProjectCard key={idx} slug={part.slugs[0]} onNavigate={handleClose} />;
+              return <CardComponent key={idx} slug={part.slugs[0]} onNavigate={handleClose} />;
             }
             return (
               <MobileHorizontalScroll key={idx} className="-mx-1 px-1">
                 {part.slugs.map((slug) => (
-                  <ChatProjectCard key={slug} slug={slug} onNavigate={handleClose} compact />
+                  <CardComponent key={slug} slug={slug} onNavigate={handleClose} compact />
                 ))}
               </MobileHorizontalScroll>
             );
