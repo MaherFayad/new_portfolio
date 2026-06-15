@@ -1545,9 +1545,7 @@ export default function ChatAgent() {
               : "rgba(255, 255, 255, 0.05)"
             : "rgba(255, 255, 255, 0.08)",
           borderColor: isOpen
-            ? isInputFocused
-              ? "rgba(255, 255, 255, 0.40)"
-              : "rgba(255, 255, 255, 0.15)"
+            ? "rgba(255, 255, 255, 0)"
             : "rgba(255, 255, 255, 0.10)",
           boxShadow: isOpen
             ? isInputFocused
