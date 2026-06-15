@@ -656,6 +656,7 @@ export default function ChatAgent() {
     const lowerText = text.trim().toLowerCase();
     const isSuggestedPrompt =
       lowerText.includes("strongest case study") ||
+      lowerText.includes("some of his work") ||
       lowerText.includes("results has he driven") ||
       lowerText.includes("available for new opportunities");
 
@@ -670,7 +671,7 @@ export default function ChatAgent() {
       const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
       try {
-        if (lowerText.includes("strongest case study")) {
+        if (lowerText.includes("strongest case study") || lowerText.includes("some of his work")) {
           setCurrentStatus("Analyzing portfolio database...");
           await delay(500);
           setCurrentThoughts(["Analyzing portfolio database..."]);
