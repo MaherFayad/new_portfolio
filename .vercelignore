@@ -1,0 +1,2 @@
+# Ignore the Python backend from Vercel uploads and builds
+backend/

@@ -6,6 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { HomeRevealGateProvider } from "@/components/HomeRevealGate";
 import { PageTransitionProvider } from "@/components/PageTransition";
 import { initCalEmbed } from "@/components/BookMeetingButton";
+import ChatAgent from "@/components/ChatAgent";
 
 const Preloader = dynamic(() => import("@/components/Preloader"), {
   ssr: false,
@@ -118,6 +119,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
             >
               {children}
             </div>
+            {pageActive && <ChatAgent />}
           </PageTransitionProvider>
         )}
       </HomeRevealGateProvider>
