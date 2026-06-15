@@ -32,7 +32,7 @@ Maher has collaborated with multiple clients globally, including:
 - **Role**: Senior Product Designer (AR/EN).
 - **Problem**: Enterprise payroll interfaces were fragmented, leading to user friction and slow transactions.
 - **Approach**: Redesigned the payroll flows by prioritizing transaction speed, clarifying tabular data, and creating a cohesive bilingual interface.
-- **Outcome**: Delivered as part of a broader platform revamp that resulted in +47% online account openings and +81% e-business transactions. (Case study linked externally to Behance).
+- **Outcome**: Restructured the payroll portal as part of the team, contributing to a broader platform revamp that achieved +47% online account openings and +81% e-business transactions. (Case study linked externally to Behance).
 - **Slug**: `alrajhi-bank-payroll`
 
 ### 2. Sanarte Mobile App
@@ -79,7 +79,7 @@ Maher has collaborated with multiple clients globally, including:
 
 ## Career Path (Full Work History)
 - **Senior Product Designer, Almosafer** (2025 - Present): Designing for the GCC's leading travel platform across Arabic and English experiences, driving design-system work and analytics-informed funnel improvements, and building AI-augmented design workflows with Figma MCP and Claude-driven design ops.
-- **Sr. User Experience Designer, AZMX (Al Rajhi Bank)** (Dec. 2023 - 2025): Delivered 41 revamps and enhancements to Al Rajhi e-business platforms, boosting online account openings by 47% and e-business transactions by 81%, working with premier groups in Saudi Arabia's tech ecosystem.
+- **Sr. User Experience Designer, AZMX (Al Rajhi Bank)** (Dec. 2023 - 2025): Delivered 41 revamps and enhancements to Al Rajhi e-business platforms, contributing as part of the team to a 47% boost in online account openings and 81% increase in e-business transactions, working with premier groups in Saudi Arabia's tech ecosystem.
 - **Product Designer, Contact Financial Holding** (Dec. 2022 - Nov. 2023): Led user-centric design lifecycle from ideation to implementation, crafted user flows, high-fidelity mockups, interactive prototypes, and ran user research for core financial products including Contact Now and Contact Brokerage apps.
 - **UI/UX Designer, GameIT** (Jun. 2022 - Dec. 2022): Refined website experiences for usability and engagement, collaborated with marketing on visual brand assets, and partnered with the game development team to improve accessibility of game UIs.
 - **Freelance UI/UX Designer, Upwork** (Aug. 2022 - Present): Collaborated with Solidity Studios, Supersight, Konica Minolta, Milt Olin Foundation, Theradome, Brackets, and IterationX. Implemented gamification using the Octalysis framework for habit-tracking apps and designed remote team collaboration platforms with sound-based destress workflows.

@@ -36,7 +36,7 @@ const TIMELINE = [
     time: "Dec. 2023 - 2025",
     points: [
       "Delivered 41 revamps and enhancements to Al Rajhi e-business platforms.",
-      "Boosted online account openings by 47% and e-business transactions by 81%.",
+      "Contributed as part of the team to boosting online account openings by 47% and e-business transactions by 81%.",
       "Teamed up with premier groups in Saudi Arabia's vibrant tech ecosystem to drive digital innovation.",
     ],
   },

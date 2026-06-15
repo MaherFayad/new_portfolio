@@ -78,7 +78,7 @@ export const PROJECTS: Project[] = [
   {
     slug: "alrajhi-bank-payroll",
     title: "Alrajhi Bank Payroll",
-    subtitle: "+47% account openings and +81% transactions across Al Rajhi e-business platform work, including this payroll revamp.",
+    subtitle: "Part of the team that delivered a +47% increase in account openings and +81% in transactions across Al Rajhi e-business platform work, including this payroll revamp.",
     paragraph: "Payroll revamp for Al Rajhi Bank enterprise customers on the e-business platform.",
     images: [
       "/assets/Projects/Alrajhi%20Bank%20Payroll/Alrajhi%20Payroll.png"
@@ -89,7 +89,7 @@ export const PROJECTS: Project[] = [
       role: "Senior Product Designer (AR/EN)",
       problem: "Enterprise payroll flows were fragmented on e-business.",
       approach: "Redesigned journey with analytics-informed flows and bilingual UI.",
-      outcome: "Behance case study; part of broader e-business platform work.",
+      outcome: "Behance case study; contributed as part of the team to broader e-business platform work.",
     }
   },
   {

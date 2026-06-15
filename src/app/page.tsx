@@ -78,7 +78,7 @@ const SERVICES = [
     mobileImage: "/card6_compressed.webp",
     popupImage: "/sliderpopup/ppbg6.svg",
     subtitle: "Turning funnel data into design decisions with measurable outcomes",
-    paragraph: "Every redesign I ship starts and ends with the numbers. I build funnels in Amplitude, find the drop-offs, design against them, and verify the lift. That process is how I got +47% account openings and +81% transactions at Al Rajhi.",
+    paragraph: "Every redesign I ship starts and ends with the numbers. I build funnels in Amplitude, find the drop-offs, design against them, and verify the lift. That process is how we drove a +47% boost in account openings and +81% in transactions at Al Rajhi, where I was part of the design team.",
     points: ["Funnel Analysis", "Drop-off Diagnosis", "A/B Test Design", "Dashboard Building", "Impact Measurement"],
     label: "Open Product Analytics details",
   },
@@ -90,7 +90,7 @@ const SERVICES_OFFERED = [
     ref: "01",
     name: "Product Design",
     description: "End-to-end product design for web and mobile, from problem framing and user flows to shipped, developer-ready UI.",
-    proof: "+47% online account openings and +81% e-business transactions at Al Rajhi Bank.",
+    proof: "Part of the team that achieved +47% online account openings and +81% e-business transactions at Al Rajhi Bank.",
   },
   {
     ref: "02",
@@ -444,7 +444,7 @@ export default function HomePage() {
               I pride myself on crafting digital products that not only meet but exceed expectations, with outcomes I can put numbers on.
             </p>
             <p className="mt-[30px] max-sm:mt-4 ml-[35%] lg:ml-[25%] xl:ml-[35%] max-sm:ml-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
-              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, with results like 47% more account openings and 81% more transactions.
+              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, contributing as part of teams to results like 47% more account openings and 81% more transactions.
             </p>
           </div>
         </div>

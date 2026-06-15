@@ -18,7 +18,7 @@ load_dotenv()
 
 
 # 1. FastAPI Setup
-app = FastAPI(title="Maher Fayad AI Recruiter Agent", version="1.0")
+app = FastAPI(title="Ask Maher AI Recruiter", version="1.0")
 
 # Enable CORS for Next.js frontend transitions
 app.add_middleware(

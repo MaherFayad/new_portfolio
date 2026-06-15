@@ -714,7 +714,7 @@ export default function ChatAgent() {
           setCurrentStatus("Generating project card presentation...");
           await delay(500);
 
-          const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. He restructured the enterprise payroll portal, which drove a +47% increase in digital account openings and an +81% lift in transaction volumes. [ProjectCard: alrajhi-bank-payroll]";
+          const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. As part of the team, he helped restructure the enterprise payroll portal, contributing to a +47% increase in digital account openings and an +81% lift in transaction volumes. [ProjectCard: alrajhi-bank-payroll]";
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome...", "Generating project card presentation..."] }]);
         } else if (lowerText.includes("results has he driven")) {
@@ -730,7 +730,7 @@ export default function ChatAgent() {
           setCurrentStatus("Formatting analytics tables...");
           await delay(500);
 
-          const reply = "Maher's work has driven measurable, outcome-first results for both enterprise clients and startups:\n\n• **Al Rajhi Bank**: Led the payroll redesign which boosted digital account openings by +47% and transaction volumes by +81%.\n• **Theradome**: Relaunched their e-commerce funnel, driving a +32% increase in sales conversion.\n• **LFG App**: Simplified onboarding, leading to a 28% drop in sign-up abandonment.\n\n[ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg]";
+          const reply = "Maher's work has driven measurable, outcome-first results for both enterprise clients and startups:\n\n• **Al Rajhi Bank**: Part of the team that redesigned the payroll and e-business platforms, contributing to a +47% boost in digital account openings and +81% in transaction volumes.\n• **Theradome**: Relaunched their e-commerce funnel, driving a +32% increase in sales conversion.\n• **LFG App**: Simplified onboarding, leading to a 28% drop in sign-up abandonment.\n\n[ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg]";
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Querying client testimonials...", "Aggregating performance metrics...", "Processing conversion lift figures...", "Formatting analytics tables..."] }]);
         } else {
@@ -1320,7 +1320,7 @@ export default function ChatAgent() {
         }}
         role={isOpen ? undefined : "button"}
         tabIndex={isOpen ? undefined : 0}
-        aria-label={isOpen ? undefined : "Open Maher's Agent"}
+        aria-label={isOpen ? undefined : "Open Ask Maher"}
         onKeyDown={(e) => {
           if (!isOpen && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
@@ -1368,7 +1368,7 @@ export default function ChatAgent() {
               className="relative flex items-center gap-2.5 whitespace-nowrap pl-6 pr-6"
             >
               <AIIcon className="w-6 h-6" pulse />
-              <span className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap">Maher's Agent</span>
+              <span className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap">Ask Maher</span>
             </motion.div>
           ) : (
             <motion.div

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | Maher Fayad",
   },
   description:
-    "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel. +47% onboarding, +81% transactions.",
+    "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel. Contributed as part of the team to +47% onboarding and +81% transactions at Al Rajhi Bank.",
   manifest: "/manifest.webmanifest",
   alternates: { canonical: "/" },
   keywords: [
