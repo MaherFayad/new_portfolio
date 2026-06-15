@@ -71,6 +71,47 @@ Maher has collaborated with multiple clients globally, including:
 - **Bilingual Design**: Native Arabic and English layout localization (Right-to-Left RTL systems).
 - **Product Analytics**: Funnel analyses, user testing, heuristic reviews, and accessibility audits (a11y).
 
+## Core Expertise
+- **UI Design**: Crafting interfaces where every button, click, tap, and swipe feels natural, with crisp layout hierarchies, smooth typography, and cohesive component systems.
+- **UX Research**: Qualitative and quantitative research, surveys, and structured user interviews to uncover real pain points and business goals.
+- **Analytics**: Analyzing user behavioral metrics and conversion funnels to make data-informed layout decisions that improve engagement and business outcomes.
+- **Heuristic Evaluation**: Auditing products to identify accessibility roadblocks, compliance flaws, and usability issues, with step-by-step improvement plans.
+
+## Career Path (Full Work History)
+- **Senior Product Designer, Almosafer** (2025 - Present): Designing for the GCC's leading travel platform across Arabic and English experiences, driving design-system work and analytics-informed funnel improvements, and building AI-augmented design workflows with Figma MCP and Claude-driven design ops.
+- **Sr. User Experience Designer, AZMX (Al Rajhi Bank)** (Dec. 2023 - 2025): Delivered 41 revamps and enhancements to Al Rajhi e-business platforms, boosting online account openings by 47% and e-business transactions by 81%, working with premier groups in Saudi Arabia's tech ecosystem.
+- **Product Designer, Contact Financial Holding** (Dec. 2022 - Nov. 2023): Led user-centric design lifecycle from ideation to implementation, crafted user flows, high-fidelity mockups, interactive prototypes, and ran user research for core financial products including Contact Now and Contact Brokerage apps.
+- **UI/UX Designer, GameIT** (Jun. 2022 - Dec. 2022): Refined website experiences for usability and engagement, collaborated with marketing on visual brand assets, and partnered with the game development team to improve accessibility of game UIs.
+- **Freelance UI/UX Designer, Upwork** (Aug. 2022 - Present): Collaborated with Solidity Studios, Supersight, Konica Minolta, Milt Olin Foundation, Theradome, Brackets, and IterationX. Implemented gamification using the Octalysis framework for habit-tracking apps and designed remote team collaboration platforms with sound-based destress workflows.
+- **User Experience Intern Designer, Algoriza** (Mar. 2022 - Jun. 2022): Learned UX design processes, user interview methodologies, target customer mapping, interface guidelines, responsive web grids, accessibility standards, and styling guides.
+- **Intern, British Council** (Jun. 2018 - May 2019): Interfaced between the British Council and the university to coordinate events and academic cooperation, leading major events drawing 200+ participants each.
+
+## Volunteering
+Maher has volunteered with the United Nations, TEDx, Enactus, ASME, and Mansoura Motorsport.
+
+## Stats
+- **4+ years** of experience.
+- **50+ completed projects**.
+- **90+ UX courses taken**.
+- **40+ brands worked with**.
+
+## Certificates & Badges (Credly-verified)
+- **Google UX Design Professional Certificate**
+- **Google Data Analytics Professional Certificate**
+- **Enterprise Design Thinking Practitioner** (IBM)
+- **Enterprise Design Thinking Co-Creator** (IBM)
+- **McKinsey Forward Program**
+- **Meta Front-End Developer Certificate**
+- **Product Analytics Certification**
+
+Maher is always learning, with verified credentials in user experience design, front-end development, data analytics, and design thinking methodologies from Google, IBM, Meta, and McKinsey.
+
+## What Clients Say
+- "Maher is one of the best designers and overall people I have collaborated with. We need more people like him in this space." - Grigory Yusufov, Mindful Magic (Business Owner)
+- "I had the pleasure of working with Maher on a UX/UI design project, and I must say that he is a talented and intuitive designer." - Joey Dakwerk, Phonic (Business Owner)
+- "Maher did a wonderful job. Everything went smoothly, communication was fluent, delivered on time and as expected. I highly recommend working with Maher." - Salim Boudi, Iteration X (Business Owner)
+
 ## Contact & Schedule
 - **Email**: Contact@maherfayad.com
 - **Scheduling**: Integration through Cal.com for meetings.
+- **Full CV**: Available via the "View Full CV" link on the About page.
