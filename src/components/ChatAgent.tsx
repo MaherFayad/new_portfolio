@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
+import ChatPluginCard from "./ChatPluginCard";
 import BookMeetingButton from "./BookMeetingButton";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
@@ -399,15 +400,20 @@ export default function ChatAgent() {
       return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseEmail(text)}</p>;
     }
 
-    // Group consecutive project cards so multiple recommendations scroll horizontally
-    const groupedParts: Array<{ type: string; content?: string; slugs?: string[] }> = [];
+    // Group consecutive project/plugin cards into one horizontal preview row
+    type PreviewItem = { kind: "project" | "plugin"; slug: string };
+    const groupedParts: Array<{ type: string; content?: string; items?: PreviewItem[] }> = [];
     for (const part of parts) {
-      if (part.type === "card" && part.slug) {
+      if ((part.type === "card" || part.type === "plugin") && part.slug) {
+        const item: PreviewItem = {
+          kind: part.type === "card" ? "project" : "plugin",
+          slug: part.slug,
+        };
         const last = groupedParts[groupedParts.length - 1];
-        if (last && last.type === "cardGroup") {
-          last.slugs!.push(part.slug);
+        if (last?.type === "previewGroup" && last.items) {
+          last.items.push(item);
         } else {
-          groupedParts.push({ type: "cardGroup", slugs: [part.slug] });
+          groupedParts.push({ type: "previewGroup", items: [item] });
         }
       } else {
         groupedParts.push(part);
@@ -417,15 +423,29 @@ export default function ChatAgent() {
     return (
       <div className="flex flex-col gap-2">
         {groupedParts.map((part, idx) => {
-          if (part.type === "cardGroup" && part.slugs) {
-            if (part.slugs.length === 1) {
-              return <ChatProjectCard key={idx} slug={part.slugs[0]} onNavigate={handleClose} />;
-            }
+          if (part.type === "previewGroup" && part.items) {
             return (
-              <MobileHorizontalScroll key={idx} className="-mx-1 px-1">
-                {part.slugs.map((slug) => (
-                  <ChatProjectCard key={slug} slug={slug} onNavigate={handleClose} compact />
-                ))}
+              <MobileHorizontalScroll
+                key={idx}
+                className="-mx-1 px-1 lg:cursor-grab lg:active:cursor-grabbing"
+              >
+                {part.items.map((item) =>
+                  item.kind === "project" ? (
+                    <ChatProjectCard
+                      key={`project-${item.slug}`}
+                      slug={item.slug}
+                      onNavigate={handleClose}
+                      compact
+                    />
+                  ) : (
+                    <ChatPluginCard
+                      key={`plugin-${item.slug}`}
+                      slug={item.slug}
+                      onNavigate={handleClose}
+                      compact
+                    />
+                  )
+                )}
               </MobileHorizontalScroll>
             );
           }
