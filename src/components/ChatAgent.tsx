@@ -515,6 +515,82 @@ const parseMarkdown = (text: string, onLinkClick?: () => void) => {
   return result;
 };
 
+function ChatHorizontalScroll({ children }: { children: React.ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
+
+  const updateArrows = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const isScrollable = el.scrollWidth > el.clientWidth;
+    setShowLeft(el.scrollLeft > 10);
+    setShowRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10 && isScrollable);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+
+    const timer = setTimeout(updateArrows, 200);
+
+    return () => {
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
+      clearTimeout(timer);
+    };
+  }, [children]);
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const scrollAmount = 240; // Roughly the width of one card + gap
+    el.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <div className="relative group/scroll w-full">
+      {/* Left Arrow Button */}
+      {showLeft && (
+        <button
+          type="button"
+          onClick={() => scroll("left")}
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-30 hidden lg:flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-[#151515]/80 text-white/70 hover:text-white hover:bg-[#202020] hover:scale-105 transition-all cursor-pointer shadow-md"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
+
+      {/* Scroll Container */}
+      <MobileHorizontalScroll ref={scrollRef} className="-mx-1 px-1">
+        {children}
+      </MobileHorizontalScroll>
+
+      {/* Right Arrow Button */}
+      {showRight && (
+        <button
+          type="button"
+          onClick={() => scroll("right")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 hidden lg:flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-[#151515]/80 text-white/70 hover:text-white hover:bg-[#202020] hover:scale-105 transition-all cursor-pointer shadow-md"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function ChatAgent() {
   const [isOpen, setIsOpen] = useState(false);
   const [isContentVisible, setIsContentVisible] = useState(false);
@@ -1031,11 +1107,11 @@ export default function ChatAgent() {
               return <CardComponent key={idx} slug={part.slugs[0]} onNavigate={handleClose} />;
             }
             return (
-              <MobileHorizontalScroll key={idx} className="-mx-1 px-1">
+              <ChatHorizontalScroll key={idx}>
                 {part.slugs.map((slug) => (
                   <CardComponent key={slug} slug={slug} onNavigate={handleClose} compact />
                 ))}
-              </MobileHorizontalScroll>
+              </ChatHorizontalScroll>
             );
           }
           if (part.type === "booking") {
