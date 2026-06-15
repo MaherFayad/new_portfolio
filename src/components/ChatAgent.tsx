@@ -9,6 +9,7 @@ import ChatPluginCard from "./ChatPluginCard";
 import ChatCertificateCard from "./ChatCertificateCard";
 import ChatExperienceTimeline from "./ChatExperienceTimeline";
 import BookMeetingButton from "./BookMeetingButton";
+import { PROJECTS } from "@/data/projects";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 const DotLottieReact = dynamic(
@@ -109,6 +110,10 @@ function getCurrentPageInfo(): string {
   if (path === "/contacts") return "Contact page (/contacts)";
   if (path.startsWith("/projects/")) {
     const slug = path.split("/").filter(Boolean)[1] || "";
+    const project = PROJECTS.find((p) => p.slug === slug);
+    if (project) {
+      return `the "${project.title}" project case study page (${path}, slug "${slug}"). When the user says "this page", "this project", "this case study", or "here", they mean ${project.title}.`;
+    }
     return `a project case study page (${path})${slug ? `, project slug "${slug}"` : ""}`;
   }
   return `${path}`;
