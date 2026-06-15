@@ -608,6 +608,7 @@ export default function ChatAgent() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const contentColumnRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -619,6 +620,23 @@ export default function ChatAgent() {
     setTimeout(() => {
       setIsOpen(false);
     }, 500);
+  };
+
+  // Dismiss the chat when the user clicks well clear of the content column (the empty
+  // side gutters). A generous horizontal margin is required so clicks near the
+  // conversation, cards, or buttons never close it by accident.
+  const SAFE_DISMISS_MARGIN = 160;
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    const column = contentColumnRef.current;
+    if (!column) return;
+    // Don't dismiss if the user was selecting text and released in the gutter
+    if (window.getSelection()?.toString()) return;
+    const rect = column.getBoundingClientRect();
+    const clickedFarLeft = e.clientX < rect.left - SAFE_DISMISS_MARGIN;
+    const clickedFarRight = e.clientX > rect.right + SAFE_DISMISS_MARGIN;
+    if (clickedFarLeft || clickedFarRight) {
+      handleClose();
+    }
   };
 
   // Auto-scroll on new messages or when chat becomes visible
@@ -1280,13 +1298,16 @@ export default function ChatAgent() {
                       {/* Right/Main Chat Pane (Centered) */}
                       <div className="flex-1 flex flex-col h-full overflow-hidden relative w-full">
 
-                        {/* Messages Scroll Area - spans full width for scrollbar on the far-right */}
+                        {/* Messages Scroll Area - spans full width for scrollbar on the far-right.
+                            Clicking far out in the side gutters dismisses the chat. */}
                         <div
                           ref={chatContainerRef}
+                          onClick={handleOutsideClick}
                           className="flex-1 overflow-y-auto chat-scroll-container w-full"
                         >
                           {/* Inner Centered Container - anchored to bottom, grows upward */}
                           <div
+                            ref={contentColumnRef}
                             className={`max-w-3xl mx-auto w-full px-6 md:px-12 pt-24 md:pt-28 pb-36 flex flex-col min-h-full ${messages.length === 0 ? "justify-center" : "justify-end"
                               }`}
                           >
