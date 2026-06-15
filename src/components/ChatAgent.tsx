@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
+import BookMeetingButton from "./BookMeetingButton";
+import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
 interface Message {
   role: "user" | "assistant";
@@ -19,32 +21,209 @@ const SUGGESTED_CHIPS = [
   "How can I contact or hire him?",
 ];
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    }
+  }
+};
+
+const springItem = {
+  hidden: { y: 24, opacity: 0 },
+  show: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 120,
+      damping: 12,
+      mass: 0.8,
+    }
+  }
+};
+
+const chatLayoutTransition = {
+  type: "spring" as const,
+  stiffness: 140,
+  damping: 18,
+  mass: 0.8,
+};
+
+function formatThoughtText(text: string): string {
+  let cleaned = text.replace(/^[>\-\*\•\s]+/, '').trim();
+  if (!cleaned) return "";
+
+  // Check if it's entirely uppercase (ignoring numbers & punctuation)
+  const isAllUppercase = cleaned === cleaned.toUpperCase() && /[a-zA-Z]/.test(cleaned);
+  if (isAllUppercase) {
+    cleaned = cleaned.toLowerCase();
+  }
+
+  // Capitalize first letter
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+interface ThoughtAccordionProps {
+  thoughts: string[];
+  status?: string;
+  isLive?: boolean;
+}
+
+function ThoughtAccordion({ thoughts, status, isLive = false }: ThoughtAccordionProps) {
+  // If not live, do not show the thinking process anymore
+  if (!isLive) {
+    return null;
+  }
+
+  const displayStatus = status
+    ? formatThoughtText(status)
+    : "Thinking...";
+
+  // Filter out empty thoughts and format them
+  const formattedThoughts = thoughts
+    .map(t => formatThoughtText(t))
+    .filter(t => t.length > 0);
+
+  // Single line, no spinner, text fades in and out (pulse)
+  const activeText = formattedThoughts.length > 0
+    ? formattedThoughts[formattedThoughts.length - 1]
+    : displayStatus;
+
+  return (
+    <div className="flex items-center gap-2.5 w-full my-2 text-left">
+      <span className="text-xs text-white/40 font-semibold tracking-wide animate-pulse">
+        {activeText}
+      </span>
+    </div>
+  );
+}
+
+interface EmailCopyButtonProps {
+  email: string;
+}
+
+function EmailCopyButton({ email }: EmailCopyButtonProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <span className="relative inline-flex items-center group mx-1">
+      <motion.button
+        type="button"
+        onClick={handleCopy}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 text-white hover:bg-white/[0.08] hover:border-white/30 text-[13px] md:text-sm font-semibold cursor-pointer transition-all duration-200 shadow-sm"
+        title="Click to copy email address"
+      >
+        <span>{email}</span>
+        <svg className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </motion.button>
+      <AnimatePresence>
+        {copied && (
+          <motion.span
+            initial={{ opacity: 0, y: 4, scale: 0.9, x: "-50%" }}
+            animate={{ opacity: 1, y: -34, scale: 1, x: "-50%" }}
+            exit={{ opacity: 0, y: -4, scale: 0.95, x: "-50%" }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            className="absolute left-1/2 px-2.5 py-1.5 text-[10px] font-bold text-black bg-white rounded shadow-[0_4px_12px_rgba(0,0,0,0.5)] pointer-events-none whitespace-nowrap z-50 uppercase tracking-wider"
+          >
+            Copied!
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+}
+
+const parseEmail = (text: string) => {
+  const emailRegex = /(Contact@maherfayad\.com)/gi;
+  const parts = text.split(emailRegex);
+  
+  if (parts.length === 1) {
+    return text;
+  }
+  
+  return parts.map((part, idx) => {
+    if (part.toLowerCase() === "contact@maherfayad.com") {
+      return <EmailCopyButton key={idx} email={part} />;
+    }
+    return part;
+  });
+};
+
 export default function ChatAgent() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isContentVisible, setIsContentVisible] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [currentThoughts, setCurrentThoughts] = useState<string[]>([]);
   const [currentStatus, setCurrentStatus] = useState("");
+  const [streamingText, setStreamingText] = useState("");
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll on new messages
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, currentThoughts, currentStatus]);
+  const handleOpen = () => {
+    setIsOpen(true);
+    setIsContentVisible(true);
+  };
 
-  // Escape key closes drawer
+  const handleClose = () => {
+    setIsContentVisible(false);
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 500);
+  };
+
+  // Auto-scroll on new messages or when chat becomes visible
+  useEffect(() => {
+    if (isContentVisible) {
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [messages, currentThoughts, currentStatus, isContentVisible]);
+
+  // Escape key closes chat
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsOpen(false);
+      if (e.key === "Escape" && isOpen) {
+        handleClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [isOpen]);
+
+  // Lock scroll in full screen mode
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.classList.add("slider-popup-open");
+    } else {
+      document.documentElement.classList.remove("slider-popup-open");
+    }
+    return () => {
+      document.documentElement.classList.remove("slider-popup-open");
+    };
+  }, [isOpen]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -52,6 +231,7 @@ export default function ChatAgent() {
     // Reset input
     setInputValue("");
     setIsTyping(true);
+    setStreamingText("");
     setCurrentThoughts([]);
     setCurrentStatus("Connecting to representative board...");
 
@@ -106,24 +286,30 @@ export default function ChatAgent() {
 
         let currentEvent = "";
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
+        for (let line of lines) {
+          if (line.endsWith("\r")) {
+            line = line.slice(0, -1);
+          }
+          if (!line) continue;
 
-          if (trimmed.startsWith("event: ")) {
-            currentEvent = trimmed.replace("event: ", "").trim();
-          } else if (trimmed.startsWith("data: ")) {
-            const data = trimmed.replace("data: ", "").trim();
+          if (line.startsWith("event:")) {
+            currentEvent = line.slice(line.indexOf(":") + 1).trim();
+          } else if (line.startsWith("data:")) {
+            let data = line.slice(line.indexOf(":") + 1);
+            if (data.startsWith(" ")) {
+              data = data.slice(1);
+            }
 
             if (currentEvent === "status") {
-              setCurrentStatus(data);
+              setCurrentStatus(data.trim());
             } else if (currentEvent === "thought") {
-              thoughtsList = [...thoughtsList, data];
+              thoughtsList = [...thoughtsList, data.trim()];
               setCurrentThoughts(thoughtsList);
             } else if (currentEvent === "result") {
               assistantText += data;
+              setStreamingText(assistantText);
             } else if (currentEvent === "error") {
-              throw new Error(data);
+              throw new Error(data.trim());
             }
           }
         }
@@ -154,9 +340,10 @@ export default function ChatAgent() {
     }
   };
 
-  // Helper to parse project tags [ProjectCard: slug]
+  // Helper to parse project tags [ProjectCard: slug] and booking buttons [BookMeetingButton]
   const renderMessageContent = (text: string) => {
-    const regex = /\[ProjectCard:\s*(.+?)\]/g;
+    // Match [ProjectCard: slug] or [BookMeetingButton]
+    const regex = /\[(ProjectCard:\s*(.+?)|BookMeetingButton)\]/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -166,7 +353,15 @@ export default function ChatAgent() {
       if (textBefore.trim()) {
         parts.push({ type: "text", content: textBefore });
       }
-      parts.push({ type: "card", slug: match[1].trim() });
+
+      const tagContent = match[1];
+      if (tagContent === "BookMeetingButton") {
+        parts.push({ type: "booking" });
+      } else {
+        // It's a ProjectCard: slug
+        const slug = match[2].trim();
+        parts.push({ type: "card", slug });
+      }
       lastIndex = regex.lastIndex;
     }
 
@@ -176,18 +371,53 @@ export default function ChatAgent() {
     }
 
     if (parts.length === 0) {
-      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{text}</p>;
+      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseEmail(text)}</p>;
+    }
+
+    // Group consecutive project cards so multiple recommendations scroll horizontally
+    const groupedParts: Array<{ type: string; content?: string; slugs?: string[] }> = [];
+    for (const part of parts) {
+      if (part.type === "card" && part.slug) {
+        const last = groupedParts[groupedParts.length - 1];
+        if (last && last.type === "cardGroup") {
+          last.slugs!.push(part.slug);
+        } else {
+          groupedParts.push({ type: "cardGroup", slugs: [part.slug] });
+        }
+      } else {
+        groupedParts.push(part);
+      }
     }
 
     return (
       <div className="flex flex-col gap-2">
-        {parts.map((part, idx) => {
-          if (part.type === "card" && part.slug) {
-            return <ChatProjectCard key={idx} slug={part.slug} />;
+        {groupedParts.map((part, idx) => {
+          if (part.type === "cardGroup" && part.slugs) {
+            if (part.slugs.length === 1) {
+              return <ChatProjectCard key={idx} slug={part.slugs[0]} onNavigate={handleClose} />;
+            }
+            return (
+              <MobileHorizontalScroll key={idx} className="-mx-1 px-1">
+                {part.slugs.map((slug) => (
+                  <ChatProjectCard key={slug} slug={slug} onNavigate={handleClose} compact />
+                ))}
+              </MobileHorizontalScroll>
+            );
+          }
+          if (part.type === "booking") {
+            return (
+              <div key={idx} className="mt-4">
+                <BookMeetingButton
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-black hover:bg-[#c5c5c5] text-xs font-bold tracking-wider uppercase transition-all shadow-md cursor-pointer border-0"
+                >
+                  Book a meeting
+                </BookMeetingButton>
+              </div>
+            );
           }
           return (
             <p key={idx} className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">
-              {part.content}
+              {parseEmail(part.content || "")}
             </p>
           );
         })}
@@ -197,192 +427,332 @@ export default function ChatAgent() {
 
   return (
     <>
-      {/* 1. Floating Widget Trigger Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        aria-label="Open AI Representative Chat"
-        className="fixed bottom-6 right-6 z-40 bg-[#c5c5c5] hover:bg-white text-black w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer hover:scale-105 active:scale-95"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      </button>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes gemini-gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gemini-gradient {
+          background-size: 200% auto;
+          animation: gemini-gradient 3s linear infinite;
+        }
+        .chat-scroll-container::-webkit-scrollbar {
+          width: 6px;
+        }
+        .chat-scroll-container::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .chat-scroll-container::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0);
+          border-radius: 9999px;
+          transition: background 0.3s;
+        }
+        .chat-scroll-container:hover::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .chat-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.16);
+        }
+        .chat-scroll-container {
+          scrollbar-width: thin;
+          scrollbar-color: transparent transparent;
+          transition: scrollbar-color 0.3s;
+        }
+        .chat-scroll-container:hover {
+          scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+        }
+      ` }} />
 
-      {/* 2. Chat Drawer Panel */}
+      {/* 1. Fullscreen Chat Overlay */}
       <AnimatePresence>
         {isOpen && (
-          <>
+          <motion.div
+            key="chat-overlay"
+            className="fixed inset-0 z-50 overflow-hidden flex flex-col"
+          >
             {/* Backdrop filter blur overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs"
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-[#050505]/98"
             />
 
-            {/* Chat Drawer */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed top-0 right-0 z-50 w-[440px] max-w-[95vw] h-full bg-[#0a0a0a] border-l border-white/10 flex flex-col shadow-2xl"
-            >
-              {/* Header Grid - Experience style */}
-              <div className="p-5 border-b border-white/10 flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 leading-none">
-                    Studio representative
-                  </span>
-                  <h3 className="text-base font-semibold text-[#c5c5c5] mt-1.5 leading-none">
-                    Maher's Digital Double
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  aria-label="Close Chat"
-                  className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/35 transition-colors cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
+            {/* Chat Fullscreen Container */}
+            <div className="relative w-screen h-screen flex flex-col overflow-hidden">
 
-              {/* Messages Area */}
-              <div
-                ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-5 flex flex-col gap-5 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-white/10"
-              >
-                {messages.length === 0 ? (
-                  <div className="my-auto text-center flex flex-col items-center gap-4 px-4">
-                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white/20 mb-2">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 16v-4" />
-                        <path d="M12 8h.01" />
-                      </svg>
-                    </div>
-                    <h4 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
-                      Chat with Maher's AI Agent
-                    </h4>
-                    <p className="text-xs text-white/40 leading-relaxed max-w-[280px]">
-                      Ask about design systems, Al Rajhi Bank payroll revamp, case study outcomes, or scheduling a call.
-                    </p>
 
-                    {/* Suggested Chips */}
-                    <div className="flex flex-col gap-2 w-full mt-4">
-                      {SUGGESTED_CHIPS.map((chip, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSendMessage(chip)}
-                          className="text-left text-xs text-[#c5c5c5] bg-white/[0.02] border border-white/10 hover:border-white/30 hover:bg-white/[0.04] p-3 transition-colors rounded-none font-medium cursor-pointer"
-                        >
-                          {chip}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  messages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`flex flex-col gap-1 max-w-[85%] ${
-                        msg.role === "user" ? "self-end items-end" : "self-start items-start"
-                      }`}
+              {/* Delayed contents fade-in wrapper to prevent child distortion during morphing */}
+              <AnimatePresence>
+                {isContentVisible && (
+                  <motion.div
+                    key="chat-contents-delayed"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{
+                      type: "tween",
+                      delay: isContentVisible ? 0.5 : 0,
+                      duration: 0.3,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute inset-0 flex flex-col z-10"
+                  >
+                    {/* Gradient Overlays for smooth text clipping at top and bottom */}
+                    <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-[#050505] via-[#050505]/70 to-transparent pointer-events-none z-20" />
+                    <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent pointer-events-none z-20" />
+                    {/* Close Button in Top-Right Corner */}
+                    <motion.button
+                      onClick={handleClose}
+                      aria-label="Close Chat"
+                      className="absolute top-6 right-8 w-11 h-11 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 bg-white/[0.02] backdrop-blur-md cursor-pointer z-50 font-semibold"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
-                        {msg.role === "user" ? "You" : "Representative"}
-                      </span>
-                      <div
-                        className={`p-3.5 rounded-none border text-left ${
-                          msg.role === "user"
-                            ? "bg-white/[0.04] border-white/20 text-[#c5c5c5]"
-                            : "bg-[#0f0f0f] border-white/10 text-white"
-                        }`}
-                      >
-                        {msg.role === "assistant" ? (
-                          renderMessageContent(msg.content)
-                        ) : (
-                          <p className="text-sm leading-relaxed font-medium">{msg.content}</p>
-                        )}
+                      ✕
+                    </motion.button>
+
+                    {/* Split Pane Layout */}
+                    <div className="flex-1 flex overflow-hidden w-full h-full justify-center">
+
+                      {/* Right/Main Chat Pane (Centered) */}
+                      <div className="flex-1 flex flex-col h-full overflow-hidden relative w-full">
+
+                        {/* Messages Scroll Area - spans full width for scrollbar on the far-right */}
+                        <div
+                          ref={chatContainerRef}
+                          className="flex-1 overflow-y-auto chat-scroll-container w-full"
+                        >
+                          {/* Inner Centered Container */}
+                          <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12 pb-36">
+
+                            {messages.length === 0 ? (
+                              /* Centered Welcome State with stagger container animation */
+                              <motion.div
+                                variants={staggerContainer}
+                                initial="hidden"
+                                animate="show"
+                                className="h-full flex flex-col justify-center items-center gap-6 px-4 max-w-xl mx-auto text-center mt-12 md:mt-24"
+                              >
+                                <motion.div
+                                  variants={springItem}
+                                  className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center text-white/30 bg-white/[0.01] shadow-inner"
+                                >
+                                  {/* Sparkle icon inside circle */}
+                                  <svg className="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
+                                  </svg>
+                                </motion.div>
+
+                                <motion.div variants={springItem} className="flex flex-col gap-2">
+                                  <h4 className="text-sm font-semibold text-white uppercase tracking-widest">
+                                    Maher's AI Agent
+                                  </h4>
+                                  <p className="text-xs text-white/40 leading-relaxed">
+                                    Ask about design systems, mobile outcomes, Al Rajhi payroll, or how to contact Maher.
+                                  </p>
+                                </motion.div>
+
+                                {/* Suggested Chips inside chat thread (Visible on all viewports) */}
+                                <motion.div
+                                  variants={springItem}
+                                  className="flex flex-col sm:flex-row gap-3 w-full mt-2 justify-center"
+                                >
+                                  {SUGGESTED_CHIPS.map((chip, index) => (
+                                    <button
+                                      key={index}
+                                      onClick={() => handleSendMessage(chip)}
+                                      className="text-center text-xs text-[#c5c5c5] bg-white/[0.02] border border-white/10 hover:border-white/30 hover:bg-white/[0.04] px-4 py-2.5 transition-all rounded-full font-medium cursor-pointer"
+                                    >
+                                      {chip}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              </motion.div>
+                            ) : (
+                              <div className="flex flex-col gap-8">
+                                {messages.map((msg, index) => {
+                                  if (msg.role === "user") {
+                                    return (
+                                      <div key={index} className="flex flex-col gap-1.5 max-w-[85%] self-end items-end">
+                                        <div className="px-4 py-3.5 text-left bg-white/[0.04] border border-white/15 text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
+                                          {msg.content}
+                                        </div>
+                                      </div>
+                                    );
+                                  } else {
+                                    return (
+                                      <div key={index} className="flex items-start gap-4 w-full self-start max-w-full my-4">
+                                        {/* AI Sparkle Star Icon */}
+                                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-indigo-400 mt-1 flex-shrink-0 shadow-sm">
+                                          <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
+                                          </svg>
+                                        </div>
+                                        {/* Message content - Containerless */}
+                                        <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+                                          <div className="text-left text-[#e2e2e2] leading-relaxed text-sm mt-2">
+                                            {renderMessageContent(msg.content)}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                })}
+                              </div>
+                            )}
+
+                            {/* SSE Live Streaming thoughts console */}
+                            {isTyping && (
+                              <div className="flex items-start gap-4 w-full mt-6">
+                                {/* AI Sparkle Star Icon */}
+                                <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-indigo-400 mt-1 flex-shrink-0 animate-pulse shadow-sm">
+                                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
+                                  </svg>
+                                </div>
+
+                                {/* ChatGPT-style thinking block + streaming text */}
+                                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                                  {(currentThoughts.length > 0 || currentStatus) && (
+                                    <ThoughtAccordion
+                                      thoughts={currentThoughts}
+                                      status={currentStatus}
+                                      isLive={true}
+                                    />
+                                  )}
+                                  {streamingText && (
+                                    <div className="text-left text-[#e2e2e2] leading-relaxed text-sm mt-2">
+                                      {renderMessageContent(streamingText)}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {/* Spacing element to separate messages from the input box */}
+                            <div className="h-16" />
+                            <div ref={messagesEndRef} />
+                          </div>
+                        </div>
+
                       </div>
                     </div>
-                  ))
+                  </motion.div>
                 )}
-
-                {/* SSE Live Streaming thoughts console */}
-                {isTyping && (
-                  <div className="self-start max-w-[85%] flex flex-col gap-1 w-full">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
-                      Representative (Thinking)
-                    </span>
-                    <div className="w-full bg-[#0d0d0d] border border-white/10 p-3 flex flex-col gap-2 font-mono text-[10px] text-white/50 rounded-none">
-                      {/* Active Status */}
-                      {currentStatus && (
-                        <div className="flex items-center gap-2 text-white/80">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                          <span>{currentStatus}</span>
-                        </div>
-                      )}
-                      {/* Streaming Thoughts */}
-                      {currentThoughts.length > 0 && (
-                        <div className="flex flex-col gap-1 border-t border-white/5 pt-2 max-h-[80px] overflow-y-auto">
-                          {currentThoughts.slice(-2).map((thought, idx) => (
-                            <div key={idx} className="text-white/40">
-                              &gt; {thought}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {/* Loading pulse */}
-                      {!currentStatus && !currentThoughts.length && (
-                        <span className="animate-pulse">Connecting to board...</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Chat Input Area */}
-              <div className="p-4 border-t border-white/10 bg-[#070707]">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendMessage(inputValue);
-                  }}
-                  className="flex gap-2"
-                >
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    disabled={isTyping}
-                    placeholder={isTyping ? "Agent is drafting..." : "Ask Maher's AI double..."}
-                    className="flex-1 bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-white/40 text-sm p-3 text-white placeholder-white/25 rounded-none outline-none transition-colors duration-300 disabled:opacity-50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isTyping || !inputValue.trim()}
-                    className="bg-white hover:bg-[#c5c5c5] text-black font-semibold text-xs tracking-wider uppercase px-5 py-3 transition-colors duration-300 disabled:opacity-30 cursor-pointer"
-                  >
-                    SEND
-                  </button>
-                </form>
-              </div>
-            </motion.div>
-          </>
+              </AnimatePresence>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 2. Unified Input/Trigger Pill (Always mounted, morphs width directly without transform scale!) */}
+      <motion.form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (isOpen) {
+            handleSendMessage(inputValue);
+          }
+        }}
+        onClick={() => {
+          if (!isOpen) handleOpen();
+        }}
+        role={isOpen ? undefined : "button"}
+        tabIndex={isOpen ? undefined : 0}
+        aria-label={isOpen ? undefined : "Open Maher's Agent"}
+        onKeyDown={(e) => {
+          if (!isOpen && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            handleOpen();
+          }
+        }}
+        style={{ borderRadius: "9999px" }}
+        initial={{ y: 120, opacity: 0, bottom: "24px" }}
+        animate={{
+          y: 0,
+          opacity: 1,
+          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "180px",
+          height: isOpen ? "56px" : "48px",
+          bottom: isOpen ? "32px" : "24px",
+          backgroundColor: isOpen ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.08)",
+          borderColor: isOpen
+            ? isInputFocused
+              ? "rgba(255, 255, 255, 0.30)"
+              : "rgba(255, 255, 255, 0.15)"
+            : "rgba(255, 255, 255, 0.10)",
+          boxShadow: isOpen && isInputFocused
+            ? "0 0 20px rgba(99, 102, 241, 0.06), 0 8px 32px rgba(0, 0, 0, 0.5)"
+            : "0 8px 32px rgba(0, 0, 0, 0.5)",
+          backdropFilter: isOpen ? "none" : "blur(12px)",
+        }}
+        transition={chatLayoutTransition}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-55 flex items-center border cursor-pointer text-white overflow-hidden"
+        whileHover={isOpen ? undefined : { scale: 1.05 }}
+        whileTap={isOpen ? undefined : { scale: 0.95 }}
+      >
+        <AnimatePresence mode="wait">
+          {!isOpen ? (
+            <motion.div
+              key="trigger-content"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.15 } }}
+              exit={{ opacity: 0, y: 15, transition: { delay: 0, duration: 0.12 } }}
+              className="flex items-center gap-2.5 whitespace-nowrap pl-6 pr-6"
+            >
+              <div className="relative w-4 h-4 flex items-center justify-center">
+                {/* Sparkle icon */}
+                <svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
+                </svg>
+              </div>
+              <span className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap">Maher's Agent</span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="input-content"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: isContentVisible ? 1 : 0,
+                transition: {
+                  delay: isContentVisible ? 0.25 : 0.3,
+                  duration: 0.2
+                }
+              }}
+              exit={{
+                opacity: 0,
+                transition: {
+                  delay: 0,
+                  duration: 0.12
+                }
+              }}
+              className="w-full flex items-center"
+            >
+              <input
+                type="text"
+                autoFocus
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                disabled={isTyping}
+                placeholder={isTyping ? "Agent is drafting..." : "Ask Maher's Agent..."}
+                className="w-full bg-transparent pl-6 pr-14 py-4 text-sm text-white placeholder-white/25 outline-none rounded-full disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={isTyping || !inputValue.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-[#c5c5c5] text-black w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-30 cursor-pointer shadow-md"
+              >
+                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.form>
     </>
   );
 }
