@@ -59,9 +59,12 @@ interface Message {
 
 const BACKEND_URL = "https://maherfayad-portfolio.hf.space";
 
-const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode }[] = [
+const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode; cannedResponse?: string }[] = [
   {
     label: "Show me some of his work",
+    // Deterministic gallery: skips the LLM and renders these four case studies directly.
+    cannedResponse:
+      "Here's a quick look at some of his work, spanning fintech, healthcare, consumer, and developer tools: [ProjectCard: alrajhi-bank-payroll][ProjectCard: sanarte][ProjectCard: lfg][ProjectCard: deployo]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
         <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -842,6 +845,30 @@ export default function ChatAgent() {
     }
   };
 
+  // Suggested prompts may carry a deterministic canned response (no LLM call). We still
+  // play a brief "thinking" beat so it feels like the live agent rather than an instant dump.
+  const handleSuggestedPrompt = async (prompt: { label: string; cannedResponse?: string }) => {
+    if (!prompt.cannedResponse) {
+      handleSendMessage(prompt.label);
+      return;
+    }
+    if (isTyping) return;
+
+    setInputValue("");
+    setMessages((prev) => [...prev, { role: "user", content: prompt.label }]);
+    setIsTyping(true);
+    setStreamingText("");
+    setCurrentThoughts([]);
+    setCurrentStatus("Pulling together a few highlights...");
+
+    await new Promise((resolve) => setTimeout(resolve, 650));
+
+    setMessages((prev) => [...prev, { role: "assistant", content: prompt.cannedResponse! }]);
+    setIsTyping(false);
+    setCurrentStatus("");
+    setCurrentThoughts([]);
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
 
@@ -1353,7 +1380,7 @@ export default function ChatAgent() {
                                     <motion.button
                                       key={index}
                                       variants={springItem}
-                                      onClick={() => handleSendMessage(prompt.label)}
+                                      onClick={() => handleSuggestedPrompt(prompt)}
                                       whileHover={{ y: -4 }}
                                       whileTap={{ scale: 0.98 }}
                                       transition={{ type: "spring", stiffness: 400, damping: 26 }}
