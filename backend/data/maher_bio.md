@@ -1,5 +1,9 @@
 # Maher Fayad - Senior Product Designer
 
+## Identity
+- **Name**: Maher Fayad. In Arabic his name is written ماهر.
+- **Gender**: Maher is a man (a single male individual), not a team, company, or group. Always refer to him in the singular masculine. In Arabic, use masculine singular grammar and the pronoun هو, never plural or feminine forms.
+
 ## Professional Summary
 Maher Fayad is a Senior Product Designer who designs digital products that not only look beautiful but also deliver measurable business outcomes. He has over 4 years of experience building design systems, optimizing user flows, and conducting product analytics for leading travel, banking, and fintech platforms in the GCC and remote markets.
 
