@@ -188,7 +188,7 @@ export default function AboutPage() {
             <img
               src="/assets/Maher.png"
               alt="Maher Fayad"
-              className="w-full border border-white/5 max-[1199px]:relative max-[1199px]:h-auto min-[1200px]:absolute min-[1200px]:top-0 min-[1200px]:left-0 min-[1200px]:h-[calc(100%+180px)] min-[1200px]:object-cover"
+              className="avatar-photo w-full border border-white/5 max-[1199px]:relative max-[1199px]:h-auto min-[1200px]:absolute min-[1200px]:top-0 min-[1200px]:left-0 min-[1200px]:h-[calc(100%+180px)] min-[1200px]:object-cover"
               style={{ transform: "scaleX(-1)" }}
             />
           </picture>

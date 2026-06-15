@@ -308,3 +308,11 @@ html.preloader-active body {
     transform: translateX(-50%) !important;
   }
 }
+
+/* Counteract iOS "Invert Colors" accessibility mode, which sometimes inverts
+   small/transformed <img> elements it fails to detect as photos. */
+@media (inverted-colors: inverted) {
+  .avatar-photo {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}

@@ -880,7 +880,7 @@ export default function ChatAgent() {
                                   <img
                                     src="/assets/Maher-cropped.png"
                                     alt="Maher Fayad"
-                                    className="w-full h-full object-contain"
+                                    className="avatar-photo w-full h-full object-contain"
                                     style={{ transform: "scaleX(-1)" }}
                                   />
                                 </motion.div>
