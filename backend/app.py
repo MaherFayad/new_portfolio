@@ -114,7 +114,7 @@ OFF_TOPIC_REFUSAL = (
 )
 
 # 4. Helper to stream CrewAI execution via SSE (Replaced with direct requests completion for quota efficiency)
-async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
+async def run_crew_stream(user_query: str, chat_history: str, current_page: str = "") -> Generator:
     event_queue = queue.Queue()
 
     def execute_request():
@@ -177,7 +177,8 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
                 "Use correct slugs:\n"
                 "   - Primitive & Semantic Colors Generator -> `[PluginCard: primitive-semantic-colors-generator]`\n"
                 "   - Numeric Tokens Generator -> `[PluginCard: numeric-tokens-generator]`\n\n"
-                "7. Refer users to other pages on the website using simple relative paths: About page (`/about`), Selected Work page (`/work`), or Contact page (`/contacts`).\n"
+                "7. Refer users to other pages on the website using simple relative paths: About page (`/about`), Selected Work page (`/work`), or Contact page (`/contacts`). "
+                "IMPORTANT: The CURRENT PAGE the user is viewing right now is given below. If the page you would point them to is the page they are ALREADY on, do NOT give a link to it. Instead, naturally tell them they are already on that page and to just check or scroll through it (for example, on the About page: \"You're already on the About page, just scroll down to see his experience\"). Only hand out a page link when it points to a DIFFERENT page than the current one.\n"
                 "8. LinkedIn is Maher's social media and professional network. If the user asks for his LinkedIn, social media, where to follow or connect with him, or his resume links, this is ON_TOPIC: give them his LinkedIn profile as a markdown link `[LinkedIn](https://www.linkedin.com/in/maherfayad)`. Never refuse a social media or LinkedIn question.\n"
                 "9. If the user asks about certificates, credentials, or badges, list them using their respective certificate card tags back-to-back, e.g. `[CertificateCard: google-ux-design][CertificateCard: google-data-analytics]`, so they render as a certificate gallery. Use correct slugs:\n"
                 "   - Google UX Design Professional Certificate -> `google-ux-design`\n"
@@ -187,6 +188,8 @@ async def run_crew_stream(user_query: str, chat_history: str) -> Generator:
                 "   - McKinsey Forward Program -> `mckinsey-forward`\n"
                 "   - Meta Front-End Developer Certificate -> `meta-front-end-dev`\n"
                 "   - Product Analytics Certification -> `product-analytics`\n\n"
+                "10. If the user asks about Maher's work experience, career history, employment timeline, where he has worked, or his professional journey, append the tag `[ExperienceTimeline]` at the end of your response (on its own, do not also list every role in prose). It renders an interactive visual career timeline. You may add one short intro sentence before the tag.\n\n"
+                f"CURRENT PAGE the user is viewing right now: {current_page or 'unknown'}\n\n"
                 f"CONTEXT:\n{MAHER_BIO_CONTENT}"
             )
 
@@ -315,6 +318,7 @@ async def chat_endpoint(request: Request):
     body = await request.json()
     prompt = body.get("prompt", "").strip()
     history = body.get("history", "")
+    page = body.get("page", "").strip()
 
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt cannot be empty")
@@ -327,4 +331,4 @@ async def chat_endpoint(request: Request):
         return EventSourceResponse(immediate_refusal())
 
     # Stream the SSE response
-    return EventSourceResponse(run_crew_stream(prompt, history))
+    return EventSourceResponse(run_crew_stream(prompt, history, page))

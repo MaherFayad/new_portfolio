@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
 import ChatPluginCard from "./ChatPluginCard";
 import ChatCertificateCard from "./ChatCertificateCard";
+import ChatExperienceTimeline from "./ChatExperienceTimeline";
 import BookMeetingButton from "./BookMeetingButton";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
 
@@ -97,6 +98,22 @@ const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode; cannedResponse?
 
 
 
+// Human-readable description of the page the user is currently viewing, sent with each
+// chat request so the agent can say "you're already here" instead of handing back a link.
+function getCurrentPageInfo(): string {
+  if (typeof window === "undefined") return "Home page (/)";
+  const path = window.location.pathname;
+  if (path === "/") return "Home page (/)";
+  if (path === "/about") return "About page (/about)";
+  if (path === "/work") return "Selected Work page (/work)";
+  if (path === "/contacts") return "Contact page (/contacts)";
+  if (path.startsWith("/projects/")) {
+    const slug = path.split("/").filter(Boolean)[1] || "";
+    return `a project case study page (${path})${slug ? `, project slug "${slug}"` : ""}`;
+  }
+  return `${path}`;
+}
+
 const PLACEHOLDER_PREFIX = "Ask me ";
 
 const PLACEHOLDER_EXAMPLES = [
@@ -135,6 +152,10 @@ const MOCK_SCENARIOS: Record<string, { thoughts: string[]; text: string }> = {
     thoughts: ["Preparing contact details..."],
     text: "You can reach Maher directly via email (Contact@maherfayad.com) or book time on his calendar. [BookMeetingButton]",
   },
+  timeline: {
+    thoughts: ["Pulling up his career history...", "Building the timeline..."],
+    text: "Here's a snapshot of Maher's career so far, most recent first: [ExperienceTimeline]",
+  },
   long: {
     thoughts: ["Compiling a detailed answer..."],
     text: "Maher's approach to product design starts with discovery: understanding user pain points through research, analytics, and stakeholder interviews. From there he maps the problem space, sketches multiple directions, and validates early concepts with lightweight prototypes. For the Al Rajhi Bank Payroll project, this meant restructuring a dense enterprise workflow into a guided, step-by-step experience that reduced processing time and support tickets. For consumer apps like LFG, the focus shifted to onboarding clarity and motion design that reinforced trust. Across both, the throughline is outcome-first design: every screen, component, and interaction is justified by a measurable improvement, whether that's conversion, task completion, or satisfaction scores. [ProjectCard: alrajhi-bank-payroll]",
@@ -158,6 +179,7 @@ const MOCK_HELP_TEXT = `Mock test commands (dev only, no tokens used):
 /mock plugins — multiple plugin cards (horizontal scroll)
 /mock mixed — project + plugin card together
 /mock booking — booking button
+/mock timeline — experience timeline card
 /mock long — long response (scroll test)
 /mock thinking — long live-thinking sequence
 /mock error — simulated network error
@@ -980,6 +1002,7 @@ export default function ChatAgent() {
         body: JSON.stringify({
           prompt: text,
           history: historyText,
+          page: getCurrentPageInfo(),
         }),
       });
 
@@ -1079,8 +1102,8 @@ export default function ChatAgent() {
 
   // Helper to parse project tags [ProjectCard: slug], plugin tags [PluginCard: slug], certificate tags [CertificateCard: slug], and booking buttons [BookMeetingButton]
   const renderMessageContent = (text: string) => {
-    // Match [ProjectCard: slug], [PluginCard: slug], [CertificateCard: slug], or [BookMeetingButton]
-    const regex = /\[(ProjectCard:\s*(.+?)|PluginCard:\s*(.+?)|CertificateCard:\s*(.+?)|BookMeetingButton)\]/g;
+    // Match [ProjectCard: slug], [PluginCard: slug], [CertificateCard: slug], [ExperienceTimeline], or [BookMeetingButton]
+    const regex = /\[(ProjectCard:\s*(.+?)|PluginCard:\s*(.+?)|CertificateCard:\s*(.+?)|ExperienceTimeline|BookMeetingButton)\]/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -1094,6 +1117,8 @@ export default function ChatAgent() {
       const tagContent = match[1];
       if (tagContent === "BookMeetingButton") {
         parts.push({ type: "booking" });
+      } else if (tagContent === "ExperienceTimeline") {
+        parts.push({ type: "timeline" });
       } else if (match[3] !== undefined) {
         // It's a PluginCard: slug
         const slug = match[3].trim();
@@ -1158,6 +1183,9 @@ export default function ChatAgent() {
                 ))}
               </ChatHorizontalScroll>
             );
+          }
+          if (part.type === "timeline") {
+            return <ChatExperienceTimeline key={idx} />;
           }
           if (part.type === "booking") {
             return (
