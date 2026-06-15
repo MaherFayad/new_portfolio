@@ -290,6 +290,36 @@ export default function ChatAgent() {
     }
   }, [messages, currentThoughts, currentStatus, isContentVisible]);
 
+  // Lock body scroll while the chat is open. This also prevents iOS Safari from
+  // scrolling the whole page (and the "fixed" overlay with it) when the on-screen
+  // keyboard focuses the input, which otherwise reveals page content behind the chat.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const scrollY = window.scrollY;
+    const { style } = document.body;
+    const prevPosition = style.position;
+    const prevTop = style.top;
+    const prevLeft = style.left;
+    const prevRight = style.right;
+    const prevWidth = style.width;
+
+    style.position = "fixed";
+    style.top = `-${scrollY}px`;
+    style.left = "0";
+    style.right = "0";
+    style.width = "100%";
+
+    return () => {
+      style.position = prevPosition;
+      style.top = prevTop;
+      style.left = prevLeft;
+      style.right = prevRight;
+      style.width = prevWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
+
   // Escape key closes chat
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
