@@ -1104,7 +1104,7 @@ export default function ChatAgent() {
                                         variants={springItem}
                                         className="flex flex-col gap-1.5 max-w-[85%] self-end items-end w-full"
                                       >
-                                        <div className="px-4 py-3.5 text-left bg-white/[0.05] text-[#e2e2e2] rounded-2xl rounded-tr-md shadow-[0_4px_16px_rgba(0,0,0,0.25)] text-sm font-medium leading-relaxed">
+                                        <div className="px-4 py-3.5 text-left bg-white/[0.06] border border-white/[0.08] text-[#e2e2e2] rounded-2xl rounded-tr-md text-sm font-medium leading-relaxed">
                                           {msg.content}
                                         </div>
                                       </motion.div>
