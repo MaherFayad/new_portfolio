@@ -992,9 +992,22 @@ export default function ChatAgent() {
     const updatedMessages: Message[] = [...messages, { role: "user", content: text }];
     setMessages(updatedMessages);
 
-    // 2. Format Chat History
-    const historyText = updatedMessages
-      .map((msg) => `${msg.role === "user" ? "User" : "Representative"}: ${msg.content}`)
+    // 2. Format Chat History from PRIOR turns only (the current question is sent as `prompt`).
+    // Each turn must be a SINGLE line: the backend parses history by line prefix, so any
+    // newline inside a message would otherwise drop the rest of that turn (context loss).
+    // We also strip widget tags ([ProjectCard: ...], [BookMeetingButton], etc.) since they
+    // are UI noise the model does not need, and cap to the most recent turns to stay lean.
+    const sanitizeForHistory = (content: string) =>
+      content
+        .replace(/\[(?:ProjectCard|PluginCard|CertificateCard):[^\]]*\]/g, "")
+        .replace(/\[(?:BookMeetingButton|ExperienceTimeline)\]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const historyText = messages
+      .slice(-8)
+      .map((msg) => `${msg.role === "user" ? "User" : "Representative"}: ${sanitizeForHistory(msg.content)}`)
+      .filter((line) => line.replace(/^(?:User|Representative):\s*/, "").length > 0)
       .join("\n");
 
     try {
