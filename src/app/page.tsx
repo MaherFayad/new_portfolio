@@ -278,7 +278,7 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <div className="flex items-start lg:max-dt:hidden max-sm:hidden">
-                  <span className="font-semibold text-sm tracking-[-0.03em] uppercase text-[#c5c5c5] underline underline-offset-[14%] decoration-[10%] leading-[140%]">
+                  <span className="font-semibold text-sm tracking-[-0.03em] uppercase text-[#c5c5c5] no-underline leading-[140%]">
                     CONTACT
                   </span>
                 </div>

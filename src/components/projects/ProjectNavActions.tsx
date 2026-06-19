@@ -98,17 +98,18 @@ export default function ProjectNavActions({ nextProject }: ProjectNavActionsProp
           <span className={`${sideLabelClass} max-sm:flex sm:hidden`}>
             <span>Contact</span>
           </span>
-          <Magnetic range={60} strength={0.35}>
+          <Magnetic range={120} strength={0.4}>
             <Link
               href="/contacts"
-              className="group mt-4 max-sm:mt-2 inline-flex items-center gap-4 no-underline"
+              aria-label="Contact"
+              className="group mt-4 max-sm:mt-2 flex items-center gap-5 cursor-pointer bg-transparent border-none p-0 text-inherit text-left no-underline"
             >
-              <div className="relative w-14 h-14 shrink-0">
+              <div className="relative w-20 h-20 shrink-0">
                 <div className="absolute inset-[2px] rounded-full bg-[#c5c5c5] scale-0 group-hover:scale-100 transition-transform duration-500 cubic-bezier(0.25, 1, 0.5, 1) z-2" />
-                <svg className="absolute top-0 left-0 z-1" height="56" viewBox="0 0 80 80" width="56">
+                <svg className="showreel-ring-bg absolute top-0 left-0 z-1" height="80" viewBox="0 0 80 80" width="80">
                   <circle cx="40" cy="40" r="38" stroke="rgba(255,255,255,0.1)" strokeWidth="2" fill="none" />
                 </svg>
-                <svg className="absolute top-0 left-0 z-2 rotate-90" height="56" viewBox="0 0 80 80" width="56">
+                <svg className="showreel-ring-arc absolute top-0 left-0 z-2 rotate-90" height="80" viewBox="0 0 80 80" width="80">
                   <circle
                     cx="40"
                     cy="40"
@@ -122,21 +123,21 @@ export default function ProjectNavActions({ nextProject }: ProjectNavActionsProp
                   />
                 </svg>
                 <svg
-                  width="16"
-                  height="16"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#c5c5c5"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-3 transition-colors duration-300 group-hover:stroke-black"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 z-3 transition-colors duration-300 ease-in-out group-hover:stroke-black"
                 >
                   <rect width="20" height="16" x="2" y="4" rx="2" />
                   <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                 </svg>
               </div>
-              <span className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 decoration-[10%] group-hover:opacity-70">
+              <span className="font-semibold text-sm tracking-[-0.03em] uppercase text-[#c5c5c5] no-underline leading-[140%]">
                 Discuss a project
               </span>
             </Link>
