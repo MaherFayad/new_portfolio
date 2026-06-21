@@ -632,6 +632,20 @@ export default function ChatAgent() {
   const [currentStatus, setCurrentStatus] = useState("");
   const [streamingText, setStreamingText] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      let id = sessionStorage.getItem("maher_chat_session_id");
+      if (!id) {
+        id = typeof crypto !== "undefined" && crypto.randomUUID 
+          ? crypto.randomUUID() 
+          : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        sessionStorage.setItem("maher_chat_session_id", id);
+      }
+      setSessionId(id);
+    }
+  }, []);
 
   const [keyboardInset, setKeyboardInset] = useState(0);
   const [placeholderText, setPlaceholderText] = useState("");
@@ -643,10 +657,20 @@ export default function ChatAgent() {
   const handleOpen = () => {
     setIsOpen(true);
     setIsContentVisible(true);
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "chat_open", {
+        event_category: "chat",
+      });
+    }
   };
 
   const handleClose = () => {
     setIsContentVisible(false);
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "chat_close", {
+        event_category: "chat",
+      });
+    }
     setTimeout(() => {
       setIsOpen(false);
     }, 500);
@@ -875,6 +899,12 @@ export default function ChatAgent() {
   // Suggested prompts may carry a deterministic canned response (no LLM call). We still
   // play a brief "thinking" beat so it feels like the live agent rather than an instant dump.
   const handleSuggestedPrompt = async (prompt: { label: string; cannedResponse?: string }) => {
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "chat_suggested_prompt_click", {
+        event_category: "chat",
+        event_label: prompt.label,
+      });
+    }
     if (!prompt.cannedResponse) {
       handleSendMessage(prompt.label);
       return;
@@ -898,6 +928,13 @@ export default function ChatAgent() {
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
+
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "chat_message_sent", {
+        event_category: "chat",
+        event_label: text,
+      });
+    }
 
     const lowerText = text.trim().toLowerCase();
     const isSuggestedPrompt =
@@ -1021,6 +1058,7 @@ export default function ChatAgent() {
           prompt: text,
           history: historyText,
           page: getCurrentPageInfo(),
+          session_id: sessionId,
         }),
       });
 

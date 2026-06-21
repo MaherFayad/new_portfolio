@@ -73,6 +73,105 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
     prevPathRef.current = pathname;
   }, [pathname]);
 
+  // Global click & submit listeners for Google Analytics tracking
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const clickable = target.closest("a, button, [role='button'], input[type='submit']");
+      if (!clickable) return;
+
+      const isLink = clickable.tagName.toLowerCase() === "a";
+      const isButton =
+        clickable.tagName.toLowerCase() === "button" ||
+        clickable.getAttribute("role") === "button" ||
+        clickable.getAttribute("type") === "submit";
+      const text =
+        clickable.textContent?.trim() ||
+        clickable.getAttribute("aria-label") ||
+        (clickable as HTMLInputElement).value ||
+        "";
+      const href = clickable.getAttribute("href");
+
+      // We use (window as any).gtag to call Google Analytics
+      const gtag = (window as any).gtag;
+      if (!gtag) return;
+
+      if (isLink && href) {
+        const isExternal = href.startsWith("http") && !href.includes(window.location.hostname);
+        const isEmail = href.startsWith("mailto:");
+        const isProject = href.includes("/projects/");
+        const isCV =
+          href.toLowerCase().includes("cv") ||
+          href.toLowerCase().includes("resume") ||
+          href.toLowerCase().endsWith(".pdf");
+
+        if (isCV) {
+          gtag("event", "view_cv", {
+            event_category: "engagement",
+            event_label: text || href,
+          });
+        } else if (isEmail) {
+          gtag("event", "email_click", {
+            event_category: "contact",
+            event_label: href,
+          });
+        } else if (isProject) {
+          const projectSlug = href.split("/projects/")[1] || href;
+          gtag("event", "project_click", {
+            event_category: "portfolio",
+            event_label: projectSlug,
+          });
+        } else if (isExternal) {
+          gtag("event", "outbound_click", {
+            event_category: "outbound",
+            event_label: href,
+          });
+        } else {
+          gtag("event", "navigation_click", {
+            event_category: "navigation",
+            event_label: href,
+            link_text: text,
+          });
+        }
+      } else if (isButton) {
+        const isBookMeeting = text.toLowerCase().includes("book") || text.toLowerCase().includes("meeting");
+        const isFormSubmit = clickable.getAttribute("type") === "submit";
+
+        if (isBookMeeting) {
+          gtag("event", "book_meeting_click", {
+            event_category: "engagement",
+            event_label: text,
+          });
+        } else {
+          gtag("event", "button_click", {
+            event_category: "interaction",
+            event_label: text || "unlabeled_button",
+            is_form_submit: isFormSubmit,
+          });
+        }
+      }
+    };
+
+    const handleGlobalSubmit = (e: SubmitEvent) => {
+      const form = e.target as HTMLFormElement;
+      const formId = form.id || form.getAttribute("name") || "unnamed_form";
+      const gtag = (window as any).gtag;
+      if (gtag) {
+        gtag("event", "form_submission_attempt", {
+          event_category: "form",
+          event_label: formId,
+        });
+      }
+    };
+
+    document.addEventListener("click", handleGlobalClick);
+    document.addEventListener("submit", handleGlobalSubmit);
+    return () => {
+      document.removeEventListener("click", handleGlobalClick);
+      document.removeEventListener("submit", handleGlobalSubmit);
+    };
+  }, []);
+
   // Lock scroll while preloader is active, but unlock once the page starts revealing
   useEffect(() => {
     if (preloaderActive && !pageActive) {

@@ -130,6 +130,12 @@ export default function ContactsPage() {
       );
 
       if (result.status === 200) {
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          (window as any).gtag("event", "generate_lead", {
+            event_category: "contact",
+            event_label: "Contact Form Success",
+          });
+        }
         setToast({
           type: "success",
           message: "Message sent successfully! I'll reach back to you.",

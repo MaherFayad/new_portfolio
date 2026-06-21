@@ -14,6 +14,21 @@ const CAL_CONFIG = JSON.stringify({
 export async function initCalEmbed() {
   const cal = await getCalApi({ namespace: CAL_NAMESPACE });
   cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
+  
+  // Track Cal.com events in Google Analytics
+  cal("on", {
+    action: "*",
+    callback: (e: any) => {
+      const detail = e.detail;
+      if (detail && typeof window !== "undefined" && (window as any).gtag) {
+        const action = detail.action;
+        (window as any).gtag("event", `cal_${action}`, {
+          event_category: "cal_com",
+          event_label: detail.type || action,
+        });
+      }
+    },
+  });
 }
 
 type BookMeetingButtonProps = {

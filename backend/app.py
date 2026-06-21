@@ -95,6 +95,8 @@ OPENROUTER_API_KEYS = [
 OPENROUTER_API_KEYS = [k for k in OPENROUTER_API_KEYS if k]
 current_key_idx = 0
 
+HELICONE_API_KEY = os.getenv("HELICONE_API_KEY", "").strip()
+
 def get_active_api_key():
     global current_key_idx
     if not OPENROUTER_API_KEYS:
@@ -114,7 +116,7 @@ OFF_TOPIC_REFUSAL = (
 )
 
 # 4. Helper to stream CrewAI execution via SSE (Replaced with direct requests completion for quota efficiency)
-async def run_crew_stream(user_query: str, chat_history: str, current_page: str = "") -> Generator:
+async def run_crew_stream(user_query: str, chat_history: str, current_page: str = "", session_id: str = "", client_ip: str = "", user_agent: str = "") -> Generator:
     event_queue = queue.Queue()
 
     def execute_request():
@@ -233,6 +235,20 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                         "HTTP-Referer": "https://maherfayad.com",
                         "X-Title": "Maher Fayad AI Portfolio Representative"
                     }
+                    
+                    url = "https://openrouter.ai/api/v1/chat/completions"
+                    if HELICONE_API_KEY:
+                        url = "https://openrouter.helicone.ai/api/v1/chat/completions"
+                        headers["Helicone-Auth"] = f"Bearer {HELICONE_API_KEY}"
+                        if session_id:
+                            headers["Helicone-Session-Id"] = session_id
+                        if client_ip:
+                            headers["Helicone-User-Id"] = client_ip
+                        if current_page:
+                            headers["Helicone-Property-Page"] = current_page
+                        if user_agent:
+                            headers["Helicone-Property-User-Agent"] = user_agent
+
                     payload = {
                         "model": model,
                         "messages": messages,
@@ -242,7 +258,7 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                     }
                     try:
                         r = requests.post(
-                            "https://openrouter.ai/api/v1/chat/completions",
+                            url,
                             headers=headers,
                             json=payload,
                             stream=True,
@@ -340,5 +356,17 @@ async def chat_endpoint(request: Request):
             yield {"event": "result", "data": OFF_TOPIC_REFUSAL}
         return EventSourceResponse(immediate_refusal())
 
+    session_id = body.get("session_id", "").strip()
+    user_agent = request.headers.get("user-agent", "")
+
     # Stream the SSE response
-    return EventSourceResponse(run_crew_stream(prompt, history, page))
+    return EventSourceResponse(
+        run_crew_stream(
+            user_query=prompt,
+            chat_history=history,
+            current_page=page,
+            session_id=session_id,
+            client_ip=client_ip,
+            user_agent=user_agent
+        )
+    )
