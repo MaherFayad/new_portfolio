@@ -237,6 +237,7 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                     }
                     
                     url = "https://openrouter.ai/api/v1/chat/completions"
+                    print(f"[HELICONE DEBUG] HELICONE_API_KEY present: {bool(HELICONE_API_KEY)}")
                     if HELICONE_API_KEY:
                         url = "https://openrouter.helicone.ai/api/v1/chat/completions"
                         headers["Helicone-Auth"] = f"Bearer {HELICONE_API_KEY}"
@@ -248,6 +249,10 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                             headers["Helicone-Property-Page"] = current_page
                         if user_agent:
                             headers["Helicone-Property-User-Agent"] = user_agent
+                        print(f"[HELICONE DEBUG] Routing through Helicone gateway to {url}")
+                        print(f"[HELICONE DEBUG] Meta - Session: {session_id}, IP: {client_ip}, Page: {current_page}")
+                    else:
+                        print(f"[HELICONE DEBUG] Routing directly to OpenRouter (no Helicone key)")
 
                     payload = {
                         "model": model,
@@ -257,6 +262,7 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                         "max_tokens": 1000,
                     }
                     try:
+                        print(f"[LLM REQUEST] POSTing to {url} using model {model} (Attempt {attempt+1})")
                         r = requests.post(
                             url,
                             headers=headers,
@@ -264,6 +270,7 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                             stream=True,
                             timeout=25
                         )
+                        print(f"[LLM RESPONSE] Status code: {r.status_code}")
                         if r.status_code == 429:
                             print(f"[RETRY] OpenRouter 429 hit for model {model}. Key index {current_key_idx} rate-limited. Error: {r.text}")
                             rotate_api_key()
