@@ -16,6 +16,10 @@ from dotenv import load_dotenv
 # Load local environment variables from .env file if present
 load_dotenv()
 
+print("=== BACKEND STARTUP DIAGNOSTICS ===", flush=True)
+print(f"HELICONE_API_KEY is present: {bool(os.getenv('HELICONE_API_KEY'))}", flush=True)
+print("===================================", flush=True)
+
 
 # 1. FastAPI Setup
 app = FastAPI(title="Ask Maher AI Recruiter", version="1.0")
