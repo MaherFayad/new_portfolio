@@ -81,13 +81,259 @@ def check_prompt_injection(user_input: str) -> bool:
             return True
     return False
 
-# Load Biography Context
+# Load and Parse Biography Context
 BIO_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "maher_bio.md")
-try:
-    with open(BIO_FILE_PATH, "r", encoding="utf-8") as f:
-        MAHER_BIO_CONTENT = f.read()
-except FileNotFoundError:
-    MAHER_BIO_CONTENT = "# Maher Fayad\nSenior Product Designer."
+
+def parse_bio_file(file_path: str) -> Dict[str, str]:
+    if not os.path.exists(file_path):
+        return {"Base": "# Maher Fayad\nSenior Product Designer."}
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception as e:
+        print(f"Error reading biography file: {e}")
+        return {"Base": "# Maher Fayad\nSenior Product Designer."}
+
+    sections = {}
+    current_section = "Base"
+    current_lines = []
+    
+    for line in content.split("\n"):
+        if line.startswith("## "):
+            sections[current_section] = "\n".join(current_lines).strip()
+            current_section = line[3:].strip()
+            current_lines = [line]
+        elif line.startswith("# "):
+            sections[current_section] = "\n".join(current_lines).strip()
+            current_section = "Base"
+            current_lines = [line]
+        else:
+            current_lines.append(line)
+            
+    if current_section:
+        sections[current_section] = "\n".join(current_lines).strip()
+        
+    return sections
+
+MAHER_BIO_SECTIONS = parse_bio_file(BIO_FILE_PATH)
+
+# Mappings for dynamic system rules and biography context
+BASE_SECTIONS = [
+    "Base",
+    "Identity",
+    "Professional Summary",
+    "Brand Positioning & Philosophy"
+]
+
+def get_base_context(sections: Dict[str, str]) -> str:
+    parts = []
+    for k in BASE_SECTIONS:
+        if k in sections and sections[k]:
+            parts.append(sections[k])
+    return "\n\n".join(parts)
+
+SECTION_KEYWORDS = {
+    "Past Employers": [
+        "experience", "career", "work", "history", "employ", "timeline", "job", "resume", "cv",
+        "hire", "past", "employer", "company", "role", "almosafer", "alrajhi", "al rajhi",
+        "azmx", "contact financial", "gameit", "algoriza", "background", "prev", "former", "timeline"
+    ],
+    "Freelance Clients": [
+        "experience", "career", "work", "history", "employ", "timeline", "job", "resume", "cv",
+        "hire", "freelance", "upwork", "client", "company", "theradome", "supersight",
+        "solidity", "milt olin", "brackets", "iterationx"
+    ],
+    "Career Path (Full Work History)": [
+        "experience", "career", "work", "history", "employ", "timeline", "job", "resume", "cv",
+        "hire", "employer", "company", "role", "almosafer", "alrajhi", "al rajhi", "azmx",
+        "contact financial", "gameit", "algoriza", "british council", "background", "prev", "former", "timeline"
+    ],
+    "Key Portfolio Projects & Case Studies": [
+        "project", "case study", "work", "portfolio", "design", "lfg", "sanarte", "payroll",
+        "alrajhi", "al rajhi", "airlab", "campus51", "deployo", "dhsc", "kobe", "nft", "pexlp",
+        "sacred", "six clovers", "gallery", "app", "plugin", "figma", "primitive", "semantic",
+        "numeric", "token", "generator", "automation", "tool"
+    ],
+    "Design Systems & Technical Skills": [
+        "skill", "expert", "knowledge", "technology", "tool", "know", "do", "capability", "ability",
+        "design system", "figma", "token", "variables", "prototyp", "analytics", "funnel", "testing",
+        "heuristic", "audit", "a11y", "accessibility", "arabic", "rtl", "english", "bilingual"
+    ],
+    "Core Expertise": [
+        "skill", "expert", "knowledge", "technology", "tool", "know", "do", "capability", "ability",
+        "design system", "figma", "token", "variables", "prototyp", "analytics", "funnel", "testing",
+        "heuristic", "audit", "a11y", "accessibility", "arabic", "rtl", "english", "bilingual"
+    ],
+    "Volunteering": [
+        "volunteer", "un", "united nations", "tedx", "enactus", "asme", "motorsport"
+    ],
+    "Stats": [
+        "stat", "number", "metric", "year", "how long", "how many"
+    ],
+    "Certificates & Badges (Credly-verified)": [
+        "certif", "badge", "credly", "credential", "course", "education", "degree", "qualification",
+        "study", "google ux", "data analytics", "design thinking", "ibm", "mckinsey", "meta",
+        "product analytics", "learn"
+    ],
+    "What Clients Say": [
+        "say", "testimonial", "client", "feedback", "review", "recommendation", "grigory",
+        "joey", "salim", "think of", "opinion"
+    ],
+    "Contact & Schedule": [
+        "contact", "hire", "email", "schedule", "meeting", "cal.com", "calendar", "call",
+        "reach out", "book", "phone", "message", "talk", "interview", "hire", "phone"
+    ]
+}
+
+def select_bio_sections(user_query: str, sections: Dict[str, str]) -> str:
+    query_lower = user_query.lower()
+    selected_content = []
+    
+    # Base context is always included
+    selected_content.append(get_base_context(sections))
+    
+    # Check other sections
+    for sec_name, keywords in SECTION_KEYWORDS.items():
+        if sec_name in BASE_SECTIONS:
+            continue
+        # If any keyword matches, append section content
+        if any(kw in query_lower for kw in keywords):
+            if sec_name in sections and sections[sec_name]:
+                selected_content.append(sections[sec_name])
+                
+    return "\n\n".join(selected_content)
+
+# Dynamic rules triggers
+BASE_RULES = [
+    "Refer to Maher as a 'Senior Product Designer' (never 'Senior UX Designer').",
+    "Name drop past employers (Almosafer, Al Rajhi Bank, AZMX, Contact Financial) where relevant.",
+    "Absolutely DO NOT use em dashes (— or --) under any circumstance. Use commas, colons, or parentheses."
+]
+
+RULE_PROJECTS = (
+    "If a single project is relevant, append its tag `[ProjectCard: slug]` at the end of the paragraph. "
+    "If multiple projects are relevant, do NOT describe each one in detail or add filler text between them, "
+    "just append the tags back to back, e.g. `[ProjectCard: lfg][ProjectCard: sanarte]`, so they render as a "
+    "project gallery. Use correct slugs:\n"
+    "   - Al Rajhi Bank Payroll -> `[ProjectCard: alrajhi-bank-payroll]`\n"
+    "   - Sanarte -> `[ProjectCard: sanarte]`\n"
+    "   - LFG App -> `[ProjectCard: lfg]`\n"
+    "   - Other project slugs: airlab, campus51, deployo, dhsc, kobe-bryant, nft-print-pro, pexlp, sacred-stacks, six-clovers."
+)
+
+RULE_CONTACT = (
+    "If the user asks about contacting, hiring, scheduling, or booking a meeting with Maher, tell them they can "
+    "reach out via email (Contact@maherfayad.com) or book a meeting directly, and you MUST append the tag "
+    "`[BookMeetingButton]` at the end of your response."
+)
+
+RULE_PLUGINS = (
+    "If mentioning Maher's Figma plugins or design system tools, append the plugin tag `[PluginCard: slug]` at the end of "
+    "the paragraph. Use correct slugs:\n"
+    "   - Primitive & Semantic Colors Generator -> `[PluginCard: primitive-semantic-colors-generator]`\n"
+    "   - Numeric Tokens Generator -> `[PluginCard: numeric-tokens-generator]`"
+)
+
+RULE_NAVIGATION = (
+    "Refer users to other pages on the website using simple relative paths: About page (`/about`), Selected Work page (`/work`), "
+    "or Contact page (`/contacts`). IMPORTANT: The CURRENT PAGE the user is viewing right now is given below. If the page you would "
+    "point them to is the page they are ALREADY on, do NOT give a link to it. Instead, naturally tell them they are already on that "
+    "page and to just check or scroll through it (for example, on the About page: \"You're already on the About page, just scroll "
+    "down to see his experience\"). Only hand out a page link when it points to a DIFFERENT page than the current one."
+)
+
+RULE_LINKEDIN = (
+    "LinkedIn is Maher's social media and professional network. If the user asks for his LinkedIn, social media, where "
+    "to follow or connect with him, or his resume links, this is ON_TOPIC: give them his LinkedIn profile as a markdown "
+    "link `[LinkedIn](https://www.linkedin.com/in/maherfayad)`. Never refuse a social media or LinkedIn question."
+)
+
+RULE_CERTIFICATES = (
+    "If the user asks about certificates, credentials, or badges, list them using their respective certificate card "
+    "tags back-to-back, e.g. `[CertificateCard: google-ux-design][CertificateCard: google-data-analytics]`, so they render "
+    "as a certificate gallery. Use correct slugs:\n"
+    "   - Google UX Design Professional Certificate -> `google-ux-design`\n"
+    "   - Google Data Analytics Professional Certificate -> `google-data-analytics`\n"
+    "   - Enterprise Design Thinking Practitioner (IBM) -> `ibm-design-thinking`\n"
+    "   - Enterprise Design Thinking Co-Creator (IBM) -> `ibm-co-creator`\n"
+    "   - McKinsey Forward Program -> `mckinsey-forward`\n"
+    "   - Meta Front-End Developer Certificate -> `meta-front-end-dev`\n"
+    "   - Product Analytics Certification -> `product-analytics`"
+)
+
+RULE_TIMELINE = (
+    "If the user asks about Maher's work experience, career history, employment timeline, where he has worked, or his "
+    "professional journey, append the tag `[ExperienceTimeline]` at the end of your response. The tag renders an interactive "
+    "visual career timeline of his full-time roles, so you MUST NOT also write those roles, companies, dates, or bullet "
+    "points out in text. Never repeat in prose what the timeline already shows. Write at most ONE short intro sentence, then "
+    "the tag. The timeline does NOT include his freelance work, so in that one intro sentence you may briefly weave in his "
+    "freelance experience on Upwork (clients such as Theradome, Supersight, Solidity Studios, the Milt Olin Foundation, "
+    "Brackets, and IterationX) to complement the timeline, then end with the [ExperienceTimeline] tag."
+)
+
+RULE_TRIGGERS = [
+    {
+        "rule": RULE_PROJECTS,
+        "keywords": [
+            "project", "case study", "work", "portfolio", "design", "lfg", "sanarte", "payroll",
+            "alrajhi", "al rajhi", "airlab", "campus51", "deployo", "dhsc", "kobe", "nft", "pexlp",
+            "sacred", "six clovers", "gallery"
+        ]
+    },
+    {
+        "rule": RULE_CONTACT,
+        "keywords": [
+            "contact", "hire", "email", "schedule", "meeting", "cal.com", "calendar", "call",
+            "reach out", "book", "phone", "message", "talk", "interview"
+        ]
+    },
+    {
+        "rule": RULE_PLUGINS,
+        "keywords": [
+            "plugin", "figma", "primitive", "semantic", "numeric", "token", "generator", "automation", "tool"
+        ]
+    },
+    {
+        "rule": RULE_NAVIGATION,
+        "keywords": [
+            "page", "site", "website", "about", "work", "contact", "link", "navigate", "route", "go to"
+        ]
+    },
+    {
+        "rule": RULE_LINKEDIN,
+        "keywords": [
+            "linkedin", "social", "follow", "connect", "network", "twitter", "instagram", "facebook", "github", "behance"
+        ]
+    },
+    {
+        "rule": RULE_CERTIFICATES,
+        "keywords": [
+            "certif", "badge", "credly", "credential", "course", "education", "degree", "qualification",
+            "study", "google ux", "data analytics", "design thinking", "ibm", "mckinsey", "meta",
+            "product analytics", "learn"
+        ]
+    },
+    {
+        "rule": RULE_TIMELINE,
+        "keywords": [
+            "experience", "career", "work history", "employment", "timeline", "job", "resume", "cv",
+            "hire", "employer", "company", "role", "almosafer", "alrajhi", "al rajhi", "azmx",
+            "contact financial", "gameit", "algoriza", "british council", "history"
+        ]
+    }
+]
+
+def select_system_rules(user_query: str) -> str:
+    query_lower = user_query.lower()
+    rules = list(BASE_RULES)
+    
+    rule_idx = 4
+    for trigger in RULE_TRIGGERS:
+        if any(kw in query_lower for kw in trigger["keywords"]):
+            rules.append(f"{rule_idx}. {trigger['rule']}")
+            rule_idx += 1
+            
+    return "\n".join(rules)
 
 # LLM Configuration (OpenRouter Llama 3.3 70B Free)
 OPENROUTER_API_KEYS = [
@@ -136,6 +382,12 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
             event_queue.put(("thought", "Drafting representative response..."))
             time.sleep(0.3)
 
+            dynamic_rules = select_system_rules(user_query)
+            dynamic_context = select_bio_sections(user_query, MAHER_BIO_SECTIONS)
+
+            print(f"[DYNAMIC PROMPT] Query: '{user_query}'", flush=True)
+            print(f"[DYNAMIC PROMPT] Loaded rules length: {len(dynamic_rules.splitlines())}, Bio context length: {len(dynamic_context)} chars", flush=True)
+
             system_prompt = (
                 "You are Maher Fayad's virtual double, acting as his Digital Representative.\n"
                 "Talk like a real person, not a corporate chatbot: natural phrasing, a bit of personality, "
@@ -168,37 +420,9 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                 "If the query is simply OFF_TOPIC but harmless (coding, math, general science, recipes, weather, sports, other people, small talk, etc.), do NOT give a flat refusal. Instead: (a) acknowledge it briefly and good-naturedly in ONE short clause WITHOUT actually fulfilling the request (never write the code, recipe, essay, or answer the trivia), then (b) smoothly DRIFT the conversation back to Maher with a witty, natural bridge that ties to his work, skills, results, or availability, and end by inviting them to ask about him. Keep the whole reply to 1-2 short sentences, light and charming, never preachy. Example shape (do not copy verbatim, adapt to their message and language): \"Ha, I'll leave the weather forecasting to the pros, but I can promise Maher's design work is consistently sunny. Want to see how he lifted Al Rajhi's account openings by 47%?\" Stay grounded: only reference real facts about Maher from the context.\n\n"
                 "If the query is ON_TOPIC, answer the query based ONLY on the biographical context provided below.\n"
                 "Be warm, outcome-first, concise, and structured with clear bullet points.\n\n"
-                "RULES:\n"
-                "1. Refer to Maher as a 'Senior Product Designer' (never 'Senior UX Designer').\n"
-                "2. Name drop past employers (Almosafer, Al Rajhi Bank, AZMX, Contact Financial) where relevant.\n"
-                "3. Absolutely DO NOT use em dashes (— or --) under any circumstance. Use commas, colons, or parentheses.\n"
-                "4. If a single project is relevant, append its tag `[ProjectCard: slug]` at the end of the paragraph. "
-                "If multiple projects are relevant, do NOT describe each one in detail or add filler text between them, "
-                "just append the tags back to back, e.g. `[ProjectCard: lfg][ProjectCard: sanarte]`, so they render as a "
-                "project gallery. Use correct slugs:\n"
-                "   - Al Rajhi Bank Payroll -> `[ProjectCard: alrajhi-bank-payroll]`\n"
-                "   - Sanarte -> `[ProjectCard: sanarte]`\n"
-                "   - LFG App -> `[ProjectCard: lfg]`\n"
-                "   - Other project slugs: airlab, campus51, deployo, dhsc, kobe-bryant, nft-print-pro, pexlp, sacred-stacks, six-clovers.\n"
-                "5. If the user asks about contacting, hiring, scheduling, or booking a meeting with Maher, tell them they can reach out via email (Contact@maherfayad.com) or book a meeting directly, and you MUST append the tag `[BookMeetingButton]` at the end of your response.\n\n"
-                "6. If mentioning Maher's Figma plugins or design system tools, append the plugin tag `[PluginCard: slug]` at the end of the paragraph. "
-                "Use correct slugs:\n"
-                "   - Primitive & Semantic Colors Generator -> `[PluginCard: primitive-semantic-colors-generator]`\n"
-                "   - Numeric Tokens Generator -> `[PluginCard: numeric-tokens-generator]`\n\n"
-                "7. Refer users to other pages on the website using simple relative paths: About page (`/about`), Selected Work page (`/work`), or Contact page (`/contacts`). "
-                "IMPORTANT: The CURRENT PAGE the user is viewing right now is given below. If the page you would point them to is the page they are ALREADY on, do NOT give a link to it. Instead, naturally tell them they are already on that page and to just check or scroll through it (for example, on the About page: \"You're already on the About page, just scroll down to see his experience\"). Only hand out a page link when it points to a DIFFERENT page than the current one.\n"
-                "8. LinkedIn is Maher's social media and professional network. If the user asks for his LinkedIn, social media, where to follow or connect with him, or his resume links, this is ON_TOPIC: give them his LinkedIn profile as a markdown link `[LinkedIn](https://www.linkedin.com/in/maherfayad)`. Never refuse a social media or LinkedIn question.\n"
-                "9. If the user asks about certificates, credentials, or badges, list them using their respective certificate card tags back-to-back, e.g. `[CertificateCard: google-ux-design][CertificateCard: google-data-analytics]`, so they render as a certificate gallery. Use correct slugs:\n"
-                "   - Google UX Design Professional Certificate -> `google-ux-design`\n"
-                "   - Google Data Analytics Professional Certificate -> `google-data-analytics`\n"
-                "   - Enterprise Design Thinking Practitioner (IBM) -> `ibm-design-thinking`\n"
-                "   - Enterprise Design Thinking Co-Creator (IBM) -> `ibm-co-creator`\n"
-                "   - McKinsey Forward Program -> `mckinsey-forward`\n"
-                "   - Meta Front-End Developer Certificate -> `meta-front-end-dev`\n"
-                "   - Product Analytics Certification -> `product-analytics`\n\n"
-                "10. If the user asks about Maher's work experience, career history, employment timeline, where he has worked, or his professional journey, append the tag `[ExperienceTimeline]` at the end of your response. The tag renders an interactive visual career timeline of his full-time roles, so you MUST NOT also write those roles, companies, dates, or bullet points out in text. Never repeat in prose what the timeline already shows. Write at most ONE short intro sentence, then the tag. The timeline does NOT include his freelance work, so in that one intro sentence you may briefly weave in his freelance experience on Upwork (clients such as Theradome, Supersight, Solidity Studios, the Milt Olin Foundation, Brackets, and IterationX) to complement the timeline, then end with the [ExperienceTimeline] tag.\n\n"
+                f"RULES:\n{dynamic_rules}\n\n"
                 f"CURRENT PAGE the user is viewing right now: {current_page or 'unknown'}\n\n"
-                f"CONTEXT:\n{MAHER_BIO_CONTENT}"
+                f"CONTEXT:\n{dynamic_context}"
             )
 
             messages = [{"role": "system", "content": system_prompt}]
