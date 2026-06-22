@@ -212,12 +212,13 @@ BASE_RULES = [
 
 RULE_PROJECTS = (
     "If a single project is relevant, append its tag `[ProjectCard: slug]` at the end of the paragraph. "
-    "If multiple projects are relevant, do NOT describe each one in detail or add filler text between them, "
-    "just append the tags back to back, e.g. `[ProjectCard: lfg][ProjectCard: sanarte]`, so they render as a "
-    "project gallery. Use correct slugs:\n"
-    "   - Al Rajhi Bank Payroll -> `[ProjectCard: alrajhi-bank-payroll]`\n"
-    "   - Sanarte -> `[ProjectCard: sanarte]`\n"
-    "   - LFG App -> `[ProjectCard: lfg]`\n"
+    "If multiple projects are relevant, you MUST list them using their respective project card tags back-to-back with "
+    "absolutely NO text, spaces, formatting, bullet points, or newlines between them, e.g. `[ProjectCard: lfg][ProjectCard: sanarte]`, "
+    "so they group and render as a scrollable horizontal project gallery. Do not list them vertically or describe them "
+    "individually with separate tags. Use correct slugs:\n"
+    "   - Al Rajhi Bank Payroll -> `alrajhi-bank-payroll`\n"
+    "   - Sanarte -> `sanarte`\n"
+    "   - LFG App -> `lfg`\n"
     "   - Other project slugs: airlab, campus51, deployo, dhsc, kobe-bryant, nft-print-pro, pexlp, sacred-stacks, six-clovers."
 )
 
@@ -228,10 +229,12 @@ RULE_CONTACT = (
 )
 
 RULE_PLUGINS = (
-    "If mentioning Maher's Figma plugins or design system tools, append the plugin tag `[PluginCard: slug]` at the end of "
-    "the paragraph. Use correct slugs:\n"
-    "   - Primitive & Semantic Colors Generator -> `[PluginCard: primitive-semantic-colors-generator]`\n"
-    "   - Numeric Tokens Generator -> `[PluginCard: numeric-tokens-generator]`"
+    "If mentioning Maher's Figma plugins or design system tools, you MUST list them using their respective plugin card "
+    "tags back-to-back with absolutely NO text, spaces, formatting, bullet points, or newlines between them, "
+    "e.g. `[PluginCard: primitive-semantic-colors-generator][PluginCard: numeric-tokens-generator]`, so they group and "
+    "render as a scrollable horizontal gallery. Use correct slugs:\n"
+    "   - Primitive & Semantic Colors Generator -> `primitive-semantic-colors-generator`\n"
+    "   - Numeric Tokens Generator -> `numeric-tokens-generator`"
 )
 
 RULE_NAVIGATION = (
@@ -249,9 +252,11 @@ RULE_LINKEDIN = (
 )
 
 RULE_CERTIFICATES = (
-    "If the user asks about certificates, credentials, or badges, list them using their respective certificate card "
-    "tags back-to-back, e.g. `[CertificateCard: google-ux-design][CertificateCard: google-data-analytics]`, so they render "
-    "as a certificate gallery. Use correct slugs:\n"
+    "If the user asks about certificates, credentials, or badges, you MUST list them using their respective certificate "
+    "card tags back-to-back with absolutely NO text, words (like 'and' or 'or'), spaces, formatting, bullet points, "
+    "or newlines between them, e.g. `[CertificateCard: google-ux-design][CertificateCard: google-data-analytics]`, so they group "
+    "and render as a scrollable horizontal certificate gallery. Do not group them by categories with text in between. Put "
+    "all certificate tags in one single continuous block of back-to-back tags. Use correct slugs:\n"
     "   - Google UX Design Professional Certificate -> `google-ux-design`\n"
     "   - Google Data Analytics Professional Certificate -> `google-data-analytics`\n"
     "   - Enterprise Design Thinking Practitioner (IBM) -> `ibm-design-thinking`\n"
