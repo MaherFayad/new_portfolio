@@ -95,7 +95,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="pb-10">
+    <footer className="pb-10 max-sm:pb-28">
       {/* Footer Top Section (Logo, Labels, and CTA) */}
       <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-10 items-start">
         {/* Left side logo and labels */}
@@ -155,7 +155,7 @@ export default function Footer() {
           <div className="relative inline-block mt-[30px] max-sm:mt-4 text-right">
             <a
               onClick={handleCopy}
-              className="font-medium text-[38px] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] underline decoration-[7%] underline-offset-[12.5%] hover:opacity-70 lg:max-dt:text-[clamp(24px,2.8vw,34px)] sm:max-dt:text-[clamp(20px,2.5vw,24px)] dt:text-[38px] break-all cursor-pointer"
+              className="font-medium text-[38px] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] underline decoration-[7%] underline-offset-[12.5%] hover:opacity-70 lg:max-dt:text-[clamp(24px,2.8vw,34px)] sm:max-dt:text-[clamp(20px,2.5vw,24px)] dt:text-[38px] max-sm:text-[clamp(24px,7vw,34px)] break-all cursor-pointer"
             >
               Contact@maherfayad.com
             </a>

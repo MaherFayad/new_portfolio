@@ -239,7 +239,7 @@ export default function ContactsPage() {
   };
 
   return (
-    <main className="min-h-screen w-full px-5 max-sm:px-3 flex flex-col pb-[5rem]">
+    <main className="min-h-screen w-full px-5 max-sm:px-3 flex flex-col pb-[5rem] max-sm:pb-28">
       {/* CSS Animations for Gradient Mesh */}
       <style>{`
         @keyframes pulseSlow {
@@ -367,7 +367,7 @@ export default function ContactsPage() {
             <div className="relative inline-block">
               <a
                 onClick={handleCopy}
-                className="font-medium text-[clamp(1.35rem,2vw,2rem)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] underline underline-offset-[8%] decoration-[8%] hover:opacity-70 break-all cursor-pointer"
+                className="font-medium text-[clamp(1.35rem,2vw,2rem)] max-sm:text-[clamp(24px,7vw,34px)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] underline underline-offset-[8%] decoration-[8%] hover:opacity-70 break-all cursor-pointer"
               >
                 <AnimatedText text="Contact@maherfayad.com" className="projects-name-text" />
               </a>
