@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import Magnetic from "@/components/Magnetic";
 import ContactToast, { type ContactToastData } from "@/components/ContactToast";
@@ -13,7 +13,92 @@ import AnimatedText from "@/components/AnimatedText";
 
 type ContactToast = ContactToastData;
 
+const CONFETTI_COLORS = ["#1CCECB", "#1B67E8", "#927FAE", "#E8E8E8", "#1CCECB"];
+
+function ContactConfetti() {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        dx: (Math.random() - 0.5) * 120,
+        dy: -(Math.random() * 40 + 20),
+        rotate: Math.random() * 360 - 180,
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        w: 3 + Math.random() * 3,
+        h: 2 + Math.random() * 2,
+        delay: Math.random() * 0.05,
+      })),
+    []
+  );
+
+  return (
+    <div className="absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2 overflow-visible pointer-events-none">
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          className="absolute left-1/2 top-1/2 rounded-[1px]"
+          style={{
+            width: p.w,
+            height: p.h,
+            backgroundColor: p.color,
+            marginLeft: -p.w / 2,
+            marginTop: -p.h / 2,
+          }}
+          initial={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: 0 }}
+          animate={{
+            x: p.dx,
+            y: p.dy,
+            opacity: [0, 1, 0],
+            scale: [0, 1, 0.3],
+            rotate: p.rotate,
+          }}
+          transition={{ duration: 0.7, delay: p.delay, ease: "easeOut" }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function ContactsPage() {
+  const [copied, setCopied] = useState(false);
+
+  const fallbackCopyText = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand("copy");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Fallback copy failed: ", err);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const email = "Contact@maherfayad.com";
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(email)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch((err) => {
+          console.error("Clipboard copy failed: ", err);
+          fallbackCopyText(email);
+        });
+    } else {
+      fallbackCopyText(email);
+    }
+  };
 
   // Clock state
   const [timeState, setTimeState] = useState({
@@ -275,16 +360,43 @@ export default function ContactsPage() {
           </Reveal>
 
           {/* Direct Email */}
-          <Reveal aboveFold delay={0.15} className="flex flex-col">
+          <Reveal aboveFold delay={0.15} className="flex flex-col items-start">
             <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] mb-2">
               SAY HELLO
             </span>
-            <a
-              href="mailto:Contact@maherfayad.com"
-              className="font-medium text-[clamp(1.35rem,2vw,2rem)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] underline underline-offset-[8%] decoration-[8%] hover:opacity-70 break-all"
-            >
-              <AnimatedText text="Contact@maherfayad.com" className="projects-name-text" />
-            </a>
+            <div className="relative inline-block">
+              <a
+                onClick={handleCopy}
+                className="font-medium text-[clamp(1.35rem,2vw,2rem)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] underline underline-offset-[8%] decoration-[8%] hover:opacity-70 break-all cursor-pointer"
+              >
+                <AnimatedText text="Contact@maherfayad.com" className="projects-name-text" />
+              </a>
+              <AnimatePresence>
+                {copied && (
+                  <>
+                    <ContactConfetti />
+                    <motion.span
+                      initial={{ opacity: 0, y: 10, scale: 0.9, x: "-50%" }}
+                      animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95, x: "-50%" }}
+                      transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                      className="absolute bottom-full left-1/2 mb-3 px-2.5 py-1.5 text-[10px] font-bold text-white bg-black border border-white/10 rounded shadow-[0_4px_12px_rgba(0,0,0,0.5)] pointer-events-none whitespace-nowrap z-50 uppercase tracking-wider leading-none flex items-center gap-1.5"
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3 w-3 shrink-0">
+                        <path
+                          d="M16.667 5.833 8.333 14.167 3.333 9.167"
+                          stroke="#1CCECB"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Copied!</span>
+                    </motion.span>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </Reveal>
 
           {/* Working Hours */}
