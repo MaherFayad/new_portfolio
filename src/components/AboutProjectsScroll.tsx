@@ -25,6 +25,15 @@ export default function AboutProjectsScroll() {
     }
   };
 
+  const getHref = (project: (typeof PROJECTS)[number]) =>
+    project.externalUrl ?? `/projects/${project.slug}`;
+
+  const handleClick = (e: React.MouseEvent, project: (typeof PROJECTS)[number]) => {
+    if (project.externalUrl) return;
+    e.preventDefault();
+    router.push(`/projects/${project.slug}`);
+  };
+
   const scrollByCard = (direction: 1 | -1) => {
     const container = scrollRef.current;
     if (!container) return;
@@ -57,12 +66,14 @@ export default function AboutProjectsScroll() {
                 style={{ width: "clamp(240px, 72vw, 380px)" }}
               >
                 <Reveal delay={0.04 * index} className="flex flex-col">
-                <button
-                  type="button"
+                <a
+                  href={getHref(project)}
+                  target={project.externalUrl ? "_blank" : undefined}
+                  rel={project.externalUrl ? "noopener noreferrer" : undefined}
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                  className="relative w-full overflow-hidden bg-[#050505] border border-white/5 cursor-pointer group"
+                  className="relative w-full overflow-hidden bg-[#050505] border border-white/5 cursor-pointer group block"
                   style={{ aspectRatio: "4/5" }}
-                  onClick={() => openProject(project)}
+                  onClick={(e) => handleClick(e, project)}
                 >
                   {project.images[0] && (
                     <Image
@@ -89,12 +100,14 @@ export default function AboutProjectsScroll() {
                       </svg>
                     </div>
                   )}
-                </button>
-                <button
-                  type="button"
+                </a>
+                <a
+                  href={getHref(project)}
+                  target={project.externalUrl ? "_blank" : undefined}
+                  rel={project.externalUrl ? "noopener noreferrer" : undefined}
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                  onClick={() => openProject(project)}
-                  className="mt-4 text-left flex flex-col gap-2"
+                  onClick={(e) => handleClick(e, project)}
+                  className="mt-4 text-left flex flex-col gap-2 no-underline block"
                 >
                   <span className="font-medium text-[clamp(18px,1.4vw,24px)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
                     <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
@@ -102,7 +115,7 @@ export default function AboutProjectsScroll() {
                   <span className="font-medium text-sm leading-[140%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] line-clamp-2">
                     {project.subtitle}
                   </span>
-                </button>
+                </a>
                 </Reveal>
               </div>
             ))}

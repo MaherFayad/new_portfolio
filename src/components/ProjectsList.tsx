@@ -209,12 +209,14 @@ export default function ProjectsList() {
                 className="shrink-0 snap-start overflow-hidden flex flex-col"
                 style={{ width: "clamp(220px, 68vw, 320px)" }}
               >
-                <button
-                  type="button"
+                <a
+                  href={getHref(project)}
+                  target={project.externalUrl ? "_blank" : undefined}
+                  rel={project.externalUrl ? "noopener noreferrer" : undefined}
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                  className="relative w-full overflow-hidden bg-[#050505] cursor-pointer"
+                  className="relative w-full overflow-hidden bg-[#050505] cursor-pointer block"
                   style={{ aspectRatio: "4/5" }}
-                  onClick={() => openProject(project)}
+                  onClick={(e) => handleClick(e, project)}
                 >
                   {project.images[0] && (
                     <Image
@@ -241,15 +243,17 @@ export default function ProjectsList() {
                       </svg>
                     </div>
                   )}
-                </button>
-                <button
-                  type="button"
+                </a>
+                <a
+                  href={getHref(project)}
+                  target={project.externalUrl ? "_blank" : undefined}
+                  rel={project.externalUrl ? "noopener noreferrer" : undefined}
                   aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                  onClick={() => openProject(project)}
-                  className="mt-3 text-left font-medium text-[1rem] leading-[1.15] tracking-[-0.06em] text-[#c5c5c5] no-underline"
+                  onClick={(e) => handleClick(e, project)}
+                  className="mt-3 text-left font-medium text-[1rem] leading-[1.15] tracking-[-0.06em] text-[#c5c5c5] no-underline block"
                 >
                   <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
-                </button>
+                </a>
               </Reveal>
             ))}
           </MobileHorizontalScroll>

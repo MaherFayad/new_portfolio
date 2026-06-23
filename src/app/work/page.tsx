@@ -21,6 +21,15 @@ export default function WorkPage() {
     }
   };
 
+  const getHref = (project: (typeof PROJECTS)[number]) =>
+    project.externalUrl ?? `/projects/${project.slug}`;
+
+  const handleClick = (e: React.MouseEvent, project: (typeof PROJECTS)[number]) => {
+    if (project.externalUrl) return;
+    e.preventDefault();
+    router.push(`/projects/${project.slug}`);
+  };
+
   return (
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip flex flex-col pb-0">
 
@@ -55,12 +64,14 @@ export default function WorkPage() {
         <div className="col-[3/-1] max-sm:col-[1/-1] sm:col-[1/-1] lg:col-[3/-1] grid grid-cols-2 max-sm:grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-16 max-sm:gap-y-10">
           {PROJECTS.map((project, index) => (
             <Reveal key={project.slug} delay={0.04 * (index % 4)} className="flex flex-col">
-              <button
-                type="button"
+              <a
+                href={getHref(project)}
+                target={project.externalUrl ? "_blank" : undefined}
+                rel={project.externalUrl ? "noopener noreferrer" : undefined}
                 aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                className="relative w-full overflow-hidden bg-[#050505] border border-white/5 cursor-pointer group"
+                className="relative w-full overflow-hidden bg-[#050505] border border-white/5 cursor-pointer group block"
                 style={{ aspectRatio: "4/5" }}
-                onClick={() => openProject(project)}
+                onClick={(e) => handleClick(e, project)}
               >
                 {project.images[0] && (
                   <Image
@@ -87,12 +98,14 @@ export default function WorkPage() {
                     </svg>
                   </div>
                 )}
-              </button>
-              <button
-                type="button"
+              </a>
+              <a
+                href={getHref(project)}
+                target={project.externalUrl ? "_blank" : undefined}
+                rel={project.externalUrl ? "noopener noreferrer" : undefined}
                 aria-label={`Open project ${project.title.replace("\n", " ")}`}
-                onClick={() => openProject(project)}
-                className="mt-4 text-left flex flex-col gap-2"
+                onClick={(e) => handleClick(e, project)}
+                className="mt-4 text-left flex flex-col gap-2 no-underline block"
               >
                 <span className="font-medium text-[clamp(18px,1.4vw,24px)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
                   <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
@@ -100,7 +113,7 @@ export default function WorkPage() {
                 <span className="font-medium text-sm leading-[140%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] line-clamp-2">
                   {project.subtitle}
                 </span>
-              </button>
+              </a>
             </Reveal>
           ))}
         </div>
