@@ -1,11 +1,99 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import FooterStripe from "@/components/FooterStripe";
 
+const CONFETTI_COLORS = ["#1CCECB", "#1B67E8", "#927FAE", "#E8E8E8", "#1CCECB"];
+
+function FooterConfetti() {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        dx: (Math.random() - 0.5) * 120,
+        dy: -(Math.random() * 40 + 20),
+        rotate: Math.random() * 360 - 180,
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        w: 3 + Math.random() * 3,
+        h: 2 + Math.random() * 2,
+        delay: Math.random() * 0.05,
+      })),
+    []
+  );
+
+  return (
+    <div className="absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2 overflow-visible pointer-events-none">
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          className="absolute left-1/2 top-1/2 rounded-[1px]"
+          style={{
+            width: p.w,
+            height: p.h,
+            backgroundColor: p.color,
+            marginLeft: -p.w / 2,
+            marginTop: -p.h / 2,
+          }}
+          initial={{ x: 0, y: 0, opacity: 0, scale: 0, rotate: 0 }}
+          animate={{
+            x: p.dx,
+            y: p.dy,
+            opacity: [0, 1, 0],
+            scale: [0, 1, 0.3],
+            rotate: p.rotate,
+          }}
+          transition={{ duration: 0.7, delay: p.delay, ease: "easeOut" }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function Footer() {
+  const [copied, setCopied] = useState(false);
+
+  const fallbackCopyText = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand("copy");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Fallback copy failed: ", err);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const email = "Contact@maherfayad.com";
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(email)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch((err) => {
+          console.error("Clipboard copy failed: ", err);
+          fallbackCopyText(email);
+        });
+    } else {
+      fallbackCopyText(email);
+    }
+  };
+
   return (
     <footer className="pb-10">
       {/* Footer Top Section (Logo, Labels, and CTA) */}
@@ -64,12 +152,39 @@ export default function Footer() {
         </Reveal>
 
         <Reveal className="col-[8/13] sm:col-[1/5] lg:col-[8/13] max-sm:col-[1/5] max-sm:row-start-2 sm:row-start-2 max-sm:mt-10 flex flex-col items-end text-right">
-          <a
-            href="mailto:Contact@maherfayad.com"
-            className="mt-[30px] max-sm:mt-4 max-sm:text-[20px] font-medium text-[38px] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] underline decoration-[7%] underline-offset-[12.5%] hover:opacity-70 lg:max-dt:text-[clamp(24px,2.8vw,34px)] sm:max-dt:text-[clamp(20px,2.5vw,24px)] dt:text-[38px] break-all text-right"
-          >
-            Contact@maherfayad.com
-          </a>
+          <div className="relative inline-block mt-[30px] max-sm:mt-4 text-right">
+            <a
+              onClick={handleCopy}
+              className="font-medium text-[38px] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] underline decoration-[7%] underline-offset-[12.5%] hover:opacity-70 lg:max-dt:text-[clamp(24px,2.8vw,34px)] sm:max-dt:text-[clamp(20px,2.5vw,24px)] dt:text-[38px] break-all cursor-pointer"
+            >
+              Contact@maherfayad.com
+            </a>
+            <AnimatePresence>
+              {copied && (
+                <>
+                  <FooterConfetti />
+                  <motion.span
+                    initial={{ opacity: 0, y: 10, scale: 0.9, x: "-50%" }}
+                    animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95, x: "-50%" }}
+                    transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                    className="absolute bottom-full left-1/2 mb-3 px-2.5 py-1.5 text-[10px] font-bold text-white bg-black border border-white/10 rounded shadow-[0_4px_12px_rgba(0,0,0,0.5)] pointer-events-none whitespace-nowrap z-50 uppercase tracking-wider leading-none flex items-center gap-1.5"
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3 w-3 shrink-0">
+                      <path
+                        d="M16.667 5.833 8.333 14.167 3.333 9.167"
+                        stroke="#1CCECB"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>Copied!</span>
+                  </motion.span>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </Reveal>
       </div>
     </footer>
