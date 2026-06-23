@@ -71,6 +71,22 @@ export default function WorkPage() {
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 )}
+                {project.externalUrl && (
+                  <div className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-[#c5c5c5] transition-all duration-300 lg:opacity-0 lg:translate-x-2 lg:-translate-y-2 group-hover:lg:opacity-100 group-hover:lg:translate-x-0 group-hover:lg:translate-y-0">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-[1.05rem] h-[1.05rem]"
+                    >
+                      <line x1="7" y1="17" x2="17" y2="7" />
+                      <polyline points="7 7 17 7 17 17" />
+                    </svg>
+                  </div>
+                )}
               </button>
               <button
                 type="button"

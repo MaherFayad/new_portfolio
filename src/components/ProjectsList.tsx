@@ -225,6 +225,22 @@ export default function ProjectsList() {
                       className="object-cover"
                     />
                   )}
+                  {project.externalUrl && (
+                    <div className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-[#c5c5c5]">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-[1.05rem] h-[1.05rem]"
+                      >
+                        <line x1="7" y1="17" x2="17" y2="7" />
+                        <polyline points="7 7 17 7 17 17" />
+                      </svg>
+                    </div>
+                  )}
                 </button>
                 <button
                   type="button"
@@ -260,7 +276,7 @@ export default function ProjectsList() {
                   href={getHref(project)}
                   target={project.externalUrl ? "_blank" : undefined}
                   rel={project.externalUrl ? "noopener noreferrer" : undefined}
-                  className="font-medium text-[clamp(40px,3.462vw-8.47px,58px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] no-underline text-right w-full block transition-opacity duration-300 max-sm:text-[clamp(24px,6vw,32px)] lg:max-dt:text-[clamp(40px,4.8vw-9.15px,58px)] dt:text-[clamp(40px,3.462vw-8.47px,58px)]"
+                  className="font-medium text-[clamp(40px,3.462vw-8.47px,58px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] no-underline w-full flex items-center justify-end transition-opacity duration-300 max-sm:text-[clamp(24px,6vw,32px)] lg:max-dt:text-[clamp(40px,4.8vw-9.15px,58px)] dt:text-[clamp(40px,3.462vw-8.47px,58px)]"
                   style={{
                     opacity: hoveredIdx !== null && hoveredIdx !== index ? 0.3 : 1,
                   }}
@@ -269,6 +285,34 @@ export default function ProjectsList() {
                   onClick={(e) => handleClick(e, project)}
                 >
                   <AnimatedText text={project.title.replace("\n", " ")} className="projects-name-text" />
+                  {project.externalUrl && (
+                    <motion.span
+                      initial={{ width: 0, marginLeft: 0, opacity: 0, scale: 0.6, x: "-0.2em", y: "0.2em" }}
+                      animate={{
+                        width: hoveredIdx === index ? "0.75em" : 0,
+                        marginLeft: hoveredIdx === index ? "0.15em" : 0,
+                        opacity: hoveredIdx === index ? 1 : 0,
+                        scale: hoveredIdx === index ? 1 : 0.6,
+                        x: hoveredIdx === index ? 0 : "-0.2em",
+                        y: hoveredIdx === index ? 0 : "0.2em",
+                      }}
+                      transition={{ duration: 0.45, ease: [0.76, 0, 0.24, 1] }}
+                      className="inline-flex items-center justify-center shrink-0 overflow-hidden text-current"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-[0.75em] h-[0.75em]"
+                      >
+                        <line x1="7" y1="17" x2="17" y2="7" />
+                        <polyline points="7 7 17 7 17 17" />
+                      </svg>
+                    </motion.span>
+                  )}
                 </a>
               </motion.div>
             ))}
