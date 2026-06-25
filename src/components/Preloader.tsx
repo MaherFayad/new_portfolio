@@ -411,14 +411,15 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
       });
 
       // Animation render loop
-      const clock = new THREE.Clock();
+      const timer = new THREE.Timer();
       const wobbleStrength = mobile ? 0.5 : 1;
 
       const animateLoop = () => {
         if (disposed) return;
 
-        const delta = clock.getDelta();
-        const elapsed = clock.getElapsedTime();
+        timer.update();
+        const delta = timer.getDelta();
+        const elapsed = timer.getElapsed();
 
         // 1. Revolve spheres in the same direction at different speeds
         ringA.rotation.y -= (mobile ? 0.22 : 0.3) * delta;
@@ -482,6 +483,7 @@ export default function Preloader({ onComplete, onStartExit }: PreloaderProps) {
         texB.dispose();
 
         renderer.dispose();
+        timer.dispose();
         ringARef.current = null;
         ringBRef.current = null;
       };
