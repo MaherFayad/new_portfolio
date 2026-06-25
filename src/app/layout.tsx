@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import RootLayoutClient from "./RootLayoutClient";
 import "./globals.css";
@@ -114,6 +115,7 @@ export default function RootLayout({
         />
         <RootLayoutClient>{children}</RootLayoutClient>
         <Analytics />
+        <SpeedInsights />
         <Script
           id="microsoft-clarity"
           strategy="afterInteractive"
