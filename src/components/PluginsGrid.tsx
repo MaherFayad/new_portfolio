@@ -5,45 +5,7 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Reveal from "./Reveal";
 import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
-
-interface Plugin {
-  name: string;
-  image: string;
-  link: string;
-  description: string;
-  glow: string;
-}
-
-const PLUGINS: Plugin[] = [
-  {
-    name: "Primitive & Semantic Colors Generator",
-    image: "/assets/Plugins/primitive_colors_generator_1x.webp",
-    link: "https://www.figma.com/community/plugin/1444818529763652434/primitive-semantic-colors-generator/",
-    description: "Create, manage, and document comprehensive color systems with ease. Perfect for design systems, brand guidelines, and maintaining color consistency across projects.",
-    glow: "rgba(0, 217, 174, 0.12)"
-  },
-  {
-    name: "Numeric Tokens Generator",
-    image: "/assets/Plugins/numeric_tokens_generator_1x.webp",
-    link: "https://www.figma.com/community/plugin/1457720620225105340/numeric-tokens-generator",
-    description: "Transform your design workflow with a comprehensive design system generator that creates and manages typography, spacing, border radius, and shadow systems.",
-    glow: "rgba(164, 53, 240, 0.12)"
-  },
-  {
-    name: "Swap All Variables",
-    image: "/assets/Plugins/swap_all_variables_1x.png",
-    link: "https://www.figma.com/community/plugin/1573002470488884027",
-    description: "Swap every variable in a file to a target library in one pass, with scope controls and the option to export non-swapped variables for cleanup.",
-    glow: "rgba(59, 130, 246, 0.12)"
-  },
-  {
-    name: "Missing Variable Finder",
-    image: "/assets/Plugins/missing_variable_finder_1x.png",
-    link: "https://www.figma.com/community/plugin/1574527445158450447",
-    description: "Scan a file for variables that are undefined or missing from imported libraries, grouped by type with node counts so nothing slips through.",
-    glow: "rgba(0, 191, 255, 0.12)"
-  },
-];
+import { PLUGINS, type Plugin } from "@/data/plugins";
 
 function PluginCardStatic({ plugin }: { plugin: Plugin }) {
   return (

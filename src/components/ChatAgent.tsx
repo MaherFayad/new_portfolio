@@ -147,7 +147,7 @@ const MOCK_SCENARIOS: Record<string, { thoughts: string[]; text: string }> = {
   },
   plugins: {
     thoughts: ["Listing Figma plugins..."],
-    text: "Maher has published a couple of Figma plugins. [PluginCard: primitive-semantic-colors-generator][PluginCard: numeric-tokens-generator]",
+    text: "Maher has published four Figma plugins. [PluginCard: primitive-semantic-colors-generator][PluginCard: numeric-tokens-generator][PluginCard: swap-all-variables][PluginCard: missing-variable-finder]",
   },
   mixed: {
     thoughts: ["Compiling a mixed recommendation..."],
@@ -176,6 +176,51 @@ const MOCK_SCENARIOS: Record<string, { thoughts: string[]; text: string }> = {
     text: "Thanks for waiting! That was a longer thinking sequence to test the live status console.",
   },
 };
+
+// Silly, throwaway placeholder lines shown while the agent is "thinking" — purely for fun,
+// swapped in on top of the real (meaningful) status/thoughts pipeline below.
+const FUNNY_THINKING_MESSAGES: string[] = [
+  "Spelunking through a cave system for clues...",
+  "Battling a dragon guarding the answer...",
+  "Bribing a wizard for portfolio secrets...",
+  "Consulting the ancient scrolls of Figma...",
+  "Riding a unicorn to the nearest data center...",
+  "Negotiating with a sphinx for the riddle's answer...",
+  "Digging through a goblin's treasure hoard...",
+  "Asking a fortune teller very nicely...",
+  "Untangling a ball of yarn the size of a planet...",
+  "Racing a cheetah to the finish line of knowledge...",
+  "Bartering with pirates for the treasure map...",
+  "Climbing Mount Everest for better wifi signal...",
+  "Deciphering hieroglyphics in a pyramid...",
+  "Outsmarting a riddle-loving troll under a bridge...",
+  "Summoning a genie for three wishes (used one already)...",
+  "Sailing across the seven seas of the internet...",
+  "Wrestling an octopus for the last puzzle piece...",
+  "Chasing a runaway thought through a labyrinth...",
+  "Interrogating a very stubborn parrot...",
+  "Taming a wild database with a lasso...",
+  "Sneaking past a sleeping giant for the answer key...",
+  "Trading secrets with a talking raven...",
+  "Excavating an ancient server room...",
+  "Solving a Rubik's Cube blindfolded for fun...",
+  "Outrunning an avalanche of ideas...",
+  "Consulting a crystal ball (it's a bit foggy)...",
+  "Herding cats toward the correct answer...",
+  "Building a rocket ship to reach the cloud faster...",
+  "Playing chess with a very smug owl...",
+  "Mining for gold nuggets of wisdom...",
+  "Escaping a maze of endless browser tabs...",
+  "Asking the office plant for its opinion...",
+  "Charming a snake to reveal the secret...",
+  "Fixing a time machine to fetch the answer sooner...",
+  "Decoding a message in a bottle...",
+  "Balancing on a tightrope over a pit of bugs...",
+  "Petting a dragon until it shares its hoard...",
+  "Negotiating a truce with a grumpy printer...",
+  "Flying a paper airplane to the archives...",
+  "Whispering to the rubber duck for guidance...",
+];
 
 const MOCK_HELP_TEXT = `Mock test commands (dev only, no tokens used):
 /mock project — single project card
@@ -294,9 +339,10 @@ interface ThoughtAccordionProps {
   thoughts: string[];
   status?: string;
   isLive?: boolean;
+  funnyText?: string;
 }
 
-function ThoughtAccordion({ thoughts, status, isLive = false }: ThoughtAccordionProps) {
+function ThoughtAccordion({ thoughts, status, isLive = false, funnyText }: ThoughtAccordionProps) {
   // If not live, do not show the thinking process anymore
   if (!isLive) {
     return null;
@@ -311,16 +357,28 @@ function ThoughtAccordion({ thoughts, status, isLive = false }: ThoughtAccordion
     .map(t => formatThoughtText(t))
     .filter(t => t.length > 0);
 
-  // Single line, no spinner, text fades in and out (pulse)
-  const activeText = formattedThoughts.length > 0
-    ? formattedThoughts[formattedThoughts.length - 1]
-    : displayStatus;
+  // Single line, no spinner, text fades in and out (pulse). The gag rotator (funnyText) takes
+  // priority over the real scripted status/thoughts — it's just for fun while the user waits.
+  const activeText = funnyText
+    ? funnyText
+    : formattedThoughts.length > 0
+      ? formattedThoughts[formattedThoughts.length - 1]
+      : displayStatus;
 
   return (
     <div className="flex items-center gap-2.5 w-full my-2 text-left">
-      <span className="text-xs text-white/40 font-semibold tracking-wide animate-pulse">
-        {activeText}
-      </span>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={activeText}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25 }}
+          className="text-xs text-white/40 font-semibold tracking-wide"
+        >
+          {activeText}
+        </motion.span>
+      </AnimatePresence>
     </div>
   );
 }
@@ -630,6 +688,7 @@ export default function ChatAgent() {
   const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
   const [currentThoughts, setCurrentThoughts] = useState<string[]>([]);
   const [currentStatus, setCurrentStatus] = useState("");
+  const [funnyThinking, setFunnyThinking] = useState("");
   const [streamingText, setStreamingText] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
@@ -702,6 +761,32 @@ export default function ChatAgent() {
       return () => clearTimeout(timer);
     }
   }, [messages, currentThoughts, currentStatus, isContentVisible]);
+
+  // Silly "thinking" placeholder rotator — shuffles through FUNNY_THINKING_MESSAGES every 2s
+  // while the agent is typing (mocked or real, doesn't matter), purely for fun. Stops once
+  // actual content starts streaming in.
+  useEffect(() => {
+    if (!isTyping || streamingText) {
+      setFunnyThinking("");
+      return;
+    }
+
+    const pickRandom = (previous: string) => {
+      if (FUNNY_THINKING_MESSAGES.length <= 1) return FUNNY_THINKING_MESSAGES[0] ?? "";
+      let next = previous;
+      while (next === previous) {
+        next = FUNNY_THINKING_MESSAGES[Math.floor(Math.random() * FUNNY_THINKING_MESSAGES.length)];
+      }
+      return next;
+    };
+
+    setFunnyThinking((prev) => pickRandom(prev));
+    const interval = setInterval(() => {
+      setFunnyThinking((prev) => pickRandom(prev));
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isTyping, streamingText]);
 
   // Lock body scroll while the chat is open. This also prevents iOS Safari from
   // scrolling the whole page (and the "fixed" overlay with it) when the on-screen
@@ -825,11 +910,22 @@ export default function ChatAgent() {
     };
   }, [isOpen]);
 
+  // Every reply — mocked or real — waits at least this long before the final content is
+  // revealed, so the funny thinking rotator always gets a beat to be seen (never flashes by).
+  const MIN_THINKING_MS = 2000;
+  const ensureMinThinking = async (startedAt: number) => {
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < MIN_THINKING_MS) {
+      await new Promise((resolve) => setTimeout(resolve, MIN_THINKING_MS - elapsed));
+    }
+  };
+
   // Dev-only: simulate SSE responses locally so UI states can be tested without
   // hitting the backend or spending LLM tokens. Trigger with "/mock <key>".
   const handleMockMessage = async (text: string) => {
     const key = text.slice("/mock".length).trim().toLowerCase();
     const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const thinkingStart = Date.now();
 
     setInputValue("");
     setIsTyping(true);
@@ -841,10 +937,12 @@ export default function ChatAgent() {
     try {
       if (key === "error") {
         await delay(500);
+        await ensureMinThinking(thinkingStart);
         throw new Error("Failed to communicate with representative server.");
       }
       if (key === "ratelimit" || key === "rate-limit" || key === "429") {
         await delay(500);
+        await ensureMinThinking(thinkingStart);
         setMessages((prev) => [
           ...prev,
           {
@@ -858,6 +956,7 @@ export default function ChatAgent() {
       const scenario = MOCK_SCENARIOS[key];
       if (!scenario) {
         await delay(300);
+        await ensureMinThinking(thinkingStart);
         setMessages((prev) => [...prev, { role: "assistant", content: MOCK_HELP_TEXT }]);
         return;
       }
@@ -867,6 +966,8 @@ export default function ChatAgent() {
         setCurrentThoughts((prev) => [...prev, thought]);
         await delay(400);
       }
+
+      await ensureMinThinking(thinkingStart);
 
       const words = scenario.text.split(" ");
       let assembled = "";
@@ -911,6 +1012,7 @@ export default function ChatAgent() {
     }
     if (isTyping) return;
 
+    const thinkingStart = Date.now();
     setInputValue("");
     setMessages((prev) => [...prev, { role: "user", content: prompt.label }]);
     setIsTyping(true);
@@ -918,7 +1020,7 @@ export default function ChatAgent() {
     setCurrentThoughts([]);
     setCurrentStatus("Pulling together a few highlights...");
 
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    await ensureMinThinking(thinkingStart);
 
     setMessages((prev) => [...prev, { role: "assistant", content: prompt.cannedResponse! }]);
     setIsTyping(false);
@@ -944,6 +1046,7 @@ export default function ChatAgent() {
       lowerText.includes("available for new opportunities");
 
     if (isSuggestedPrompt) {
+      const thinkingStart = Date.now();
       setInputValue("");
       setIsTyping(true);
       setStreamingText("");
@@ -968,6 +1071,7 @@ export default function ChatAgent() {
           await delay(500);
 
           const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. As part of the team, he helped restructure the enterprise payroll portal, contributing to a +47% increase in digital account openings and an +81% lift in transaction volumes. [ProjectCard: alrajhi-bank-payroll]";
+          await ensureMinThinking(thinkingStart);
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome...", "Generating project card presentation..."] }]);
         } else if (lowerText.includes("results has he driven")) {
@@ -984,6 +1088,7 @@ export default function ChatAgent() {
           await delay(500);
 
           const reply = "Maher's work has driven measurable, outcome-first results for both enterprise clients and startups:\n\n• **Al Rajhi Bank**: Part of the team that redesigned the payroll and e-business platforms, contributing to a +47% boost in digital account openings and +81% in transaction volumes.\n• **Theradome**: Relaunched their e-commerce funnel, driving a +32% increase in sales conversion.\n• **LFG App**: Simplified onboarding, leading to a 28% drop in sign-up abandonment.\n\n[ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg]";
+          await ensureMinThinking(thinkingStart);
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Querying client testimonials...", "Aggregating performance metrics...", "Processing conversion lift figures...", "Formatting analytics tables..."] }]);
         } else {
@@ -1000,6 +1105,7 @@ export default function ChatAgent() {
           await delay(500);
 
           const reply = "Yes, Maher is available for new opportunities! He is currently accepting freelance opportunities.\n\nYou can reach out to him directly at Contact@maherfayad.com or schedule a 30-minute call directly through the booking link below. [BookMeetingButton]";
+          await ensureMinThinking(thinkingStart);
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Checking calendar availability...", "Verifying timezone slots...", "Retrieving calendar scheduling API...", "Preparing booking portal integration..."] }]);
         }
@@ -1019,6 +1125,7 @@ export default function ChatAgent() {
     }
 
     // Reset input
+    const thinkingStart = Date.now();
     setInputValue("");
     setIsTyping(true);
     setStreamingText("");
@@ -1078,6 +1185,7 @@ export default function ChatAgent() {
       let buffer = "";
       let assistantText = "";
       let thoughtsList: string[] = [];
+      let hasShownFirstResult = false;
 
       // Read SSE stream
       while (true) {
@@ -1111,6 +1219,10 @@ export default function ChatAgent() {
               thoughtsList = [...thoughtsList, data.trim()];
               setCurrentThoughts(thoughtsList);
             } else if (currentEvent === "result") {
+              if (!hasShownFirstResult) {
+                hasShownFirstResult = true;
+                await ensureMinThinking(thinkingStart);
+              }
               assistantText += data.replace(/\\n/g, "\n");
               setStreamingText(assistantText);
             } else if (currentEvent === "error") {
@@ -1141,6 +1253,7 @@ export default function ChatAgent() {
         ? "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]"
         : (err.message || "An unexpected error occurred. Please try again.");
 
+      await ensureMinThinking(thinkingStart);
       setMessages((prev) => [
         ...prev,
         {
@@ -1546,10 +1659,11 @@ export default function ChatAgent() {
 
                                 {/* ChatGPT-style thinking block + streaming text */}
                                 <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                                  {(currentThoughts.length > 0 || currentStatus) && (
+                                  {(currentThoughts.length > 0 || currentStatus || funnyThinking) && (
                                     <ThoughtAccordion
                                       thoughts={currentThoughts}
                                       status={currentStatus}
+                                      funnyText={funnyThinking}
                                       isLive={true}
                                     />
                                   )}
