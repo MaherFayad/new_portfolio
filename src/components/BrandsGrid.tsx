@@ -270,7 +270,7 @@ export default function BrandsGrid() {
         </Reveal>
 
         {/* Right content column */}
-        <div className="col-span-10 lg:col-[3/13] sm:col-[1/5] max-sm:col-span-1 flex flex-col gap-10">
+        <div className="col-span-10 lg:col-[3/12] sm:col-[1/5] max-sm:col-span-1 flex flex-col gap-10">
           <Reveal>
             <h2 className="font-medium text-[clamp(28px,2.5vw,48px)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
               Worked with these amazing brands

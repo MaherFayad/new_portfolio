@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Reveal from "./Reveal";
 import { useMouseEffectsEnabled } from "@/hooks/useMouseEffectsEnabled";
@@ -28,6 +28,20 @@ const PLUGINS: Plugin[] = [
     link: "https://www.figma.com/community/plugin/1457720620225105340/numeric-tokens-generator",
     description: "Transform your design workflow with a comprehensive design system generator that creates and manages typography, spacing, border radius, and shadow systems.",
     glow: "rgba(164, 53, 240, 0.12)"
+  },
+  {
+    name: "Swap All Variables",
+    image: "/assets/Plugins/swap_all_variables_1x.png",
+    link: "https://www.figma.com/community/plugin/1573002470488884027",
+    description: "Swap every variable in a file to a target library in one pass, with scope controls and the option to export non-swapped variables for cleanup.",
+    glow: "rgba(59, 130, 246, 0.12)"
+  },
+  {
+    name: "Missing Variable Finder",
+    image: "/assets/Plugins/missing_variable_finder_1x.png",
+    link: "https://www.figma.com/community/plugin/1574527445158450447",
+    description: "Scan a file for variables that are undefined or missing from imported libraries, grouped by type with node counts so nothing slips through.",
+    glow: "rgba(0, 191, 255, 0.12)"
   },
 ];
 
@@ -175,50 +189,116 @@ function PluginCard({
 
 export default function PluginsGrid() {
   const mouseEffectsEnabled = useMouseEffectsEnabled();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const updateScrollState = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollPrev(el.scrollLeft > 4);
+    setCanScrollNext(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => {
+    updateScrollState();
+    window.addEventListener("resize", updateScrollState);
+    return () => window.removeEventListener("resize", updateScrollState);
+  }, []);
+
+  const scrollByCard = (direction: 1 | -1) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const firstCard = el.querySelector<HTMLElement>(".snap-start");
+    const cardWidth = firstCard ? firstCard.getBoundingClientRect().width + 20 : el.clientWidth / 3;
+    el.scrollBy({ left: direction * cardWidth, behavior: "smooth" });
+  };
 
   return (
-    <section className="relative w-full py-10">
+    <section className="relative w-full py-10 overflow-hidden">
+      {/* Header row (12-column aligned) */}
       <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
-        
+
         {/* Left-aligned vertical column header matching page style */}
         <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Figma</span>
           <span>Plugins</span>
         </Reveal>
 
-        {/* Right content column */}
-        <div className="col-span-10 lg:col-[3/13] sm:col-[1/5] max-sm:col-span-1 flex flex-col gap-10">
-          <Reveal>
-            <h2 className="font-medium text-[clamp(28px,2.5vw,48px)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
-              Figma plugins I developed
-            </h2>
-          </Reveal>
+        <Reveal className="col-span-10 lg:col-[3/12] sm:col-[1/5] max-sm:col-span-1">
+          <h2 className="font-medium text-[clamp(28px,2.5vw,48px)] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">
+            Figma plugins I developed
+          </h2>
+        </Reveal>
+      </div>
 
-          {/* Mobile: horizontal scroll */}
-          <div className="lg:hidden">
-            <MobileHorizontalScroll className="">
-              {PLUGINS.map((plugin, idx) => (
-                <div
-                  key={plugin.name}
-                  className="shrink-0 snap-start"
-                  style={{ width: "min(82vw, 420px)" }}
-                >
-                  <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />
-                </div>
-              ))}
-            </MobileHorizontalScroll>
-          </div>
+      {/* Mobile: horizontal scroll */}
+      <div className="lg:hidden mt-10 grid grid-cols-1 sm:grid-cols-4 gap-5 max-sm:gap-3">
+        <div className="col-span-1 sm:col-[1/5]">
+          <MobileHorizontalScroll className="">
+            {PLUGINS.map((plugin) => (
+              <div
+                key={plugin.name}
+                className="shrink-0 snap-start"
+                style={{ width: "min(82vw, 420px)" }}
+              >
+                <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />
+              </div>
+            ))}
+          </MobileHorizontalScroll>
+        </div>
+      </div>
 
-          {/* Desktop: grid */}
-          <div className="hidden lg:grid grid-cols-2 gap-6" style={{ perspective: 1000 }}>
+      {/* Desktop: fixed-width cards matching DevPlayground, scrollable, row bleeds to viewport edge so the
+          next card always peeks on the right; left edge stays clipped to the header column. */}
+      <div className="hidden lg:grid grid-cols-12 gap-5 mt-10 items-start">
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollState}
+          data-lenis-prevent
+          className="col-[3/-1] overflow-x-auto overscroll-x-contain scroll-smooth snap-x snap-mandatory [-webkit-overflow-scrolling:touch] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div className="flex gap-5" style={{ perspective: 1000 }}>
             {PLUGINS.map((plugin, idx) => (
-              <Reveal key={plugin.name} delay={idx * 0.04}>
+              <Reveal
+                key={plugin.name}
+                delay={idx * 0.04}
+                className="shrink-0 snap-start"
+                style={{ width: "calc((100% - 3 * 1.25rem) / 3.25)" }}
+              >
                 <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />
               </Reveal>
             ))}
           </div>
         </div>
+      </div>
 
+      {/* Prev/Next controls, matching Certificates carousel */}
+      <div className="hidden lg:grid grid-cols-12 gap-5 mt-10 items-start">
+        <div className="col-[3/5] flex gap-2">
+          <button
+            onClick={() => scrollByCard(-1)}
+            disabled={!canScrollPrev}
+            aria-label="Previous plugin"
+            className="group w-[clamp(60px,12vw,86px)] lg:w-[86px] h-14 rounded-full bg-[rgba(197,197,197,0.15)] border-none outline-none cursor-pointer flex justify-center items-center relative overflow-hidden transition-all duration-300 z-1 hover:animate-[rotate_0.7s_ease-in-out_both] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:animate-none [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:pointer-events-none [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]"
+            type="button"
+          >
+            <span>
+              <img alt="Previous" className="block z-2 transition-[filter] duration-300 w-6 h-6 lg:w-8 lg:h-8" src="/arl.svg" />
+            </span>
+          </button>
+          <button
+            onClick={() => scrollByCard(1)}
+            disabled={!canScrollNext}
+            aria-label="Next plugin"
+            className="group w-[clamp(60px,12vw,86px)] lg:w-[86px] h-14 rounded-full bg-[rgba(197,197,197,0.15)] border-none outline-none cursor-pointer flex justify-center items-center relative overflow-hidden transition-all duration-300 z-1 hover:animate-[rotate_0.7s_ease-in-out_both] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:animate-none [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:pointer-events-none [&>span]:group-hover:animate-[storm_0.7s_ease-in-out_both] [&>span]:group-hover:[animation-delay:0.06s]"
+            type="button"
+          >
+            <span>
+              <img alt="Next" className="block z-2 transition-[filter] duration-300 w-6 h-6 lg:w-8 lg:h-8" src="/arr.svg" />
+            </span>
+          </button>
+        </div>
       </div>
     </section>
   );
