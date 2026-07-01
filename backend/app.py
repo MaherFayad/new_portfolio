@@ -152,7 +152,7 @@ SECTION_KEYWORDS = {
         "project", "case study", "work", "portfolio", "design", "lfg", "sanarte", "payroll",
         "alrajhi", "al rajhi", "airlab", "campus51", "deployo", "dhsc", "kobe", "nft", "pexlp",
         "sacred", "six clovers", "gallery", "app", "plugin", "figma", "primitive", "semantic",
-        "numeric", "token", "generator", "automation", "tool"
+        "numeric", "token", "generator", "automation", "tool", "swap", "variable", "missing", "finder"
     ],
     "Design Systems & Technical Skills": [
         "skill", "expert", "knowledge", "technology", "tool", "know", "do", "capability", "ability",
@@ -231,10 +231,12 @@ RULE_CONTACT = (
 RULE_PLUGINS = (
     "If mentioning Maher's Figma plugins or design system tools, you MUST list them using their respective plugin card "
     "tags back-to-back with absolutely NO text, spaces, formatting, bullet points, or newlines between them, "
-    "e.g. `[PluginCard: primitive-semantic-colors-generator][PluginCard: numeric-tokens-generator]`, so they group and "
-    "render as a scrollable horizontal gallery. Use correct slugs:\n"
+    "e.g. `[PluginCard: primitive-semantic-colors-generator][PluginCard: numeric-tokens-generator][PluginCard: swap-all-variables][PluginCard: missing-variable-finder]`, "
+    "so they group and render as a scrollable horizontal gallery. Use correct slugs:\n"
     "   - Primitive & Semantic Colors Generator -> `primitive-semantic-colors-generator`\n"
-    "   - Numeric Tokens Generator -> `numeric-tokens-generator`"
+    "   - Numeric Tokens Generator -> `numeric-tokens-generator`\n"
+    "   - Swap All Variables -> `swap-all-variables`\n"
+    "   - Missing Variable Finder -> `missing-variable-finder`"
 )
 
 RULE_NAVIGATION = (
@@ -295,7 +297,8 @@ RULE_TRIGGERS = [
     {
         "rule": RULE_PLUGINS,
         "keywords": [
-            "plugin", "figma", "primitive", "semantic", "numeric", "token", "generator", "automation", "tool"
+            "plugin", "figma", "primitive", "semantic", "numeric", "token", "generator", "automation", "tool",
+            "swap", "variable", "missing", "finder"
         ]
     },
     {

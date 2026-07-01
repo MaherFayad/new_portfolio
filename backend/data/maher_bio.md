@@ -56,6 +56,8 @@ Maher has collaborated with multiple clients globally, including:
 ### 4. Figma Community Plugins (Automations)
 - **Primitive Semantic Colors Generator**: A plugin automating color token generations in Figma.
 - **Numeric Tokens Generator**: A plugin automating numeric/spacing tokens in Figma.
+- **Swap All Variables**: A plugin that swaps every variable in a file to a target library in one pass, with scope controls and the option to export non-swapped variables for cleanup.
+- **Missing Variable Finder**: A plugin that scans a file for variables that are undefined or missing from imported libraries, grouped by type with node counts.
 - **Significance**: Authoring these plugins demonstrates Maher's focus on engineering alignment, reducing developer friction, and scaling team workflows.
 
 ### 5. Other Projects
