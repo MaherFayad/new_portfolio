@@ -18,6 +18,7 @@ import BadgesGrid from "@/components/BadgesGrid";
 import PluginsGrid from "@/components/PluginsGrid";
 import DevPlayground from "@/components/DevPlayground";
 import ParallaxMockups from "@/components/ParallaxMockups";
+import Testimonials from "@/components/Testimonials";
 import WhatIDoMobileCarousel from "@/components/WhatIDoMobileCarousel";
 import SiteHeader from "@/components/SiteHeader";
 
@@ -78,7 +79,7 @@ const SERVICES = [
     mobileImage: "/card6_compressed.webp",
     popupImage: "/sliderpopup/ppbg6.svg",
     subtitle: "Turning funnel data into design decisions with measurable outcomes",
-    paragraph: "Every redesign I ship starts and ends with the numbers. I build funnels in Amplitude, find the drop-offs, design against them, and verify the lift. That process is how we drove a +47% boost in account openings and +81% in transactions at Al Rajhi, where I was part of the design team.",
+    paragraph: "Every redesign I ship starts and ends with the numbers. I build funnels in Amplitude, find the drop-offs, design against them, and verify the lift. That process ran through the 41 revamps I delivered on the Al Rajhi e-business team, feeding the program that drove a +47% boost in account openings and +81% in transactions.",
     points: ["Funnel Analysis", "Drop-off Diagnosis", "A/B Test Design", "Dashboard Building", "Impact Measurement"],
     label: "Open Product Analytics details",
   },
@@ -90,7 +91,7 @@ const SERVICES_OFFERED = [
     ref: "01",
     name: "Product Design",
     description: "End-to-end product design for web and mobile, from problem framing and user flows to shipped, developer-ready UI.",
-    proof: "Part of the team that achieved +47% online account openings and +81% e-business transactions at Al Rajhi Bank.",
+    proof: "Shipped the Al Rajhi payroll revamp within the e-business program that lifted account openings 47% and transactions 81%.",
   },
   {
     ref: "02",
@@ -444,7 +445,7 @@ export default function HomePage() {
               I pride myself on crafting digital products that not only meet but exceed expectations, with outcomes I can put numbers on.
             </p>
             <p className="mt-[30px] max-sm:mt-4 ml-[35%] lg:ml-[25%] xl:ml-[35%] max-sm:ml-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
-              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, contributing as part of teams to results like 47% more account openings and 81% more transactions.
+              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, with work feeding results like 47% more account openings and 81% more transactions at Al Rajhi.
             </p>
           </div>
         </div>
@@ -543,7 +544,7 @@ export default function HomePage() {
           </Reveal>
 
           <Reveal delay={0.1} as="p" className="col-span-4 max-sm:col-start-1 max-sm:col-span-4 sm:col-[3/5] lg:col-[9/12] mt-[30px] max-sm:mt-4 max-sm:text-sm sm:mt-[10px] font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] text-[clamp(16px,0.8vw+0.8px,16px)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md">
-            Currently at Almosafer, the GCC&apos;s leading travel platform, after Al Rajhi Bank, AZMX, and Contact Financial Holding, delivering high-converting products.
+            Currently at Almosafer, the GCC&apos;s leading travel platform, designing bilingual booking funnels and design systems, after Al Rajhi Bank, AZMX, and Contact Financial Holding.
           </Reveal>
         </div>
 
@@ -557,6 +558,10 @@ export default function HomePage() {
         <BadgesGrid />
 
       </section>
+
+      {/* 9b. Testimonials (shared with About) */}
+      <WavyString className="max-sm:mt-10 mt-20" />
+      <Testimonials />
 
       {/* 10. Interactive Divider 3 */}
       <WavyString className="max-sm:mt-10 mt-20" />

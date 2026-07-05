@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Work | Senior Product Designer (GCC)",
   description:
-    "Selected product design work by Maher Fayad: mobile apps, design systems, and Web3 platforms shipped for Almosafer, Al Rajhi Bank, and freelance clients.",
+    "Selected product design work by Maher Fayad: banking and travel platforms, mobile apps, design systems, and web products shipped for Almosafer, Al Rajhi Bank, and freelance clients.",
   alternates: { canonical: "/work" },
 };
 

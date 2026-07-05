@@ -53,7 +53,7 @@ export default function WorkPage() {
           <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
             All Projects
           </span>
-          product design work across web, mobile, and Web3
+          product design work across banking, travel, mobile, and web platforms
         </Reveal>
       </section>
 

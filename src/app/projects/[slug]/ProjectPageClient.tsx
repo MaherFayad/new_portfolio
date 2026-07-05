@@ -11,6 +11,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SanarteCaseStudy from "@/components/projects/SanarteCaseStudy";
 import LFGCaseStudy from "@/components/projects/LFGCaseStudy";
 import CaseFramingSection from "@/components/projects/CaseFramingSection";
+import MiniCaseStudy from "@/components/projects/MiniCaseStudy";
 import ProjectNavActions from "@/components/projects/ProjectNavActions";
 import { PROJECTS } from "@/data/projects";
 
@@ -88,17 +89,20 @@ export default function ProjectPageClient() {
           ) : slug === "lfg" ? (
             <LFGCaseStudy />
           ) : (
-            galleryImages.map((imagePath, idx) => (
-              <Reveal key={idx} delay={idx * 0.05} className="w-full">
-                <img
-                  alt={galleryImageAlt(project.title, imagePath, idx)}
-                  src={imagePath}
-                  draggable="false"
-                  loading="lazy"
-                  className="w-full h-auto block object-cover max-w-full"
-                />
-              </Reveal>
-            ))
+            <>
+              {project.miniCase && <MiniCaseStudy miniCase={project.miniCase} />}
+              {galleryImages.map((imagePath, idx) => (
+                <Reveal key={idx} delay={idx * 0.05} className="w-full">
+                  <img
+                    alt={galleryImageAlt(project.title, imagePath, idx)}
+                    src={imagePath}
+                    draggable="false"
+                    loading="lazy"
+                    className="w-full h-auto block object-cover max-w-full"
+                  />
+                </Reveal>
+              ))}
+            </>
           )}
         </div>
       </div>

@@ -15,12 +15,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Case study hero should be title and subtitle only; avoid duplicate paragraphs that repeat framing content.
 - External project links (e.g. Behance) should open in a new tab via `externalUrl` on Project.
 - Use uppercase underlined link CTAs (like View CV on About) for secondary nav actions, not pill buttons.
+- Only publish metrics Maher has explicitly shared (Sanarte 30%, LFG 20%, Al Rajhi 47%/81%/41 revamps). Never add numbers or metric placeholders for Almosafer or other projects; some data is confidential.
 
 ## Learned Workspace Facts
 
 - Next.js portfolio for Maher Fayad; project data lives in `src/data/projects.ts`.
 - Contact form uses EmailJS client-side; no server API routes for contact or projects.
-- Al Rajhi Bank Payroll is project #3 (after LFG), links externally to Behance.
+- Al Rajhi Bank Payroll is project #1 (fintech/travel work leads, Web3 work grouped later), links externally to Behance.
+- Gallery-only projects carry a `miniCase` narrative (Context, What I did, Key decisions, Result) rendered by `MiniCaseStudy`; Sanarte and LFG keep dedicated case study components.
+- Testimonials live in shared `src/components/Testimonials.tsx`, rendered on both home and About.
 - Case pages use `CaseFramingSection` and `ProjectNavActions` ("What's next") components.
 - `@vercel/analytics` is wired in root layout for Vercel deployments.
 - About page Projects section uses `AboutProjectsScroll` (horizontal scroll), distinct from home `ProjectsList`; placed before Experience.
