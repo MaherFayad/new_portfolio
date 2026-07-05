@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { HomeRevealGateProvider } from "@/components/HomeRevealGate";
+import SiteHeader from "@/components/SiteHeader";
 import { PageTransitionProvider } from "@/components/PageTransition";
 import { initCalEmbed } from "@/components/BookMeetingButton";
 import ChatAgent from "@/components/ChatAgent";
@@ -50,6 +51,43 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
   const [preloaderActive, setPreloaderActive] = useState(true);
   const [pageActive, setPageActive] = useState(false);
   const prevPathRef = useRef(pathname);
+
+  const [stickyActive, setStickyActive] = useState(false);
+  const stickyActiveRef = useRef(false);
+
+  // Show/hide fixed sticky header on scroll up
+  useEffect(() => {
+    let lastScroll = 0;
+    let ticking = false;
+    const threshold = 180;
+
+    const updateSticky = () => {
+      ticking = false;
+      const currentScroll = window.scrollY;
+      const nextSticky = currentScroll > threshold && currentScroll < lastScroll;
+      if (nextSticky !== stickyActiveRef.current) {
+        stickyActiveRef.current = nextSticky;
+        setStickyActive(nextSticky);
+      }
+      lastScroll = currentScroll;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateSticky);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Reset sticky header active state on path changes
+  useEffect(() => {
+    setStickyActive(false);
+    stickyActiveRef.current = false;
+  }, [pathname]);
 
   const handlePreloaderComplete = useCallback(() => {
     setPreloaderActive(false);
@@ -204,6 +242,18 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
         )}
         {showPage && (
           <PageTransitionProvider>
+            {/* Sticky Header (Scroll Triggered) */}
+            <div
+              aria-hidden={!stickyActive}
+              className={`fixed top-0 left-0 right-0 z-50 pt-5 transition-transform duration-500 ease-in-out pointer-events-none ${
+                stickyActive ? "translate-y-0" : "-translate-y-[calc(100%+100px)]"
+              }`}
+            >
+              <div className="pointer-events-auto w-full px-[20px] max-sm:px-[12px] md:px-[20px] lg:px-[20px]">
+                <SiteHeader variant="sticky" />
+              </div>
+            </div>
+
             <div
               className="relative z-0"
               style={

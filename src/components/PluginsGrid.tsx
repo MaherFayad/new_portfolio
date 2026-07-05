@@ -11,7 +11,7 @@ function PluginCardStatic({ plugin }: { plugin: Plugin }) {
   return (
     <div
       onClick={() => window.open(plugin.link, "_blank", "noopener,noreferrer")}
-      className="relative flex flex-col gap-6 bg-white/[0.01] backdrop-blur-[6px] border border-white/5 rounded-[24px] p-6 cursor-pointer overflow-hidden transition-colors duration-300 hover:border-white/10 hover:bg-white/[0.03] lg:col-span-1 md:col-span-2 col-span-2"
+      className="relative flex flex-col gap-6 bg-white/[0.01] backdrop-blur-[6px] border border-white/5 rounded-[24px] p-6 cursor-pointer overflow-hidden transition-colors duration-300 hover:border-white/10 hover:bg-white/[0.03] lg:col-span-1 md:col-span-2 col-span-2 h-full"
     >
       <div className="w-full aspect-video rounded-xl overflow-hidden pointer-events-none">
         <img
@@ -20,7 +20,7 @@ function PluginCardStatic({ plugin }: { plugin: Plugin }) {
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 flex-grow">
         <h3 className="text-2xl max-sm:text-xl font-medium text-[#c5c5c5]">
           {plugin.name}
         </h3>
@@ -85,7 +85,7 @@ function PluginCardInteractive({ plugin }: { plugin: Plugin }) {
         scale,
         transformStyle: "preserve-3d",
       }}
-      className="relative flex flex-col gap-6 bg-white/[0.01] backdrop-blur-[6px] border border-white/5 rounded-[24px] p-6 cursor-pointer overflow-hidden transition-colors duration-300 hover:border-white/10 hover:bg-white/[0.03] lg:col-span-1 md:col-span-2 col-span-2"
+      className="relative flex flex-col gap-6 bg-white/[0.01] backdrop-blur-[6px] border border-white/5 rounded-[24px] p-6 cursor-pointer overflow-hidden transition-colors duration-300 hover:border-white/10 hover:bg-white/[0.03] lg:col-span-1 md:col-span-2 col-span-2 h-full"
     >
       {/* Interactive mouse tracking glow */}
       <div
@@ -118,7 +118,7 @@ function PluginCardInteractive({ plugin }: { plugin: Plugin }) {
 
       {/* Title & Desc */}
       <div 
-        className="flex flex-col gap-2 transition-transform duration-[0.6s]"
+        className="flex flex-col gap-2 transition-transform duration-[0.6s] flex-grow"
         style={{
           transform: hovered ? "translateZ(30px)" : "translateZ(0px)",
         }}
@@ -201,7 +201,7 @@ export default function PluginsGrid() {
             {PLUGINS.map((plugin) => (
               <div
                 key={plugin.name}
-                className="shrink-0 snap-start"
+                className="shrink-0 snap-start h-full flex flex-col"
                 style={{ width: "min(82vw, 420px)" }}
               >
                 <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />
@@ -225,7 +225,7 @@ export default function PluginsGrid() {
               <Reveal
                 key={plugin.name}
                 delay={idx * 0.04}
-                className="shrink-0 snap-start"
+                className="shrink-0 snap-start h-full flex flex-col"
                 style={{ width: "calc((100% - 3 * 1.25rem) / 3.25)" }}
               >
                 <PluginCard plugin={plugin} mouseEffectsEnabled={mouseEffectsEnabled} />

@@ -122,44 +122,14 @@ const RESULTS = [
 
 export default function HomePage() {
   const router = useRouter();
-  const [stickyActive, setStickyActive] = useState(false);
   const [slideIdx, setSlideIdx] = useState(SERVICES.length);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState("honors");
-  const stickyActiveRef = useRef(false);
   const activeSectionRef = useRef("honors");
 
   useEffect(() => {
     void import("@/components/SliderPopup");
-  }, []);
-
-  // Show/hide fixed sticky header on scroll up
-  useEffect(() => {
-    let lastScroll = 0;
-    let ticking = false;
-    const threshold = 180;
-
-    const updateSticky = () => {
-      ticking = false;
-      const currentScroll = window.scrollY;
-      const nextSticky = currentScroll > threshold && currentScroll < lastScroll;
-      if (nextSticky !== stickyActiveRef.current) {
-        stickyActiveRef.current = nextSticky;
-        setStickyActive(nextSticky);
-      }
-      lastScroll = currentScroll;
-    };
-
-    const handleScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(updateSticky);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Track active section for right sidebar navigation
@@ -229,16 +199,7 @@ export default function HomePage() {
         <SiteHeader variant="static" />
       </Reveal>
 
-      {/* 2. Sticky Header (Scroll Triggered) */}
-      <div
-        aria-hidden={!stickyActive}
-        className={`fixed top-0 left-0 right-0 z-50 pt-5 transition-transform duration-500 ease-in-out pointer-events-none ${stickyActive ? "translate-y-0" : "-translate-y-[calc(100%+100px)]"
-          }`}
-      >
-        <div className="pointer-events-auto w-full px-[20px] max-sm:px-[12px] md:px-[20px] lg:px-[20px]">
-          <SiteHeader variant="sticky" />
-        </div>
-      </div>
+
 
       {/* 3. Hero Section */}
       <section id="hero-section" className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start max-sm:h-auto max-sm:min-h-0 rp-hero-section lg:h-auto lg:!mt-[calc(843.5658px-17.7514vw)] min-[1024px]:max-[1399px]:h-[450px] min-[1024px]:max-[1399px]:!mt-[80px] sm:max-lg:h-auto sm:max-lg:!mt-[140px] max-sm:!mt-[160px]">
