@@ -97,20 +97,27 @@ const SERVICES_OFFERED = [
     ref: "02",
     name: "Design Systems",
     description: "Scalable, token-driven design systems and Figma libraries, including bilingual AR/EN and RTL components, so teams ship consistent UI faster.",
-    proof: "author of two published Figma community plugins that automate color and numeric tokens.",
+    proof: "Author of two published Figma community plugins that automate color and numeric tokens.",
   },
   {
     ref: "03",
     name: "UX Audits",
     description: "Heuristic and accessibility audits that turn usability friction into a prioritized, build-ready list of fixes.",
-    proof: "delivered 41 revamps and enhancements across Al Rajhi e-business platforms.",
+    proof: "Delivered 41 revamps and enhancements across Al Rajhi e-business platforms.",
   },
   {
     ref: "04",
     name: "Analytics-informed Design",
     description: "Funnel and behavioral analytics translated into design decisions that measurably move conversion and engagement.",
-    proof: "bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
+    proof: "Bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
   },
+];
+
+// Headline results, given their own visual weight so they land on a skim.
+const RESULTS = [
+  { value: "+47%", label: ["ACCOUNT OPENINGS", "AT AL RAJHI"] },
+  { value: "+81%", label: ["E-BUSINESS", "TRANSACTIONS"] },
+  { value: "41", label: ["PLATFORM REVAMPS", "DELIVERED"] },
 ];
 
 export default function HomePage() {
@@ -291,10 +298,10 @@ export default function HomePage() {
         {/* Hero Title Heading */}
         <Reveal aboveFold as="h1" className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-1 max-sm:text-[clamp(28px,8vw,40px)] sm:col-[1/5] sm:row-start-1 sm:text-[clamp(48px,4.688vw,68px)] lg:col-[3/10] dt:text-[clamp(46px,3.462vw-2.46px,64px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] text-[#c5c5c5] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[100%] tracking-[-0.06em] self-start">
           <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
-            Interfaces and digital
+            Senior Product Designer
           </span>
-          brands that accelerate
-          revenue
+          crafting interfaces that
+          accelerate revenue
         </Reveal>
 
         {/* Design Awards Stats */}
@@ -303,10 +310,10 @@ export default function HomePage() {
             50+
           </span>
           <span className="flex flex-col [&>span]:block">
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
               COMPLETED
             </span>
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
               PROJECTS
             </span>
           </span>
@@ -318,10 +325,10 @@ export default function HomePage() {
             4+
           </span>
           <span className="flex flex-col [&>span]:block">
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
               YEARS OF
             </span>
-            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
+            <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
               EXPERIENCE
             </span>
           </span>
@@ -343,7 +350,7 @@ export default function HomePage() {
 
         {/* Header reveal */}
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-[last_baseline]">
-          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>Types of</span>
             <span>Activities</span>
           </span>
@@ -444,7 +451,7 @@ export default function HomePage() {
               <span className="inline-block w-[35%] lg:w-[25%] xl:w-[35%]" />
               I pride myself on crafting digital products that not only meet but exceed expectations, with outcomes I can put numbers on.
             </p>
-            <p className="mt-[30px] max-sm:mt-4 ml-[35%] lg:ml-[25%] xl:ml-[35%] max-sm:ml-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
+            <p className="mt-[30px] max-sm:mt-4 ml-[35%] lg:ml-[25%] xl:ml-[35%] max-sm:ml-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)]">
               From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, with work feeding results like 47% more account openings and 81% more transactions at Al Rajhi.
             </p>
           </div>
@@ -458,23 +465,24 @@ export default function HomePage() {
       {/* 7c. Services (dual-audience, outcome-led) */}
       <section className="mt-16">
         <Reveal className="grid max-lg:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
-          <span className="col-span-1 max-lg:hidden lg:flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+          <span className="col-span-1 max-lg:hidden lg:flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>How I</span>
             <span>Help</span>
           </span>
           <h2 className="max-lg:col-[1/5] lg:col-[3/6] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(28px,8vw,36px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)]">
             Services
           </h2>
-          <p className="max-lg:col-[1/5] lg:col-[8/12] max-lg:mt-4 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] lg:self-end">
-            For teams hiring senior individual contributors across the GCC and remote, and for founders and agencies who need a designer who ships. Every engagement is scoped to a business result.
+          <p className="max-lg:col-[1/5] lg:col-[8/12] max-lg:mt-4 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] lg:self-end">
+            The craft above, packaged into engagements: for teams hiring senior individual contributors across the GCC and remote, and for founders and agencies who need a designer who ships. Every engagement is scoped to a business result.
           </p>
         </Reveal>
+
 
         <div className="mt-[50px] max-sm:mt-6 border-t border-white/10">
           {SERVICES_OFFERED.map((svc, idx) => (
             <Reveal key={svc.name} delay={idx * 0.04}>
               <div className="grid max-lg:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 py-10 max-sm:py-6 border-b border-white/10 items-start">
-                <span className="max-lg:col-[1/5] lg:col-[3/4] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)]">
+                <span className="max-lg:col-[1/5] lg:col-[3/4] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)]">
                   {svc.ref}
                 </span>
                 <h3 className="max-lg:col-[1/5] lg:col-[4/8] font-medium text-[clamp(24px,1.8vw,32px)] max-sm:text-[20px] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] max-lg:mt-1">
@@ -505,14 +513,14 @@ export default function HomePage() {
         <div className="relative z-[1] grid grid-cols-12 max-sm:grid-cols-2 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
 
           {/* Header left */}
-          <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+          <Reveal className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>About</span>
             <span>Maher</span>
           </Reveal>
 
           {/* Logo middle */}
           <div className="col-[3/5] max-sm:col-span-1 sm:col-[1/3] lg:col-[3/5]">
-            <Reveal delay={0.2} as="p" className="max-sm:text-sm font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] lg:max-dt:text-[clamp(14px,0.8vw+0.8px,18px)] sm:max-dt:text-[clamp(14px,2.133vw-3.84px,16px)] dt:text-sm">
+            <Reveal delay={0.2} as="p" className="max-sm:text-sm font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] lg:max-dt:text-[clamp(14px,0.8vw+0.8px,18px)] sm:max-dt:text-[clamp(14px,2.133vw-3.84px,16px)] dt:text-sm">
               Creative & Intuitive
               <br />
               User Interface and User
@@ -523,7 +531,7 @@ export default function HomePage() {
 
           {/* Copyright details right */}
           <div className="col-[11/12] max-sm:col-start-2 max-sm:col-span-1 max-sm:mt-0 flex flex-col items-end">
-            <Reveal delay={0.3} className="text-left max-sm:text-right [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none text-[clamp(11px,0.8vw+0.8px,11px)] lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+            <Reveal delay={0.3} className="text-left max-sm:text-right [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none text-[clamp(11px,0.8vw+0.8px,11px)] lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
               Don't ask about the fireball. <br /> I'm as confused as you are. <br /> But come on kinda sick, right?
             </Reveal>
           </div>
@@ -543,7 +551,7 @@ export default function HomePage() {
             crafting measurable, bilingual experiences for travel, banking, and fintech
           </Reveal>
 
-          <Reveal delay={0.1} as="p" className="col-span-4 max-sm:col-start-1 max-sm:col-span-4 sm:col-[3/5] lg:col-[9/12] mt-[30px] max-sm:mt-4 max-sm:text-sm sm:mt-[10px] font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] text-[clamp(16px,0.8vw+0.8px,16px)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md">
+          <Reveal delay={0.1} as="p" className="col-span-4 max-sm:col-start-1 max-sm:col-span-4 sm:col-[3/5] lg:col-[9/12] mt-[30px] max-sm:mt-4 max-sm:text-sm sm:mt-[10px] font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] text-[clamp(16px,0.8vw+0.8px,16px)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md">
             Currently at Almosafer, the GCC&apos;s leading travel platform, designing bilingual booking funnels and design systems, after Al Rajhi Bank, AZMX, and Contact Financial Holding.
           </Reveal>
         </div>

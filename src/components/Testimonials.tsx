@@ -12,6 +12,12 @@ const TESTIMONIALS = [
   },
   {
     quote:
+      "This freelancer is great UX/UI expert and on top of that he was extremely helpful and patient even though this project took a long time (because of us, not his fault) and he was able to finish it with great quality and success, we definitely will hire him again and highly recommend him for these types of projects.",
+    name: "Tamim Hamid",
+    role: "Theradome, CEO",
+  },
+  {
+    quote:
       "I had the pleasure of working with Maher on a UX/UI design project, and I must say that he is a talented and intuitive designer. From the very beginning, Maher was focused on understanding my user needs and desires, and he incorporated them seamlessly into the design process.",
     name: "Joey Dakwerk",
     role: "Phonic, Business Owner",
@@ -28,7 +34,7 @@ export default function Testimonials() {
   return (
     <section className="mt-16">
       <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3">
-        <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Client</span>
           <span>Words</span>
         </span>
@@ -48,7 +54,7 @@ export default function Testimonials() {
                 <span className="font-medium text-base text-[#c5c5c5] tracking-[-0.03em]">
                   {t.name}
                 </span>
-                <span className="font-semibold text-xs tracking-[-0.03em] text-[rgba(197,197,197,0.4)] uppercase leading-[140%]">
+                <span className="font-semibold text-xs tracking-[-0.03em] text-[rgba(197,197,197,0.62)] uppercase leading-[140%]">
                   {t.role}
                 </span>
               </figcaption>

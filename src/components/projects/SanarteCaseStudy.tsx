@@ -67,7 +67,7 @@ export default function SanarteCaseStudy() {
     <div className="w-full flex gap-10 mt-16 max-lg:flex-col items-start relative pointer-events-auto">
       {/* Sticky Table of Contents Sidebar */}
       <Reveal aboveFold as="aside" className="w-[260px] shrink-0 sticky top-32 max-lg:hidden flex flex-col gap-4">
-        <span className="block font-bold text-xs tracking-widest text-[rgba(197,197,197,0.4)] uppercase">
+        <span className="block font-bold text-xs tracking-widest text-[rgba(197,197,197,0.62)] uppercase">
           Table of Contents
         </span>
         <nav className="flex flex-col gap-2 border-l border-white/5 pl-4">
@@ -77,7 +77,7 @@ export default function SanarteCaseStudy() {
               onClick={() => scrollToSection(sec.id)}
               className={`text-left text-sm font-semibold py-1.5 transition-all duration-300 ${activeSection === sec.id
                 ? "text-[#c5c5c5] translate-x-1 underline decoration-[#c5c5c5]/40 underline-offset-4"
-                : "text-[rgba(197,197,197,0.4)] hover:text-white"
+                : "text-[rgba(197,197,197,0.62)] hover:text-white"
                 }`}
             >
               {sec.title}

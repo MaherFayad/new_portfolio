@@ -90,14 +90,14 @@ export default function DevPlayground() {
 
       {/* Section Header */}
       <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-[last_baseline]">
-        <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Dev</span>
           <span>Lab</span>
         </span>
         <h2 className="col-[3/8] max-sm:col-[1/5] sm:col-[1/5] lg:col-[3/8] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[80%] tracking-[-0.06em] text-[#c5c5c5] max-sm:text-[clamp(28px,8vw,36px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] dt:text-[clamp(46px,3.462vw-2.46px,64px)]">
           Dev Playground
         </h2>
-        <p className="col-[9/12] max-sm:col-[1/5] max-sm:mt-3 sm:col-[1/5] sm:mt-3 lg:col-[9/12] lg:mt-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] self-end lg:max-dt:text-[clamp(11px,0.8vw+0.8px,14px)]">
+        <p className="col-[9/12] max-sm:col-[1/5] max-sm:mt-3 sm:col-[1/5] sm:mt-3 lg:col-[9/12] lg:mt-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] self-end lg:max-dt:text-[clamp(11px,0.8vw+0.8px,14px)]">
           Personal projects I built for fun, handcrafted with zero AI involvement. Pure code, pure creativity.
         </p>
       </Reveal>
@@ -130,14 +130,14 @@ export default function DevPlayground() {
                   <h3 className="font-medium text-[clamp(20px,5vw,26px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5]">
                     {project.title}
                   </h3>
-                  <p className="font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)]">
+                  <p className="font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.62)]">
                     {project.description}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {project.tech.map((tag) => (
                       <span
                         key={tag}
-                        className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)]"
+                        className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.62)]"
                       >
                         {tag}
                       </span>
@@ -192,11 +192,11 @@ export default function DevPlayground() {
                 </div>
                 <div className="p-8 flex flex-col justify-between flex-1 min-h-[220px]">
                   <div className="flex justify-between items-start">
-                    <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-[rgba(197,197,197,0.25)]">
+                    <span className="font-medium text-[11px] tracking-[0.2em] uppercase text-[rgba(197,197,197,0.6)]">
                       {String(DEV_PROJECTS.indexOf(project) + 1).padStart(2, "0")}
                     </span>
                     <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:border-white/30 group-hover:bg-white/5 group-hover:rotate-[0deg] rotate-[-45deg]">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(197,197,197,0.4)] transition-colors duration-300 group-hover:text-[#c5c5c5]">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[rgba(197,197,197,0.62)] transition-colors duration-300 group-hover:text-[#c5c5c5]">
                         <line x1="7" y1="17" x2="17" y2="7" />
                         <polyline points="7 7 17 7 17 17" />
                       </svg>
@@ -206,13 +206,13 @@ export default function DevPlayground() {
                     <h3 className="font-medium text-[clamp(26px,1.923vw-0.92px,36px)] leading-[100%] tracking-[-0.06em] text-[#c5c5c5] lg:max-dt:text-[clamp(22px,2.133vw-3.84px,30px)]">
                       <AnimatedText text={project.title} className="projects-name-text" />
                     </h3>
-                    <p className="mt-3 font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.45)] max-w-[90%]">
+                    <p className="mt-3 font-medium text-[13px] leading-[140%] tracking-[-0.01em] text-[rgba(197,197,197,0.62)] max-w-[90%]">
                       {project.description}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-6">
                     {project.tech.map((tag) => (
-                      <span key={tag} className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.35)] transition-all duration-300 group-hover:border-white/[0.15] group-hover:text-[rgba(197,197,197,0.55)]">
+                      <span key={tag} className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase rounded-full border border-white/[0.08] text-[rgba(197,197,197,0.62)] transition-all duration-300 group-hover:border-white/[0.15] group-hover:text-[rgba(197,197,197,0.8)]">
                         {tag}
                       </span>
                     ))}

@@ -11,10 +11,10 @@ interface ProjectNavActionsProps {
 }
 
 const sideLabelClass =
-  "flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm";
+  "flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm";
 
 const proseClass =
-  "font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md";
+  "font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md";
 
 export default function ProjectNavActions({ nextProject }: ProjectNavActionsProps) {
   const nextHref = nextProject
@@ -78,7 +78,7 @@ export default function ProjectNavActions({ nextProject }: ProjectNavActionsProp
                   {nextProject.subtitle}
                 </p>
 
-                <span className="mt-5 max-sm:mt-4 inline-flex items-center gap-3 font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] group-hover:text-[#c5c5c5] transition-colors duration-300">
+                <span className="mt-5 max-sm:mt-4 inline-flex items-center gap-3 font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] group-hover:text-[#c5c5c5] transition-colors duration-300">
                   {nextIsExternal ? "View on Behance" : "View case study"}
                   <img
                     alt=""

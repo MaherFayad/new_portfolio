@@ -19,7 +19,7 @@ const CV_URL = "https://drive.google.com/file/d/17gjXpoyjISAdNi6Jw8E-3052SkGq1TR
 const STATS = [
   { name: ["YEARS OF", "EXPERIENCE"], value: "4+" },
   { name: ["COMPLETED", "PROJECTS"], value: "50+" },
-  { name: ["UX COURSES", "TAKEN"], value: "90+" },
+  { name: ["FIGMA PLUGINS", "PUBLISHED"], value: "4" },
   { name: ["BRANDS", "WORKED WITH"], value: "40+" },
 ];
 
@@ -41,7 +41,7 @@ const TIMELINE = [
     points: [
       "Delivered 41 revamps and enhancements to Al Rajhi e-business platforms, including the enterprise payroll journey.",
       "These revamps fed the e-business program that lifted online account openings by 47% and transactions by 81%.",
-      "Teamed up with premier groups in Saudi Arabia's vibrant tech ecosystem to drive digital innovation.",
+      "Worked day to day with product, engineering, and analytics teams inside Saudi Arabia's largest bank.",
     ],
   },
   {
@@ -49,7 +49,7 @@ const TIMELINE = [
     company: "Contact Financial Holding",
     time: "Dec. 2022 - Nov. 2023",
     points: [
-      "Spearheaded user-centric, visually captivating design lifecycle from initial ideation to implementation.",
+      "Owned the design lifecycle from initial ideation through shipped implementation.",
       "Crafted user flows, high-fidelity mockups, interactive prototypes, and ran comprehensive user research.",
       "Contributed to core financial products, including Contact Now and Contact Brokerage apps.",
     ],
@@ -129,7 +129,7 @@ export default function AboutPage() {
       {/* 1. Intro Heading (side label, stats + display H1) */}
       <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start mt-[clamp(120px,16vw,220px)] max-sm:mt-20">
         {/* About Me side label */}
-        <Reveal aboveFold className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-start lg:row-start-1 [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        <Reveal aboveFold className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-start lg:row-start-1 [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>About</span>
           <span>Me</span>
         </Reveal>
@@ -160,7 +160,7 @@ export default function AboutPage() {
 
       {/* 2. Who am I (photo left, display lead + body right, flat stats row) */}
       <section className="grid grid-cols-12 max-[999px]:grid-cols-4 min-[1000px]:grid-cols-12 gap-5 max-[999px]:gap-3 mt-16 items-start">
-        <Reveal className="col-span-1 max-[999px]:hidden min-[1000px]:flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        <Reveal className="col-span-1 max-[999px]:hidden min-[1000px]:flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Who</span>
           <span>I am</span>
         </Reveal>
@@ -185,11 +185,11 @@ export default function AboutPage() {
             at Almosafer, the GCC&apos;s leading travel platform, crafting measurable bilingual experiences
           </Reveal>
 
-          <Reveal delay={0.1} as="p" className="mt-[30px] max-sm:mt-4 ml-[25%] max-[999px]:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
-            My professional trajectory is marked by significant roles at Almosafer, Al Rajhi Bank, AZMX, Contact Financial Holding, GameIT, Algoriza, and British Council. I run a flourishing freelance career on Upwork collaborating with Supersight, Theradome, the Milt Olin Foundation, Solidity Studios, Brackets, and IterationX.
+          <Reveal delay={0.1} as="p" className="mt-[30px] max-sm:mt-4 ml-[25%] max-[999px]:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)]">
+            I have designed for Almosafer, Al Rajhi Bank, AZMX, Contact Financial Holding, GameIT, Algoriza, and the British Council. Alongside that, I run a freelance practice on Upwork working with Supersight, Theradome, the Milt Olin Foundation, Solidity Studios, Brackets, and IterationX.
           </Reveal>
 
-          <Reveal delay={0.15} as="p" className="mt-[16px] max-sm:mt-3 ml-[25%] max-[999px]:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
+          <Reveal delay={0.15} as="p" className="mt-[16px] max-sm:mt-3 ml-[25%] max-[999px]:ml-0 font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)]">
             My journey spans volunteering with the United Nations, TEDx, Enactus, ASME, and Mansoura Motorsport.
           </Reveal>
 
@@ -202,7 +202,7 @@ export default function AboutPage() {
                 </span>
                 <span className="flex flex-col [&>span]:block">
                   {stat.name.map((line) => (
-                    <span key={line} className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none max-sm:text-[10px]">
+                    <span key={line} className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px]">
                       {line}
                     </span>
                   ))}
@@ -218,7 +218,7 @@ export default function AboutPage() {
       {/* 4. Experience (bordered rows, atomic table rhythm) */}
       <section className="mt-16">
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3">
-          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>Career</span>
             <span>Path</span>
           </span>
@@ -232,14 +232,14 @@ export default function AboutPage() {
             <Reveal key={item.company + item.position} delay={idx * 0.04}>
               <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 py-10 max-sm:py-6 border-b border-white/10 items-start">
                 <div className="col-[3/7] max-sm:col-[1/5] sm:col-[1/3] lg:col-[3/7]">
-                  <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
+                  <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none">
                     {item.position}
                   </span>
                   <span className="block font-medium text-[clamp(24px,1.8vw,32px)] max-sm:text-[20px] leading-[110%] tracking-[-0.04em] text-[#c5c5c5] mt-3">
                     <AnimatedText text={item.company} className="projects-name-text" />
                   </span>
                 </div>
-                <span className="col-[7/9] max-sm:col-[1/5] sm:col-[3/5] lg:col-[7/9] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] max-sm:mt-2">
+                <span className="col-[7/9] max-sm:col-[1/5] sm:col-[3/5] lg:col-[7/9] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] max-sm:mt-2">
                   {item.time}
                 </span>
                 <ul className="col-[9/13] max-sm:col-[1/5] sm:col-[1/5] lg:col-[9/13] flex flex-col gap-2 max-sm:mt-2">
@@ -265,7 +265,7 @@ export default function AboutPage() {
       {/* 5. Expertise (numbered bordered rows) */}
       <section className="mt-16">
         <Reveal className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3">
-          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+          <span className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
             <span>Core</span>
             <span>Skills</span>
           </span>
@@ -278,7 +278,7 @@ export default function AboutPage() {
           {EXPERTISE.map((exp, idx) => (
             <Reveal key={exp.name} delay={idx * 0.04}>
               <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 py-10 max-sm:py-6 border-b border-white/10 items-start">
-                <span className="col-[3/4] max-sm:col-[1/5] sm:col-[1/2] lg:col-[3/4] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)]">
+                <span className="col-[3/4] max-sm:col-[1/5] sm:col-[1/2] lg:col-[3/4] font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)]">
                   {exp.ref}
                 </span>
                 <h3 className="col-[4/8] max-sm:col-[1/5] sm:col-[2/5] lg:col-[4/8] font-medium text-[clamp(24px,1.8vw,32px)] max-sm:text-[20px] leading-[110%] tracking-[-0.04em] text-[#c5c5c5]">

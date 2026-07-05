@@ -4,13 +4,13 @@ import Reveal from "@/components/Reveal";
 import type { CaseFraming } from "@/data/projects";
 
 const sideLabelClass =
-  "flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm";
+  "flex flex-col text-left [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm";
 
 const roleLeadClass =
-  "max-sm:text-sm font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] lg:max-dt:text-[clamp(14px,0.8vw+0.8px,18px)] sm:max-dt:text-[clamp(14px,2.133vw-3.84px,16px)] dt:text-sm";
+  "max-sm:text-sm font-medium text-base leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] lg:max-dt:text-[clamp(14px,0.8vw+0.8px,18px)] sm:max-dt:text-[clamp(14px,2.133vw-3.84px,16px)] dt:text-sm";
 
 const proseClass =
-  "font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.4)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md";
+  "font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)] lg:max-dt:text-[clamp(12px,0.8vw+0.8px,11px)] dt:text-md";
 
 export default function CaseFramingSection({ framing }: { framing: CaseFraming }) {
   return (
@@ -57,7 +57,7 @@ export default function CaseFramingSection({ framing }: { framing: CaseFraming }
           <Reveal
             delay={0.14}
             as="p"
-            className={`col-span-4 max-sm:col-[1/5] sm:col-[3/5] lg:col-[6/11] mt-[24px] max-sm:mt-4 sm:mt-2 ${proseClass} text-[#c5c5c5] opacity-60`}
+            className={`col-span-4 max-sm:col-[1/5] sm:col-[3/5] lg:col-[6/11] mt-[24px] max-sm:mt-4 sm:mt-2 ${proseClass} text-[#c5c5c5] opacity-90`}
           >
             <span className="max-sm:pl-0 pl-[calc((100%+20px)/4)] sm:pl-[calc((100%+20px)/3)] ml-[18%] max-sm:ml-0 block">
               {framing.outcome}

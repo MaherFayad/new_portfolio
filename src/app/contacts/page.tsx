@@ -132,7 +132,7 @@ export default function ContactsPage() {
       const mm = parts.find((p) => p.type === "minute")?.value ?? "00";
 
       const hourInt = parseInt(hh, 10);
-      // Available from 05:00 PM (17:00) to 12:00 AM (00:00). So 17 <= hourInt < 24
+      // Reachable through the working day and evening in Riyadh. So 17 <= hourInt < 24
       const active = hourInt >= 17 && hourInt < 24;
 
       setIsAvailableNow(active);
@@ -286,7 +286,7 @@ export default function ContactsPage() {
       {/* 1. Page Title Hero */}
       <section className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-6 w-full items-start mt-[clamp(80px,9vw,130px)] max-sm:mt-20">
         {/* Side label */}
-        <Reveal aboveFold className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-start lg:row-start-1 [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
+        <Reveal aboveFold className="col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-start lg:row-start-1 [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm">
           <span>Get in</span>
           <span>Touch</span>
         </Reveal>
@@ -315,20 +315,20 @@ export default function ContactsPage() {
               {/* Card Top: Details & Status Indicator */}
               <div className="flex justify-between items-start relative z-10 w-full">
                 <div className="flex flex-col">
-                  <span className="font-semibold text-[9px] tracking-widest uppercase text-[rgba(197,197,197,0.3)]">
+                  <span className="font-semibold text-[9px] tracking-widest uppercase text-[rgba(197,197,197,0.62)]">
                     LOCATION
                   </span>
                   <span className="font-medium text-[14px] leading-none tracking-[-0.02em] text-[#c5c5c5] mt-1.5">
                     Riyadh, Saudi Arabia
                   </span>
-                  <span className="font-medium text-[10px] text-[rgba(197,197,197,0.4)] mt-1">
+                  <span className="font-medium text-[10px] text-[rgba(197,197,197,0.62)] mt-1">
                     UTC/GMT +3 hours
                   </span>
                 </div>
 
                 {/* Status Indicator */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/5 bg-[#141414]/40 backdrop-blur-md">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isAvailableNow ? "bg-[#1CCECB] animate-pulse" : "bg-[rgba(197,197,197,0.4)]"}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full ${isAvailableNow ? "bg-[#1CCECB] animate-pulse" : "bg-[rgba(197,197,197,0.62)]"}`} />
                   <span className="font-semibold text-[8px] tracking-wider uppercase text-[#c5c5c5]">
                     {isAvailableNow ? "Active Now" : "Resting"}
                   </span>
@@ -361,7 +361,7 @@ export default function ContactsPage() {
 
           {/* Direct Email */}
           <Reveal aboveFold delay={0.15} className="flex flex-col items-start">
-            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] mb-2">
+            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] mb-2">
               SAY HELLO
             </span>
             <div className="relative inline-block">
@@ -399,39 +399,25 @@ export default function ContactsPage() {
             </div>
           </Reveal>
 
-          {/* Working Hours */}
+          {/* Response Time */}
           <Reveal aboveFold delay={0.25} className="flex flex-col">
-            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] mb-2">
-              AVAILABLE FROM
+            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] mb-2">
+              RESPONSE TIME
             </span>
             <div className="flex items-center">
               <span className="font-semibold text-[2rem] leading-[100%] tracking-[-0.03em] text-[#c5c5c5]">
-                05
+                24
               </span>
-              <div className="ml-[0.25rem] flex flex-col justify-center">
-                <span className="font-semibold text-[0.7rem] leading-[110%] tracking-[-0.03em] text-[#c5c5c5] opacity-35">
-                  AM
-                </span>
+              <div className="ml-[0.35rem] flex flex-col justify-center">
                 <span className="font-semibold text-[0.7rem] leading-[110%] tracking-[-0.03em] text-[#c5c5c5]">
-                  PM
+                  HOURS
                 </span>
-              </div>
-              <span className="mx-[0.6rem] font-medium text-sm leading-none tracking-[-0.03em] text-[rgba(197,197,197,0.4)]">
-                to
-              </span>
-              <span className="font-semibold text-[2rem] leading-[100%] tracking-[-0.03em] text-[#c5c5c5]">
-                12
-              </span>
-              <div className="ml-[0.25rem] flex flex-col justify-center">
-                <span className="font-semibold text-[0.7rem] leading-[110%] tracking-[-0.03em] text-[#c5c5c5]">
-                  AM
-                </span>
-                <span className="font-semibold text-[0.7rem] leading-[110%] tracking-[-0.03em] text-[#c5c5c5] opacity-35">
-                  PM
+                <span className="font-semibold text-[0.7rem] leading-[110%] tracking-[-0.03em] text-[#c5c5c5] opacity-70">
+                  OR LESS
                 </span>
               </div>
             </div>
-            <p className="mt-2 font-semibold text-[11px] leading-[110%] tracking-[-0.03em] text-[#c5c5c5] opacity-50">
+            <p className="mt-2 font-semibold text-[11px] leading-[110%] tracking-[-0.03em] text-[#c5c5c5] opacity-70">
               Saturday to Thursday GMT+3
             </p>
             <div className="mt-4">
@@ -446,7 +432,7 @@ export default function ContactsPage() {
         {/* Right Column: Dynamic Form Section */}
         <div className="col-[7/13] max-sm:col-[1/5] sm:col-[3/5] lg:col-[7/13] flex flex-col justify-end w-full">
           <Reveal delay={0.15} className="flex flex-col mb-8">
-            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)]">
+            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)]">
               SEND A MESSAGE
             </span>
             <h3 className="font-medium text-lg text-[#c5c5c5] mt-1.5 leading-none">
@@ -464,7 +450,7 @@ export default function ContactsPage() {
               <div className="relative w-full text-[clamp(1.2rem,1.6vw,2rem)]">
                 <label
                   htmlFor="name"
-                  className="absolute left-0 top-0 pointer-events-none font-medium tracking-[-0.03em] text-[#c5c5c5] leading-none opacity-40 origin-top-left"
+                  className="absolute left-0 top-0 pointer-events-none font-medium tracking-[-0.03em] text-[#c5c5c5] leading-none opacity-60 origin-top-left"
                   style={{
                     transform: (focused.name || form.name)
                       ? "translateY(-0.2em) scale(0.65)"
@@ -508,7 +494,7 @@ export default function ContactsPage() {
               <div className="relative w-full text-[clamp(1.2rem,1.6vw,2rem)]">
                 <label
                   htmlFor="email"
-                  className="absolute left-0 top-0 pointer-events-none font-medium tracking-[-0.03em] text-[#c5c5c5] leading-none opacity-40 origin-top-left"
+                  className="absolute left-0 top-0 pointer-events-none font-medium tracking-[-0.03em] text-[#c5c5c5] leading-none opacity-60 origin-top-left"
                   style={{
                     transform: (focused.email || form.email)
                       ? "translateY(-0.2em) scale(0.65)"
@@ -552,7 +538,7 @@ export default function ContactsPage() {
               <div className="relative w-full text-[clamp(1.25rem,1.875vw,2.25rem)]">
                 <label
                   htmlFor="message"
-                  className="absolute left-0 top-0 pointer-events-none font-medium tracking-[-0.03em] text-[#c5c5c5] leading-none opacity-40 origin-top-left"
+                  className="absolute left-0 top-0 pointer-events-none font-medium tracking-[-0.03em] text-[#c5c5c5] leading-none opacity-60 origin-top-left"
                   style={{
                     transform: (focused.message || form.message)
                       ? "translateY(-0.2em) scale(0.65)"

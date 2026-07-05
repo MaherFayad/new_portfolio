@@ -4,7 +4,7 @@ import Reveal from "@/components/Reveal";
 import type { MiniCase } from "@/data/projects";
 
 const labelClass =
-  "font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none";
+  "font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none";
 
 const proseClass =
   "font-medium text-base max-sm:text-sm leading-[150%] tracking-[-0.03em] text-[#c5c5c5] opacity-70";

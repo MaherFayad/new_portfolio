@@ -70,18 +70,18 @@ export default function SiteHeader({ variant = "static" }: SiteHeaderProps) {
       {/* Right labels — desktop only */}
       <div className="hidden lg:flex items-center gap-5 shrink-0 ml-auto">
         <div className="flex flex-col text-right">
-          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
+          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none">
             MAHER
           </span>
-          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
+          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none">
             FAYAD
           </span>
         </div>
         <div className="flex flex-col text-left">
-          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
+          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none">
             PRODUCT
           </span>
-          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.4)] leading-none">
+          <span className="block font-semibold text-[clamp(11px,0.533vw+5.54px,14px)] tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none">
             DESIGNER
           </span>
         </div>
