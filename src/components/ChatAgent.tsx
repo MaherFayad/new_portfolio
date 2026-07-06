@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
 import ChatPluginCard from "./ChatPluginCard";
 import ChatCertificateCard, { CERTIFICATES } from "./ChatCertificateCard";
@@ -16,9 +16,79 @@ import MobileHorizontalScroll from "./MobileHorizontalScroll";
 // Free-tier models occasionally hallucinate a slug or malform a tag. Validate every
 // card tag against these whitelists before rendering so a bad slug is stripped instead
 // of showing a broken card or leaking raw bracket text into the chat.
-const VALID_PROJECT_SLUGS = new Set(PROJECTS.map((p) => p.slug));
-const VALID_PLUGIN_SLUGS = new Set(PLUGINS.map((p) => p.slug));
-const VALID_CERTIFICATE_SLUGS = new Set(CERTIFICATES.map((c) => c.slug));
+const PROJECT_SLUGS = PROJECTS.map((p) => p.slug);
+const PLUGIN_SLUGS = PLUGINS.map((p) => p.slug);
+const CERTIFICATE_SLUGS = CERTIFICATES.map((c) => c.slug);
+
+const VALID_PROJECT_SLUGS = new Set(PROJECT_SLUGS);
+const VALID_PLUGIN_SLUGS = new Set(PLUGIN_SLUGS);
+const VALID_CERTIFICATE_SLUGS = new Set(CERTIFICATE_SLUGS);
+
+// Case/punctuation-insensitive form ("al-rajhi-bank-payroll" and "AlrajhiBankPayroll" both
+// collapse to "alrajhibankpayroll") so near-miss separators or casing still resolve.
+const normalizeSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+const buildNormalizedMap = (slugs: string[]) => {
+  const map = new Map<string, string>();
+  for (const slug of slugs) map.set(normalizeSlug(slug), slug);
+  return map;
+};
+
+const PROJECT_SLUGS_NORMALIZED = buildNormalizedMap(PROJECT_SLUGS);
+const PLUGIN_SLUGS_NORMALIZED = buildNormalizedMap(PLUGIN_SLUGS);
+const CERTIFICATE_SLUGS_NORMALIZED = buildNormalizedMap(CERTIFICATE_SLUGS);
+
+function levenshtein(a: string, b: string): number {
+  const dp: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+// Resolves a model-provided slug against a whitelist: exact match, then normalized
+// (case/punctuation-insensitive) match, then a capped edit-distance match as a last resort
+// for typos. Returns null if nothing is close enough, so the tag is stripped rather than
+// rendering the wrong card.
+const resolveSlug = (rawSlug: string, validSlugs: Set<string>, normalizedMap: Map<string, string>): string | null => {
+  if (validSlugs.has(rawSlug)) return rawSlug;
+
+  const normalized = normalizeSlug(rawSlug);
+  const normalizedMatch = normalizedMap.get(normalized);
+  if (normalizedMatch) return normalizedMatch;
+
+  // Flat cap, not scaled by slug length: real model typos (a dropped hyphen, a swapped
+  // letter, truncation) land at distance 1-3 regardless of how long the slug is. Also
+  // require the winner to clearly beat the runner-up — an ambiguous near-tie (e.g. this
+  // project set's own "pexlp" vs "pelxp") should strip the tag rather than coin-flip it.
+  const MAX_TYPO_DISTANCE = 2;
+  let best: string | null = null;
+  let bestDistance = Infinity;
+  let secondBestDistance = Infinity;
+  for (const [candidateNormalized, candidateSlug] of normalizedMap) {
+    const distance = levenshtein(normalized, candidateNormalized);
+    if (distance < bestDistance) {
+      secondBestDistance = bestDistance;
+      bestDistance = distance;
+      best = candidateSlug;
+    } else if (distance < secondBestDistance) {
+      secondBestDistance = distance;
+    }
+  }
+  if (!best || bestDistance > MAX_TYPO_DISTANCE) return null;
+  if (secondBestDistance - bestDistance < 2) return null;
+
+  // Logged (not sent anywhere) so a model that consistently mangles one slug shows up in
+  // the browser console — the real fix is tightening the prompt, not leaning on this fallback.
+  console.debug(`[chat] fuzzy-resolved card slug "${rawSlug}" -> "${best}" (distance ${bestDistance})`);
+  return best;
+};
 
 const DotLottieReact = dynamic(
   () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
@@ -85,6 +155,8 @@ const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode; cannedResponse?
   },
   {
     label: "What results has he driven for clients?",
+    cannedResponse:
+      "Maher's work has driven measurable, outcome-first results for both enterprise clients and startups:\n\n• **Al Rajhi Bank**: Part of the team that redesigned the payroll and e-business platforms, contributing to a +47% boost in digital account openings and +81% in transaction volumes.\n• **Theradome**: Relaunched their e-commerce funnel, driving a +32% increase in sales conversion.\n• **LFG App**: Simplified onboarding, leading to a 28% drop in sign-up abandonment.\n\n[ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -94,6 +166,8 @@ const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode; cannedResponse?
   },
   {
     label: "Is he available for new opportunities?",
+    cannedResponse:
+      "Maher is currently open to new freelance opportunities. Reach out at Contact@maherfayad.com or book a 30-minute call through the link below. [BookMeetingButton]",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -505,6 +579,20 @@ const parseEmail = (text: string) => {
   });
 };
 
+// Model output is untrusted (prompt injection, or a rogue free-tier model), so any
+// [text](url) it emits is scheme-checked before being rendered as a real <a href>.
+const isSafeUrl = (url: string) =>
+  /^https?:\/\//i.test(url) || /^mailto:/i.test(url) || (url.startsWith("/") && !url.startsWith("//"));
+
+// While a message is still streaming in, a card/button tag may arrive partway through
+// (e.g. "[ProjectCard: alr"). Trim any trailing unclosed "[...]" so it doesn't flash as
+// raw bracket text before the closing "]" streams in.
+const stripTrailingUnclosedTag = (text: string) => {
+  const lastOpen = text.lastIndexOf("[");
+  if (lastOpen === -1 || text.indexOf("]", lastOpen) !== -1) return text;
+  return text.slice(0, lastOpen);
+};
+
 const parseMarkdown = (text: string, onLinkClick?: () => void) => {
   // 1. Split by link pattern [text](url)
   const linkRegex = /(\[.*?\]\(.*?\))/g;
@@ -518,6 +606,11 @@ const parseMarkdown = (text: string, onLinkClick?: () => void) => {
       const closeBracketIdx = part.indexOf("](");
       const linkText = part.slice(1, closeBracketIdx);
       const linkUrl = part.slice(closeBracketIdx + 2, -1);
+
+      if (!isSafeUrl(linkUrl)) {
+        result.push(linkText);
+        return;
+      }
 
       // Check if it is an external link (like linkedin or Cal)
       const isExternal = linkUrl.startsWith("http") || linkUrl.startsWith("www");
@@ -565,12 +658,12 @@ const parseMarkdown = (text: string, onLinkClick?: () => void) => {
                 </em>
               );
             } else {
-              // 4. Split by site path pattern /about, /work, /contacts, /projects
-              const pathRegex = /(\/(?:about|work|contacts|projects)\b)/gi;
+              // 4. Split by site path pattern /about, /work, /contacts, /projects/<slug>
+              const pathRegex = /(\/projects\/[a-z0-9-]+|\/(?:about|work|contacts)\b)/gi;
               const pathParts = italicPart.split(pathRegex);
 
               pathParts.forEach((pathPart, pathIdx) => {
-                if (pathPart.match(/^\/(about|work|contacts|projects)$/i)) {
+                if (pathPart.match(/^\/projects\/[a-z0-9-]+$|^\/(about|work|contacts)$/i)) {
                   result.push(
                     <Link
                       key={`path-${idx}-${subIdx}-${italicIdx}-${pathIdx}`}
@@ -599,6 +692,50 @@ const parseMarkdown = (text: string, onLinkClick?: () => void) => {
   });
 
   return result;
+};
+
+// parseMarkdown only handles inline runs (bold/italic/links/etc.) inside a single line — a
+// "* item" or "- item" line was previously left as literal text with the marker character
+// still attached. This groups consecutive bullet lines into a real <ul><li> list and
+// non-bullet lines into paragraphs, running each line's inline content through parseMarkdown.
+const renderTextBlock = (text: string, onLinkClick?: () => void) => {
+  const lines = text.split("\n");
+  const blocks: Array<{ type: "list"; items: string[] } | { type: "para"; lines: string[] }> = [];
+
+  for (const line of lines) {
+    const bulletMatch = line.match(/^\s*[*\-•]\s+(.*)$/);
+    const last = blocks[blocks.length - 1];
+    if (bulletMatch) {
+      if (last && last.type === "list") {
+        last.items.push(bulletMatch[1]);
+      } else {
+        blocks.push({ type: "list", items: [bulletMatch[1]] });
+      }
+    } else if (last && last.type === "para") {
+      last.lines.push(line);
+    } else {
+      blocks.push({ type: "para", lines: [line] });
+    }
+  }
+
+  return blocks.map((block, idx) => {
+    if (block.type === "list") {
+      return (
+        <ul key={idx} className="list-disc pl-5 space-y-1 my-1">
+          {block.items.map((item, itemIdx) => (
+            <li key={itemIdx}>{parseMarkdown(item, onLinkClick)}</li>
+          ))}
+        </ul>
+      );
+    }
+    const paraText = block.lines.join("\n").trim();
+    if (!paraText) return null;
+    return (
+      <p key={idx} className="whitespace-pre-wrap">
+        {parseMarkdown(paraText, onLinkClick)}
+      </p>
+    );
+  });
 };
 
 function ChatHorizontalScroll({ children }: { children: React.ReactNode }) {
@@ -690,6 +827,11 @@ export default function ChatAgent() {
   const [streamingText, setStreamingText] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
+  // Screen-reader announcement for completed assistant replies only (real, canned, or
+  // error). Deliberately not wired to streamingText — announcing every incoming token
+  // would be unusable with a screen reader.
+  const [announcement, setAnnouncement] = useState("");
+  const announceReply = (text: string) => setAnnouncement(text.replace(/\[[^\]]*\]/g, "").trim());
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -710,6 +852,9 @@ export default function ChatAgent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const contentColumnRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerFormRef = useRef<HTMLFormElement>(null);
+  const triggerReturnFocusRef = useRef<HTMLElement | null>(null);
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -732,6 +877,51 @@ export default function ChatAgent() {
       setIsOpen(false);
     }, 500);
   };
+
+  // Basic focus trap while the dialog is open. The input pill (triggerFormRef) is a DOM
+  // sibling of the overlay, not a child of it — it stays mounted the whole time so it can
+  // morph in place — so the trap has to span both refs or keyboard users get locked out of
+  // the input itself. On close, focus returns to whatever had it before opening (WCAG 2.4.3),
+  // not hardcoded to the pill, since the chat could gain other entry points later.
+  useEffect(() => {
+    if (!isOpen) return;
+    triggerReturnFocusRef.current = document.activeElement as HTMLElement;
+
+    const getFocusables = () => {
+      const sel = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      return [
+        ...(dialogRef.current?.querySelectorAll<HTMLElement>(sel) ?? []),
+        ...(triggerFormRef.current?.querySelectorAll<HTMLElement>(sel) ?? []),
+      ].filter((el) => el.offsetParent !== null);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const focusables = getFocusables();
+      if (focusables.length === 0) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement;
+
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!dialogRef.current?.contains(active) && !triggerFormRef.current?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      triggerReturnFocusRef.current?.focus();
+    };
+  }, [isOpen]);
 
   // Dismiss the chat when the user clicks well clear of the content column (the empty
   // side gutters). A generous horizontal margin is required so clicks near the
@@ -941,13 +1131,9 @@ export default function ChatAgent() {
       if (key === "ratelimit" || key === "rate-limit" || key === "429") {
         await delay(500);
         await ensureMinThinking(thinkingStart);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]",
-          },
-        ]);
+        const rateLimitMsg = "I'm receiving a high volume of queries at the moment. While I take a brief breath, feel free to review some of my projects below, reach out directly at Contact@maherfayad.com, or book a call on my calendar. [ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg][BookMeetingButton]";
+        setMessages((prev) => [...prev, { role: "assistant", content: rateLimitMsg }]);
+        announceReply(rateLimitMsg);
         return;
       }
 
@@ -956,6 +1142,7 @@ export default function ChatAgent() {
         await delay(300);
         await ensureMinThinking(thinkingStart);
         setMessages((prev) => [...prev, { role: "assistant", content: MOCK_HELP_TEXT }]);
+        announceReply(MOCK_HELP_TEXT);
         return;
       }
 
@@ -979,12 +1166,15 @@ export default function ChatAgent() {
         ...prev,
         { role: "assistant", content: scenario.text, thoughts: scenario.thoughts },
       ]);
+      announceReply(scenario.text);
     } catch (err: any) {
+      const errorMsg = err.message || "An unexpected error occurred. Please try again.";
+      announceReply(errorMsg);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: err.message || "An unexpected error occurred. Please try again.",
+          content: errorMsg,
           status: "Error",
         },
       ]);
@@ -1021,6 +1211,7 @@ export default function ChatAgent() {
     await ensureMinThinking(thinkingStart);
 
     setMessages((prev) => [...prev, { role: "assistant", content: prompt.cannedResponse! }]);
+    announceReply(prompt.cannedResponse!);
     setIsTyping(false);
     setCurrentStatus("");
     setCurrentThoughts([]);
@@ -1032,89 +1223,7 @@ export default function ChatAgent() {
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "chat_message_sent", {
         event_category: "chat",
-        event_label: text,
       });
-    }
-
-    const lowerText = text.trim().toLowerCase();
-    const isSuggestedPrompt =
-      lowerText.includes("strongest case study") ||
-      lowerText.includes("some of his work") ||
-      lowerText.includes("results has he driven") ||
-      lowerText.includes("available for new opportunities");
-
-    if (isSuggestedPrompt) {
-      const thinkingStart = Date.now();
-      setInputValue("");
-      setIsTyping(true);
-      setStreamingText("");
-      setCurrentThoughts([]);
-      setCurrentStatus("Thinking...");
-      setMessages((prev) => [...prev, { role: "user", content: text }]);
-
-      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-      try {
-        if (lowerText.includes("strongest case study") || lowerText.includes("some of his work")) {
-          setCurrentStatus("Analyzing portfolio database...");
-          await delay(500);
-          setCurrentThoughts(["Analyzing portfolio database..."]);
-          setCurrentStatus("Selecting strongest case study...");
-          await delay(500);
-          setCurrentThoughts(["Analyzing portfolio database...", "Selecting strongest case study..."]);
-          setCurrentStatus("Compiling fintech restructure outcome...");
-          await delay(500);
-          setCurrentThoughts(["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome..."]);
-          setCurrentStatus("Generating project card presentation...");
-          await delay(500);
-
-          const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. He owned the bilingual payroll journey end to end, one of 41 revamps he shipped on the e-business team, which grew account openings 47% and transactions 81%. [ProjectCard: alrajhi-bank-payroll]";
-          await ensureMinThinking(thinkingStart);
-          setStreamingText(reply);
-          setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome...", "Generating project card presentation..."] }]);
-        } else if (lowerText.includes("results has he driven")) {
-          setCurrentStatus("Querying client testimonials...");
-          await delay(500);
-          setCurrentThoughts(["Querying client testimonials..."]);
-          setCurrentStatus("Aggregating performance metrics...");
-          await delay(500);
-          setCurrentThoughts(["Querying client testimonials...", "Aggregating performance metrics..."]);
-          setCurrentStatus("Processing conversion lift figures...");
-          await delay(500);
-          setCurrentThoughts(["Querying client testimonials...", "Aggregating performance metrics...", "Processing conversion lift figures..."]);
-          setCurrentStatus("Formatting analytics tables...");
-          await delay(500);
-
-          const reply = "Maher's work has driven measurable, outcome-first results for both enterprise clients and startups:\n\n• **Al Rajhi Bank**: Part of the team that redesigned the payroll and e-business platforms, contributing to a +47% boost in digital account openings and +81% in transaction volumes.\n• **Theradome**: Relaunched their e-commerce funnel, driving a +32% increase in sales conversion.\n• **LFG App**: Simplified onboarding, leading to a 28% drop in sign-up abandonment.\n\n[ProjectCard: alrajhi-bank-payroll][ProjectCard: lfg]";
-          await ensureMinThinking(thinkingStart);
-          setStreamingText(reply);
-          setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Querying client testimonials...", "Aggregating performance metrics...", "Processing conversion lift figures...", "Formatting analytics tables..."] }]);
-        } else {
-          setCurrentStatus("Checking calendar availability...");
-          await delay(500);
-          setCurrentThoughts(["Checking calendar availability..."]);
-          setCurrentStatus("Verifying timezone slots...");
-          await delay(500);
-          setCurrentThoughts(["Checking calendar availability...", "Verifying timezone slots..."]);
-          setCurrentStatus("Retrieving calendar scheduling API...");
-          await delay(500);
-          setCurrentThoughts(["Checking calendar availability...", "Verifying timezone slots...", "Retrieving calendar scheduling API..."]);
-          setCurrentStatus("Preparing booking portal integration...");
-          await delay(500);
-
-          const reply = "Yes, Maher is available for new opportunities! He is currently accepting freelance opportunities.\n\nYou can reach out to him directly at Contact@maherfayad.com or schedule a 30-minute call directly through the booking link below. [BookMeetingButton]";
-          await ensureMinThinking(thinkingStart);
-          setStreamingText(reply);
-          setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Checking calendar availability...", "Verifying timezone slots...", "Retrieving calendar scheduling API...", "Preparing booking portal integration..."] }]);
-        }
-      } catch (err) {
-        // Ignore
-      } finally {
-        setIsTyping(false);
-        setCurrentStatus("");
-        setCurrentThoughts([]);
-      }
-      return;
     }
 
     if (process.env.NODE_ENV !== "production" && text.trim().toLowerCase().startsWith("/mock")) {
@@ -1233,14 +1342,16 @@ export default function ChatAgent() {
       }
 
       // 4. Append Assistant Final Response
+      const finalReply = assistantText || "Hmm, I came back empty-handed. Try rephrasing?";
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: assistantText || "Response drafted successfully.",
+          content: finalReply,
           thoughts: thoughtsList,
         },
       ]);
+      announceReply(finalReply);
     } catch (err: any) {
       const errText = (err.message || "").toLowerCase();
       const isRateLimitOrConnectionError =
@@ -1262,6 +1373,7 @@ export default function ChatAgent() {
           status: isRateLimitOrConnectionError ? undefined : "Error",
         },
       ]);
+      announceReply(fallbackMsg);
     } finally {
       setIsTyping(false);
       setCurrentStatus("");
@@ -1294,15 +1406,18 @@ export default function ChatAgent() {
         }
       } else {
         const tagType = match[1].toLowerCase();
-        const slug = match[2].trim();
-        if (tagType === "projectcard" && VALID_PROJECT_SLUGS.has(slug)) {
-          parts.push({ type: "card", slug });
-        } else if (tagType === "plugincard" && VALID_PLUGIN_SLUGS.has(slug)) {
-          parts.push({ type: "plugin", slug });
-        } else if (tagType === "certificatecard" && VALID_CERTIFICATE_SLUGS.has(slug)) {
-          parts.push({ type: "certificate", slug });
+        const rawSlug = match[2].trim();
+        if (tagType === "projectcard") {
+          const slug = resolveSlug(rawSlug, VALID_PROJECT_SLUGS, PROJECT_SLUGS_NORMALIZED);
+          if (slug) parts.push({ type: "card", slug });
+        } else if (tagType === "plugincard") {
+          const slug = resolveSlug(rawSlug, VALID_PLUGIN_SLUGS, PLUGIN_SLUGS_NORMALIZED);
+          if (slug) parts.push({ type: "plugin", slug });
+        } else if (tagType === "certificatecard") {
+          const slug = resolveSlug(rawSlug, VALID_CERTIFICATE_SLUGS, CERTIFICATE_SLUGS_NORMALIZED);
+          if (slug) parts.push({ type: "certificate", slug });
         }
-        // else: unknown/hallucinated slug — silently drop the tag
+        // else: nothing close enough in the whitelist — silently drop the tag
       }
       lastIndex = regex.lastIndex;
     }
@@ -1313,7 +1428,11 @@ export default function ChatAgent() {
     }
 
     if (parts.length === 0) {
-      return <p className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">{parseMarkdown(text, handleClose)}</p>;
+      return (
+        <div className="text-sm leading-relaxed text-[#c5c5c5] font-medium flex flex-col gap-1">
+          {renderTextBlock(text, handleClose)}
+        </div>
+      );
     }
 
     // Group consecutive project/plugin/certificate cards so multiple recommendations scroll horizontally
@@ -1350,8 +1469,8 @@ export default function ChatAgent() {
             }
             return (
               <ChatHorizontalScroll key={idx}>
-                {part.slugs.map((slug) => (
-                  <CardComponent key={slug} slug={slug} onNavigate={handleClose} compact />
+                {part.slugs.map((slug, slugIdx) => (
+                  <CardComponent key={`${slug}-${slugIdx}`} slug={slug} onNavigate={handleClose} compact />
                 ))}
               </ChatHorizontalScroll>
             );
@@ -1371,9 +1490,9 @@ export default function ChatAgent() {
             );
           }
           return (
-            <p key={idx} className="text-sm leading-relaxed text-[#c5c5c5] font-medium whitespace-pre-wrap">
-              {parseMarkdown(part.content || "", handleClose)}
-            </p>
+            <div key={idx} className="text-sm leading-relaxed text-[#c5c5c5] font-medium flex flex-col gap-1">
+              {renderTextBlock(part.content || "", handleClose)}
+            </div>
           );
         })}
       </div>
@@ -1381,7 +1500,7 @@ export default function ChatAgent() {
   };
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <style dangerouslySetInnerHTML={{
         __html: `
         @keyframes gemini-gradient {
@@ -1463,11 +1582,20 @@ export default function ChatAgent() {
         }
       ` }} />
 
+      {/* Screen-reader-only announcement for completed assistant replies (see announceReply) */}
+      <div aria-live="polite" role="status" className="sr-only">
+        {announcement}
+      </div>
+
       {/* 1. Fullscreen Chat Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             key="chat-overlay"
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Ask Maher chat"
             className="fixed inset-0 z-50 overflow-hidden flex flex-col"
           >
             {/* Frosted-glass backdrop: the page behind shows through, softly blurred */}
@@ -1530,6 +1658,8 @@ export default function ChatAgent() {
                         <div
                           ref={chatContainerRef}
                           onClick={handleOutsideClick}
+                          tabIndex={0}
+                          aria-label="Conversation"
                           className="flex-1 overflow-y-auto chat-scroll-container w-full"
                         >
                           {/* Inner Centered Container - anchored to bottom, grows upward */}
@@ -1672,7 +1802,7 @@ export default function ChatAgent() {
                                   )}
                                   {streamingText && (
                                     <div className="text-left text-[#e2e2e2] leading-relaxed text-sm mt-2">
-                                      {renderMessageContent(streamingText)}
+                                      {renderMessageContent(stripTrailingUnclosedTag(streamingText))}
                                     </div>
                                   )}
                                 </div>
@@ -1708,6 +1838,7 @@ export default function ChatAgent() {
 
       {/* 2. Unified Input/Trigger Pill (Always mounted, morphs width directly without transform scale!) */}
       <motion.form
+        ref={triggerFormRef}
         onSubmit={(e) => {
           e.preventDefault();
           if (!isOpen) return;
@@ -1828,6 +1959,6 @@ export default function ChatAgent() {
           )}
         </AnimatePresence>
       </motion.form>
-    </>
+    </MotionConfig>
   );
 }
