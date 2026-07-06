@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "CV & Experience | Senior Product Designer (GCC)",
   description:
-    "Maher Fayad's CV: Senior Product Designer at Almosafer; previously Al Rajhi Bank (41 revamps within the program that lifted account openings 47% and transactions 81%), Contact Financial, and a trusted freelance practice. 7 verified credentials.",
+    "Maher Fayad, Senior Product Designer: CV and career history across Almosafer, Al Rajhi Bank (41 e-business revamps behind a 47%/81% lift in account openings and transactions), Contact Financial, and independent freelance work. 7 verified credentials.",
   alternates: { canonical: "/about" },
 };
 

@@ -1070,7 +1070,7 @@ export default function ChatAgent() {
           setCurrentStatus("Generating project card presentation...");
           await delay(500);
 
-          const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. He owned the bilingual payroll journey end to end, one of 41 revamps he delivered on the e-business team, within the program that drove a +47% increase in digital account openings and an +81% lift in transaction volumes. [ProjectCard: alrajhi-bank-payroll]";
+          const reply = "Maher's work on the Al Rajhi Bank Payroll portal is a standout case study. He owned the bilingual payroll journey end to end, one of 41 revamps he shipped on the e-business team, which grew account openings 47% and transactions 81%. [ProjectCard: alrajhi-bank-payroll]";
           await ensureMinThinking(thinkingStart);
           setStreamingText(reply);
           setMessages((prev) => [...prev, { role: "assistant", content: reply, thoughts: ["Analyzing portfolio database...", "Selecting strongest case study...", "Compiling fintech restructure outcome...", "Generating project card presentation..."] }]);

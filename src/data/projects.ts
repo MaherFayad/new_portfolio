@@ -35,7 +35,7 @@ export const PROJECTS: Project[] = [
   {
     slug: "alrajhi-bank-payroll",
     title: "Alrajhi Bank Payroll",
-    subtitle: "Payroll revamp for Al Rajhi Bank enterprise customers, part of the e-business program that lifted account openings 47% and transactions 81%.",
+    subtitle: "Payroll revamp for Al Rajhi Bank enterprise customers, one of 41 e-business revamps behind a 47% lift in account openings and an 81% lift in transactions.",
     paragraph: "Redesigned the bilingual AR/EN payroll journey on the Al Rajhi e-business platform, turning a fragmented enterprise flow into an analytics-informed experience. Full case study on Behance.",
     images: [
       "/assets/Projects/Alrajhi%20Bank%20Payroll/Alrajhi%20Payroll.png"
@@ -46,7 +46,7 @@ export const PROJECTS: Project[] = [
       role: "Senior Product Designer, owner of the bilingual AR/EN payroll journey",
       problem: "Enterprise payroll flows were fragmented across the e-business platform, slowing companies paying their employees.",
       approach: "I redesigned the payroll journey end to end with analytics-informed flows and bilingual AR/EN UI, one of 41 revamps I delivered across the platform.",
-      outcome: "Payroll revamp shipped on the e-business platform; the wider program lifted account openings 47% and transactions 81%.",
+      outcome: "Redesigned payroll journey shipped on the e-business platform, contributing to the program's 47% rise in account openings and 81% rise in transactions.",
     },
     miniCase: {
       context: "Al Rajhi Bank's e-business platform serves enterprise customers across Saudi Arabia. Payroll, the journey companies rely on to pay their employees, had grown fragmented across the platform and did not match how finance teams actually work.",
@@ -56,7 +56,7 @@ export const PROJECTS: Project[] = [
         "One continuous payroll journey instead of scattered platform screens, so finance teams keep context from upload to confirmation.",
         "Bilingual AR/EN and RTL designed together from the start, not translated after the fact.",
       ],
-      result: "The payroll revamp shipped on the e-business platform as one of 41 revamps I delivered there; the wider platform program lifted account openings 47% and transactions 81%. The full walkthrough is on Behance.",
+      result: "The payroll revamp shipped as one of the 41 e-business revamps referenced above. Full walkthrough on Behance.",
     }
   },
   {

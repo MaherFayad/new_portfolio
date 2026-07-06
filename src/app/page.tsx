@@ -91,7 +91,7 @@ const SERVICES_OFFERED = [
     ref: "01",
     name: "Product Design",
     description: "End-to-end product design for web and mobile, from problem framing and user flows to shipped, developer-ready UI.",
-    proof: "Shipped the Al Rajhi payroll revamp within the e-business program that lifted account openings 47% and transactions 81%.",
+    proof: "Shipped the Al Rajhi payroll revamp for enterprise customers on the e-business platform.",
   },
   {
     ref: "02",
@@ -413,7 +413,7 @@ export default function HomePage() {
               I pride myself on crafting digital products that not only meet but exceed expectations, with outcomes I can put numbers on.
             </p>
             <p className="mt-[30px] max-sm:mt-4 ml-[35%] lg:ml-[25%] xl:ml-[35%] max-sm:ml-0 font-medium text-sm leading-[120%] tracking-[-0.03em] text-[rgba(197,197,197,0.62)]">
-              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, with work feeding results like 47% more account openings and 81% more transactions at Al Rajhi.
+              From banking platforms to bilingual travel funnels, I design user-friendly interfaces that captivate and engage audiences, with work feeding the account-opening and transaction growth behind Al Rajhi&apos;s e-business program.
             </p>
           </div>
         </div>
