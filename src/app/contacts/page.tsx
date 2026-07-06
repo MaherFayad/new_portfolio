@@ -399,6 +399,35 @@ export default function ContactsPage() {
             </div>
           </Reveal>
 
+          {/* Elsewhere */}
+          <Reveal aboveFold delay={0.2} className="flex flex-col items-start">
+            <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] mb-2">
+              ELSEWHERE
+            </span>
+            <div className="flex items-center gap-5">
+              <Magnetic range={60} strength={0.4}>
+                <a
+                  href="https://www.linkedin.com/in/maherfayad"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
+                >
+                  LinkedIn
+                </a>
+              </Magnetic>
+              <Magnetic range={60} strength={0.4}>
+                <a
+                  href="https://www.figma.com/@maherfayad96"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
+                >
+                  Figma
+                </a>
+              </Magnetic>
+            </div>
+          </Reveal>
+
           {/* Response Time */}
           <Reveal aboveFold delay={0.25} className="flex flex-col">
             <span className="block font-semibold text-xs tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] mb-2">

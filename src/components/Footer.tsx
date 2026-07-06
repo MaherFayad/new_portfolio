@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
 import FooterStripe from "@/components/FooterStripe";
+import Magnetic from "@/components/Magnetic";
 
 const CONFETTI_COLORS = ["#1CCECB", "#1B67E8", "#927FAE", "#E8E8E8", "#1CCECB"];
 
@@ -185,6 +186,35 @@ export default function Footer() {
               )}
             </AnimatePresence>
           </div>
+        </Reveal>
+      </div>
+
+      {/* Elsewhere links */}
+      <div className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-10 max-sm:mt-8">
+        <Reveal aboveFold className="col-span-full flex items-center gap-6 max-sm:justify-center">
+          <span className="font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)]">
+            Elsewhere
+          </span>
+          <Magnetic range={60} strength={0.4}>
+            <a
+              href="https://www.linkedin.com/in/maherfayad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
+            >
+              LinkedIn
+            </a>
+          </Magnetic>
+          <Magnetic range={60} strength={0.4}>
+            <a
+              href="https://www.figma.com/@maherfayad96"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
+            >
+              Figma
+            </a>
+          </Magnetic>
         </Reveal>
       </div>
     </footer>

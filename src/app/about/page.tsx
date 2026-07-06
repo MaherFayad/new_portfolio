@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import AnimatedText from "@/components/AnimatedText";
@@ -12,6 +13,7 @@ import PluginsGrid from "@/components/PluginsGrid";
 import AboutProjectsScroll from "@/components/AboutProjectsScroll";
 import Testimonials from "@/components/Testimonials";
 import SiteHeader from "@/components/SiteHeader";
+import CvModal from "@/components/CvModal";
 
 // Swap to "/cv/Maher-Fayad-CV.pdf" once the PDF is added under public/cv/.
 const CV_URL = "https://drive.google.com/file/d/17gjXpoyjISAdNi6Jw8E-3052SkGq1TRc/view?usp=sharing";
@@ -118,6 +120,8 @@ const EXPERTISE = [
 ];
 
 export default function AboutPage() {
+  const [cvOpen, setCvOpen] = useState(false);
+
   return (
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip flex flex-col pb-0">
 
@@ -148,6 +152,10 @@ export default function AboutPage() {
               href={CV_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                e.preventDefault();
+                setCvOpen(true);
+              }}
               className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
             >
               VIEW FULL CV
@@ -309,6 +317,8 @@ export default function AboutPage() {
 
       <WavyString className="mt-20" />
       <Footer />
+
+      <CvModal isOpen={cvOpen} onClose={() => setCvOpen(false)} driveUrl={CV_URL} />
     </main>
   );
 }

@@ -92,6 +92,7 @@ const personJsonLd = {
     "https://www.credly.com/badges/bf32a815-e57e-4ed4-8475-45ccdceb586a/public_url",
     "https://www.figma.com/community/plugin/1444818529763652434/primitive-semantic-colors-generator",
     "https://www.figma.com/community/plugin/1457720620225105340/numeric-tokens-generator",
+    "https://www.figma.com/@maherfayad96",
   ],
 };
 
