@@ -6,7 +6,7 @@ interface ChatCertificateCardProps {
   compact?: boolean;
 }
 
-const CERTIFICATES = [
+export const CERTIFICATES = [
   {
     slug: "google-ux-design",
     name: "Google UX Design Professional Certificate",

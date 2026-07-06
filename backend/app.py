@@ -374,7 +374,7 @@ OFF_TOPIC_REFUSAL = (
 )
 
 # 4. Helper to stream CrewAI execution via SSE (Replaced with direct requests completion for quota efficiency)
-async def run_crew_stream(user_query: str, chat_history: str, current_page: str = "", session_id: str = "", client_ip: str = "", user_agent: str = "") -> Generator:
+async def run_crew_stream(user_query: str, chat_history: List[Dict[str, str]] = None, current_page: str = "", session_id: str = "", client_ip: str = "", user_agent: str = "") -> Generator:
     event_queue = queue.Queue()
 
     def execute_request():
@@ -400,13 +400,12 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                 "You are Maher Fayad's virtual double, acting as his Digital Representative.\n"
                 "Talk like a real person, not a corporate chatbot: natural phrasing, a bit of personality, "
                 "a touch of dry humor here and there, but still professional. Never sound robotic or scripted.\n"
-                "LANGUAGE: Detect the language AND the specific dialect or regional variety of the USER QUERY and "
-                "respond ENTIRELY in that same language and dialect, mirroring its script, tone, and level of "
-                "formality. If the user writes in a colloquial dialect (for example Egyptian, Gulf/Khaleeji, Saudi, "
-                "or Levantine Arabic), reply in that exact dialect, not in Modern Standard Arabic; if they write in "
-                "formal or standard language, stay formal. Match casual slang with casual slang and formal phrasing "
-                "with formal phrasing (this applies to every language, e.g. reply in Arabic to an Arabic question, "
-                "in French to a French question, in English to an English one). The biographical context below is written in "
+                "LANGUAGE: Detect the language of the USER QUERY and respond ENTIRELY in that same language, "
+                "mirroring its script and level of formality (this applies to every language, e.g. reply in Arabic "
+                "to an Arabic question, in French to a French question, in English to an English one). For Arabic "
+                "specifically, default to Modern Standard Arabic with a warm, approachable register regardless of "
+                "the user's dialect; only mirror their exact dialect (Egyptian, Gulf/Khaleeji, Saudi, Levantine, etc.) "
+                "for greetings and small talk, never for factual, professional, or hiring-related content. The biographical context below is written in "
                 "English; translate any facts you use into the user's language. Always keep proper nouns (Maher "
                 "Fayad, company names such as Almosafer and Al Rajhi Bank), email addresses, URLs, markdown links, "
                 "and every bracket tag (e.g. [ProjectCard: slug], [PluginCard: slug], [CertificateCard: slug], "
@@ -416,10 +415,14 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                 "pronoun هو in Arabic, never plural or feminine forms.\n"
                 "Keep responses short, highly structured, and to the point. Avoid writing long paragraphs. "
                 "Heavily prioritize structured output, using concise lists, key bullet points, or itemized facts over dense blocks of text. Make it easy to read at a glance.\n\n"
-                "You are also Maher's biggest (low-key) salesperson. In every ON_TOPIC response, work in a "
-                "natural, witty pitch for why the person should hire or work with Maher, tying it to whatever "
+                "VOICE: Confident through evidence, never through praise. State facts, numbers, "
+                "and outcomes; let them do the selling. NEVER use praise adjectives or pitch "
+                "phrases about Maher ('your guy', 'move the needle', 'talented', 'amazing'). "
+                "Humor is welcome, but only self-deprecating (about you, the assistant) or "
+                "situational, never a compliment to Maher. When hiring or availability comes up, "
+                "answer factually and route to the booking action. One CTA per response max."
                 "they asked about. Don't be pushy or use hard-sell cliches, more like a confident friend who "
-                "can't help but brag a little. A light joke about how good he is, or a winking pitch that he's "
+                "can't help but brag a little. "
                 "available for hire, fits well. Keep it brief, never sound desperate or like a sales script.\n\n"
                 "GROUNDING: Base every factual claim strictly on the CONTEXT provided below. Do NOT invent or guess projects, employers, clients, job titles, metrics, numbers, dates, or quotes. If something is not in the context or you are unsure, say you are not certain and suggest reaching out to Maher directly, rather than making something up. Being accurate matters more than sounding impressive.\n"
                 "Evaluate the USER QUERY inside <user_query> tags to see if it is relevant to Maher Fayad (his resume, experience, skills, projects, contact info, social media, or professional network). NOTE: LinkedIn is Maher's social media / professional network, so any question about his LinkedIn, social media, or where to follow or connect with him is ALWAYS ON_TOPIC.\n"
@@ -436,13 +439,8 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
             messages = [{"role": "system", "content": system_prompt}]
             
             if chat_history:
-                lines = chat_history.split("\n")
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith("User:"):
-                        messages.append({"role": "user", "content": line[5:].strip()})
-                    elif line.startswith("Representative:"):
-                        messages.append({"role": "assistant", "content": line[15:].strip()})
+                for turn in chat_history:
+                    messages.append({"role": turn["role"], "content": turn["content"]})
 
             messages.append({"role": "user", "content": f"<user_query>{user_query}</user_query>"})
 
@@ -567,6 +565,47 @@ async def run_crew_stream(user_query: str, chat_history: str, current_page: str 
                 return
         await asyncio.sleep(0.1)
 
+# The client sends only the raw pathname; the descriptive sentence fed into the
+# system prompt is built here from a fixed template so client-controlled text can
+# never be interpolated directly into the LLM prompt.
+PAGE_DESCRIPTIONS = {
+    "/": "Home page (/)",
+    "/about": "About page (/about)",
+    "/work": "Selected Work page (/work)",
+    "/contacts": "Contact page (/contacts)",
+}
+
+PROJECT_SLUG_PATTERN = re.compile(r"^[a-z0-9-]{1,60}$")
+
+def describe_page(path: str) -> str:
+    if path in PAGE_DESCRIPTIONS:
+        return PAGE_DESCRIPTIONS[path]
+    if path.startswith("/projects/"):
+        slug = path[len("/projects/"):].split("/")[0]
+        if PROJECT_SLUG_PATTERN.match(slug):
+            return (
+                f'a project case study page (/projects/{slug}, slug "{slug}"). '
+                f'When the user says "this page", "this project", "this case study", '
+                f'or "here", they mean the project with slug "{slug}".'
+            )
+    return "unknown"
+
+def sanitize_history(raw_history) -> List[Dict[str, str]]:
+    history = []
+    if not isinstance(raw_history, list):
+        return history
+    for turn in raw_history[-20:]:
+        if not isinstance(turn, dict):
+            continue
+        role = turn.get("role")
+        content = str(turn.get("content", "")).strip()
+        if role not in ("user", "assistant") or not content:
+            continue
+        if check_prompt_injection(content):
+            continue
+        history.append({"role": role, "content": content})
+    return history
+
 # 5. Endpoints
 @app.get("/health")
 def health():
@@ -586,8 +625,7 @@ async def chat_endpoint(request: Request):
     # Parse request body
     body = await request.json()
     prompt = body.get("prompt", "").strip()
-    history = body.get("history", "")
-    page = body.get("page", "").strip()
+    page = describe_page(body.get("page", "").strip())
 
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt cannot be empty")
@@ -599,6 +637,7 @@ async def chat_endpoint(request: Request):
             yield {"event": "result", "data": OFF_TOPIC_REFUSAL}
         return EventSourceResponse(immediate_refusal())
 
+    history = sanitize_history(body.get("history", []))
     session_id = body.get("session_id", "").strip()
     user_agent = request.headers.get("user-agent", "")
 

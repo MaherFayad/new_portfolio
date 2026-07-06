@@ -6,11 +6,19 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ChatProjectCard from "./ChatProjectCard";
 import ChatPluginCard from "./ChatPluginCard";
-import ChatCertificateCard from "./ChatCertificateCard";
+import ChatCertificateCard, { CERTIFICATES } from "./ChatCertificateCard";
 import ChatExperienceTimeline from "./ChatExperienceTimeline";
 import BookMeetingButton from "./BookMeetingButton";
 import { PROJECTS } from "@/data/projects";
+import { PLUGINS } from "@/data/plugins";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
+
+// Free-tier models occasionally hallucinate a slug or malform a tag. Validate every
+// card tag against these whitelists before rendering so a bad slug is stripped instead
+// of showing a broken card or leaking raw bracket text into the chat.
+const VALID_PROJECT_SLUGS = new Set(PROJECTS.map((p) => p.slug));
+const VALID_PLUGIN_SLUGS = new Set(PLUGINS.map((p) => p.slug));
+const VALID_CERTIFICATE_SLUGS = new Set(CERTIFICATES.map((c) => c.slug));
 
 const DotLottieReact = dynamic(
   () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
@@ -101,22 +109,12 @@ const SUGGESTED_PROMPTS: { label: string; icon: React.ReactNode; cannedResponse?
 
 // Human-readable description of the page the user is currently viewing, sent with each
 // chat request so the agent can say "you're already here" instead of handing back a link.
-function getCurrentPageInfo(): string {
-  if (typeof window === "undefined") return "Home page (/)";
-  const path = window.location.pathname;
-  if (path === "/") return "Home page (/)";
-  if (path === "/about") return "About page (/about)";
-  if (path === "/work") return "Selected Work page (/work)";
-  if (path === "/contacts") return "Contact page (/contacts)";
-  if (path.startsWith("/projects/")) {
-    const slug = path.split("/").filter(Boolean)[1] || "";
-    const project = PROJECTS.find((p) => p.slug === slug);
-    if (project) {
-      return `the "${project.title}" project case study page (${path}, slug "${slug}"). When the user says "this page", "this project", "this case study", or "here", they mean ${project.title}.`;
-    }
-    return `a project case study page (${path})${slug ? `, project slug "${slug}"` : ""}`;
-  }
-  return `${path}`;
+// Only the raw pathname is sent to the backend; the backend maps it to the
+// descriptive sentence itself from a fixed whitelist so client-controlled text
+// never gets interpolated directly into the LLM system prompt.
+function getCurrentPagePath(): string {
+  if (typeof window === "undefined") return "/";
+  return window.location.pathname;
 }
 
 const PLACEHOLDER_PREFIX = "Ask me ";
@@ -1137,22 +1135,24 @@ export default function ChatAgent() {
     setMessages(updatedMessages);
 
     // 2. Format Chat History from PRIOR turns only (the current question is sent as `prompt`).
-    // Each turn must be a SINGLE line: the backend parses history by line prefix, so any
-    // newline inside a message would otherwise drop the rest of that turn (context loss).
-    // We also strip widget tags ([ProjectCard: ...], [BookMeetingButton], etc.) since they
-    // are UI noise the model does not need, and cap to the most recent turns to stay lean.
+    // Sent as a structured {role, content} array (not a parsed string) so multiline,
+    // bulleted assistant replies survive intact. We strip widget tags ([ProjectCard: ...],
+    // [BookMeetingButton], etc.) since they are UI noise the model does not need, and cap
+    // to the most recent turns to stay lean.
     const sanitizeForHistory = (content: string) =>
       content
         .replace(/\[(?:ProjectCard|PluginCard|CertificateCard):[^\]]*\]/g, "")
         .replace(/\[(?:BookMeetingButton|ExperienceTimeline)\]/g, "")
-        .replace(/\s+/g, " ")
+        .replace(/[ \t]+/g, " ")
         .trim();
 
-    const historyText = messages
+    const chatHistory = messages
       .slice(-8)
-      .map((msg) => `${msg.role === "user" ? "User" : "Representative"}: ${sanitizeForHistory(msg.content)}`)
-      .filter((line) => line.replace(/^(?:User|Representative):\s*/, "").length > 0)
-      .join("\n");
+      .map((msg) => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: sanitizeForHistory(msg.content),
+      }))
+      .filter((turn) => turn.content.length > 0);
 
     try {
       // 3. Make POST SSE stream request
@@ -1163,8 +1163,8 @@ export default function ChatAgent() {
         },
         body: JSON.stringify({
           prompt: text,
-          history: historyText,
-          page: getCurrentPageInfo(),
+          history: chatHistory,
+          page: getCurrentPagePath(),
           session_id: sessionId,
         }),
       });
@@ -1271,8 +1271,10 @@ export default function ChatAgent() {
 
   // Helper to parse project tags [ProjectCard: slug], plugin tags [PluginCard: slug], certificate tags [CertificateCard: slug], and booking buttons [BookMeetingButton]
   const renderMessageContent = (text: string) => {
-    // Match [ProjectCard: slug], [PluginCard: slug], [CertificateCard: slug], [ExperienceTimeline], or [BookMeetingButton]
-    const regex = /\[(ProjectCard:\s*(.+?)|PluginCard:\s*(.+?)|CertificateCard:\s*(.+?)|ExperienceTimeline|BookMeetingButton)\]/g;
+    // Tolerate case and whitespace variance around the tag name/colon (free models aren't
+    // perfectly consistent), but every slug is validated against a whitelist below — an
+    // unknown slug is stripped rather than shown as a broken card or raw bracket text.
+    const regex = /\[\s*(ProjectCard|PluginCard|CertificateCard)\s*:\s*([^\]]+?)\s*\]|\[\s*(ExperienceTimeline|BookMeetingButton)\s*\]/gi;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -1283,23 +1285,24 @@ export default function ChatAgent() {
         parts.push({ type: "text", content: textBefore });
       }
 
-      const tagContent = match[1];
-      if (tagContent === "BookMeetingButton") {
-        parts.push({ type: "booking" });
-      } else if (tagContent === "ExperienceTimeline") {
-        parts.push({ type: "timeline" });
-      } else if (match[3] !== undefined) {
-        // It's a PluginCard: slug
-        const slug = match[3].trim();
-        parts.push({ type: "plugin", slug });
-      } else if (match[4] !== undefined) {
-        // It's a CertificateCard: slug
-        const slug = match[4].trim();
-        parts.push({ type: "certificate", slug });
+      if (match[3] !== undefined) {
+        const standalone = match[3].toLowerCase();
+        if (standalone === "bookmeetingbutton") {
+          parts.push({ type: "booking" });
+        } else if (standalone === "experiencetimeline") {
+          parts.push({ type: "timeline" });
+        }
       } else {
-        // It's a ProjectCard: slug
+        const tagType = match[1].toLowerCase();
         const slug = match[2].trim();
-        parts.push({ type: "card", slug });
+        if (tagType === "projectcard" && VALID_PROJECT_SLUGS.has(slug)) {
+          parts.push({ type: "card", slug });
+        } else if (tagType === "plugincard" && VALID_PLUGIN_SLUGS.has(slug)) {
+          parts.push({ type: "plugin", slug });
+        } else if (tagType === "certificatecard" && VALID_CERTIFICATE_SLUGS.has(slug)) {
+          parts.push({ type: "certificate", slug });
+        }
+        // else: unknown/hallucinated slug — silently drop the tag
       }
       lastIndex = regex.lastIndex;
     }
