@@ -412,22 +412,45 @@ def rotate_api_key():
 # auto-router that forwards to a random free model each call (wildly varying
 # quality and instruction-following), so it is kept only as a last-resort fallback.
 # Diverse providers up front so a 429 on one falls through to another.
+# Every slug here must exist in https://openrouter.ai/api/v1/models; free-tier slugs
+# get retired regularly and a stale one costs a full round trip before it 404s.
 MODELS_TO_TRY = [
     "google/gemma-4-31b-it:free",
-    "qwen/qwen3-next-80b-a3b-instruct:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "openai/gpt-oss-20b:free",
     "google/gemma-4-26b-a4b-it:free",
     "openrouter/free",
 ]
 
+# A 404 means the slug was retired upstream. That never recovers within the life of
+# the process, so the model is skipped from then on instead of being re-probed on
+# every single chat request.
+RETIRED_MODELS = set()
+
+# A 429 from OpenRouter on a :free model is the upstream provider throttling the
+# model itself ("temporarily rate-limited upstream"), not our key hitting its quota,
+# so cycling through all four keys just adds round trips. Try a second key in case it
+# genuinely was a per-key limit, then fall through to the next model.
+MAX_ATTEMPTS_PER_MODEL = 2
+
+# Ceiling on the whole fallback walk so a bad day upstream degrades to the canned
+# reply quickly instead of leaving the user watching a spinner.
+LLM_TOTAL_BUDGET_SECONDS = 35
+LLM_REQUEST_TIMEOUT_SECONDS = 15
+
 def fetch_llm_response(messages, session_id: str, client_ip: str, current_page: str, user_agent: str):
     response = None
     chosen_model = None
+    deadline = time.monotonic() + LLM_TOTAL_BUDGET_SECONDS
 
     for model in MODELS_TO_TRY:
-        attempts = max(len(OPENROUTER_API_KEYS) * 2, 2)
+        if model in RETIRED_MODELS:
+            continue
         model_success = False
-        for attempt in range(attempts):
+        for attempt in range(MAX_ATTEMPTS_PER_MODEL):
+            if time.monotonic() > deadline:
+                print(f"[LLM BUDGET] Exhausted {LLM_TOTAL_BUDGET_SECONDS}s budget, giving up.")
+                return None, None
             api_key = get_active_api_key()
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -468,13 +491,16 @@ def fetch_llm_response(messages, session_id: str, client_ip: str, current_page: 
                     headers=headers,
                     json=payload,
                     stream=True,
-                    timeout=25
+                    timeout=LLM_REQUEST_TIMEOUT_SECONDS
                 )
                 print(f"[LLM RESPONSE] Status code: {r.status_code}")
+                if r.status_code == 404:
+                    print(f"[SKIP] Model {model} was retired upstream (404). Skipping it for the rest of this process.")
+                    RETIRED_MODELS.add(model)
+                    break
                 if r.status_code == 429:
                     print(f"[RETRY] OpenRouter 429 hit for model {model}. Key index {current_key_idx} rate-limited. Error: {r.text}")
                     rotate_api_key()
-                    time.sleep(1)
                     continue
                 r.raise_for_status()
                 response = r
@@ -484,7 +510,6 @@ def fetch_llm_response(messages, session_id: str, client_ip: str, current_page: 
             except Exception as e:
                 print(f"[RETRY] Error on model {model}, attempt {attempt+1}: {e}")
                 rotate_api_key()
-                time.sleep(1)
                 continue
         if model_success:
             break
@@ -568,13 +593,18 @@ async def run_crew_stream(user_query: str, chat_history: List[Dict[str, str]] = 
             llm_thread.start()
 
             event_queue.put(("status", "Thinking..."))
-            time.sleep(0.3)
-            event_queue.put(("thought", "Analyzing query context..."))
-            time.sleep(0.3)
-            event_queue.put(("thought", "Retrieving biography details..."))
-            time.sleep(0.3)
-            event_queue.put(("thought", "Drafting representative response..."))
-            time.sleep(0.3)
+
+            # Pace the scripted thoughts against the real request rather than against the
+            # clock: each 0.3s gap is spent waiting on the LLM thread, and the moment it
+            # lands the remaining thoughts are dropped. Same cadence as before while the
+            # model is slow, but a fast reply is no longer held back by 1.2s of theatre.
+            for thought in ("Analyzing query context...",
+                            "Retrieving biography details...",
+                            "Drafting representative response..."):
+                llm_thread.join(timeout=0.3)
+                if not llm_thread.is_alive():
+                    break
+                event_queue.put(("thought", thought))
 
             llm_thread.join()
             response = llm_result.get("response")
