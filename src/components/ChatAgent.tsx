@@ -713,7 +713,28 @@ const parseMarkdown = (text: string, onLinkClick?: () => void) => {
 // "* item" or "- item" line was previously left as literal text with the marker character
 // still attached. This groups consecutive bullet lines into a real <ul><li> list and
 // non-bullet lines into paragraphs, running each line's inline content through parseMarkdown.
-const renderTextBlock = (text: string, onLinkClick?: () => void) => {
+// Direction is resolved once for a whole message rather than per block. Per-block
+// detection broke Arabic replies that list English proper nouns: each bullet ("Almosafer",
+// "Al Rajhi Bank") resolved LTR on its own and rendered left-aligned with left-hand
+// bullets, while the Arabic paragraphs around it ran RTL. Latin words sitting inside an
+// RTL paragraph already render correctly on their own via the Unicode bidi algorithm, so
+// one direction per message is both simpler and what a reader expects.
+const RTL_CHARS = /[֐-׿؀-ࣿﭐ-﷿ﹰ-﻿]/g;
+const LTR_CHARS = /[A-Za-zÀ-ɏ]/g;
+
+// Whichever script dominates wins, rather than whichever appears first. `dir="auto"` and
+// the bidi spec both key off the first strong character, which misreads exactly the
+// sentences this chat produces: an Arabic reply routinely opens with a Latin company name
+// ("Almosafer هي منصة سفر رائدة"), and that alone would flip the whole message to LTR.
+const resolveTextDirection = (text: string): "rtl" | "ltr" => {
+  // Widget tags are always Latin and would otherwise pad the LTR side of the count.
+  const stripped = text.replace(/\[[^\]]*\]/g, " ");
+  const rtlCount = (stripped.match(RTL_CHARS) || []).length;
+  const ltrCount = (stripped.match(LTR_CHARS) || []).length;
+  return rtlCount > ltrCount ? "rtl" : "ltr";
+};
+
+const renderTextBlock = (text: string, onLinkClick?: () => void, dir: "rtl" | "ltr" = "ltr") => {
   const lines = text.split("\n");
   const blocks: Array<{ type: "list"; items: string[] } | { type: "para"; lines: string[] }> = [];
 
@@ -733,18 +754,15 @@ const renderTextBlock = (text: string, onLinkClick?: () => void) => {
     }
   }
 
-  // `dir="auto"` per block rather than once on the message: the browser picks direction
-  // from each block's first strong character, so an Arabic reply flows RTL (its commas,
-  // colons and question marks landing on the correct side) while embedded English runs
-  // like "Senior Product Designer" and any Latin-first bullet still read LTR. Applying it
-  // this deep also leaves the surrounding layout, and the project/plugin cards, untouched.
-  // `ps-5` is the logical form of `pl-5`, so the bullet indent flips with the direction.
+  // The direction comes from the caller so every block of one message agrees. `ps-5` is
+  // the logical form of `pl-5`, so the bullet indent moves to the right-hand side under
+  // RTL instead of staying pinned to the left.
   return blocks.map((block, idx) => {
     if (block.type === "list") {
       return (
-        <ul key={idx} dir="auto" className="list-disc ps-5 space-y-1 my-1">
+        <ul key={idx} dir={dir} className="list-disc ps-5 space-y-1 my-1">
           {block.items.map((item, itemIdx) => (
-            <li key={itemIdx} dir="auto">{parseMarkdown(item, onLinkClick)}</li>
+            <li key={itemIdx}>{parseMarkdown(item, onLinkClick)}</li>
           ))}
         </ul>
       );
@@ -752,7 +770,7 @@ const renderTextBlock = (text: string, onLinkClick?: () => void) => {
     const paraText = block.lines.join("\n").trim();
     if (!paraText) return null;
     return (
-      <p key={idx} dir="auto" className="whitespace-pre-wrap">
+      <p key={idx} dir={dir} className="whitespace-pre-wrap">
         {parseMarkdown(paraText, onLinkClick)}
       </p>
     );
@@ -1410,6 +1428,9 @@ export default function ChatAgent() {
 
   // Helper to parse project tags [ProjectCard: slug], plugin tags [PluginCard: slug], certificate tags [CertificateCard: slug], and booking buttons [BookMeetingButton]
   const renderMessageContent = (text: string) => {
+    // Resolved from the full message text, then handed to every text block below, so an
+    // Arabic reply stays RTL end to end even where a bullet holds only a Latin name.
+    const messageDir = resolveTextDirection(text);
     // Tolerate case and whitespace variance around the tag name/colon (free models aren't
     // perfectly consistent), but every slug is validated against a whitelist below — an
     // unknown slug is stripped rather than shown as a broken card or raw bracket text.
@@ -1478,7 +1499,7 @@ export default function ChatAgent() {
     if (parts.length === 0) {
       return (
         <div className="text-sm leading-relaxed text-[#c5c5c5] font-medium flex flex-col gap-1">
-          {renderTextBlock(text, handleClose)}
+          {renderTextBlock(text, handleClose, messageDir)}
         </div>
       );
     }
@@ -1547,7 +1568,7 @@ export default function ChatAgent() {
           }
           return (
             <div key={idx} className="text-sm leading-relaxed text-[#c5c5c5] font-medium flex flex-col gap-1">
-              {renderTextBlock(part.content || "", handleClose)}
+              {renderTextBlock(part.content || "", handleClose, messageDir)}
             </div>
           );
         })}
@@ -1813,7 +1834,7 @@ export default function ChatAgent() {
                                         variants={springItem}
                                         className="flex flex-col gap-1.5 max-w-[85%] self-end items-end w-full"
                                       >
-                                        <div dir="auto" className="px-4 py-3.5 text-start bg-white/[0.06] border border-white/[0.08] text-[#e2e2e2] rounded-2xl rounded-tr-md text-sm font-medium leading-relaxed">
+                                        <div dir={resolveTextDirection(msg.content)} className="px-4 py-3.5 text-start bg-white/[0.06] border border-white/[0.08] text-[#e2e2e2] rounded-2xl rounded-tr-md text-sm font-medium leading-relaxed">
                                           {msg.content}
                                         </div>
                                       </motion.div>
@@ -1867,7 +1888,7 @@ export default function ChatAgent() {
                             {/* Queued message preview - sent automatically once the agent finishes */}
                             {queuedMessage && (
                               <div className="flex flex-col gap-1.5 max-w-[85%] self-end items-end mt-4 opacity-50">
-                                <div dir="auto" className="px-4 py-3.5 text-start bg-white/[0.04] text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
+                                <div dir={resolveTextDirection(queuedMessage)} className="px-4 py-3.5 text-start bg-white/[0.04] text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
                                   {queuedMessage}
                                 </div>
                                 <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold pr-1">
