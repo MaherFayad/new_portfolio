@@ -733,12 +733,18 @@ const renderTextBlock = (text: string, onLinkClick?: () => void) => {
     }
   }
 
+  // `dir="auto"` per block rather than once on the message: the browser picks direction
+  // from each block's first strong character, so an Arabic reply flows RTL (its commas,
+  // colons and question marks landing on the correct side) while embedded English runs
+  // like "Senior Product Designer" and any Latin-first bullet still read LTR. Applying it
+  // this deep also leaves the surrounding layout, and the project/plugin cards, untouched.
+  // `ps-5` is the logical form of `pl-5`, so the bullet indent flips with the direction.
   return blocks.map((block, idx) => {
     if (block.type === "list") {
       return (
-        <ul key={idx} className="list-disc pl-5 space-y-1 my-1">
+        <ul key={idx} dir="auto" className="list-disc ps-5 space-y-1 my-1">
           {block.items.map((item, itemIdx) => (
-            <li key={itemIdx}>{parseMarkdown(item, onLinkClick)}</li>
+            <li key={itemIdx} dir="auto">{parseMarkdown(item, onLinkClick)}</li>
           ))}
         </ul>
       );
@@ -746,7 +752,7 @@ const renderTextBlock = (text: string, onLinkClick?: () => void) => {
     const paraText = block.lines.join("\n").trim();
     if (!paraText) return null;
     return (
-      <p key={idx} className="whitespace-pre-wrap">
+      <p key={idx} dir="auto" className="whitespace-pre-wrap">
         {parseMarkdown(paraText, onLinkClick)}
       </p>
     );
@@ -1807,7 +1813,7 @@ export default function ChatAgent() {
                                         variants={springItem}
                                         className="flex flex-col gap-1.5 max-w-[85%] self-end items-end w-full"
                                       >
-                                        <div className="px-4 py-3.5 text-left bg-white/[0.06] border border-white/[0.08] text-[#e2e2e2] rounded-2xl rounded-tr-md text-sm font-medium leading-relaxed">
+                                        <div dir="auto" className="px-4 py-3.5 text-start bg-white/[0.06] border border-white/[0.08] text-[#e2e2e2] rounded-2xl rounded-tr-md text-sm font-medium leading-relaxed">
                                           {msg.content}
                                         </div>
                                       </motion.div>
@@ -1823,7 +1829,7 @@ export default function ChatAgent() {
                                         <AIIcon className="w-8 h-8 mt-1" />
                                         {/* Message content - Containerless */}
                                         <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-                                          <div className="text-left text-[#e2e2e2] leading-relaxed text-sm mt-2">
+                                          <div className="text-start text-[#e2e2e2] leading-relaxed text-sm mt-2">
                                             {renderMessageContent(msg.content)}
                                           </div>
                                         </div>
@@ -1851,7 +1857,7 @@ export default function ChatAgent() {
                                     />
                                   )}
                                   {streamingText && (
-                                    <div className="text-left text-[#e2e2e2] leading-relaxed text-sm mt-2">
+                                    <div className="text-start text-[#e2e2e2] leading-relaxed text-sm mt-2">
                                       {renderMessageContent(stripTrailingUnclosedTag(streamingText))}
                                     </div>
                                   )}
@@ -1861,7 +1867,7 @@ export default function ChatAgent() {
                             {/* Queued message preview - sent automatically once the agent finishes */}
                             {queuedMessage && (
                               <div className="flex flex-col gap-1.5 max-w-[85%] self-end items-end mt-4 opacity-50">
-                                <div className="px-4 py-3.5 text-left bg-white/[0.04] text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
+                                <div dir="auto" className="px-4 py-3.5 text-start bg-white/[0.04] text-[#e2e2e2] rounded-2xl rounded-tr-none shadow-sm text-sm font-medium leading-relaxed">
                                   {queuedMessage}
                                 </div>
                                 <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold pr-1">
