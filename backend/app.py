@@ -89,6 +89,28 @@ PROMPT_INJECTION_PATTERNS = [
     r"(?i)system\s+prompt"
 ]
 
+ARABIC_SCRIPT_PATTERN = re.compile(r"[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
+
+def contains_arabic(text: str) -> bool:
+    return bool(ARABIC_SCRIPT_PATTERN.search(text))
+
+def strip_arabic_asides(text: str) -> str:
+    """Drop the bio's Arabic-script asides (how his name is spelled, which pronoun to use).
+
+    They only matter when the reply itself is Arabic, and carrying them into an English
+    conversation nudges the smaller models into answering in Arabic. Sentence-level rather
+    than line-level so the English facts sharing those lines survive, and keyed on actual
+    Arabic characters rather than the word "Arabic" so genuine portfolio facts about his
+    Arabic/RTL design work are never stripped.
+    """
+    lines = []
+    for line in text.split("\n"):
+        if contains_arabic(line):
+            sentences = re.split(r"(?<=[.!?])\s+", line)
+            line = " ".join(s for s in sentences if not contains_arabic(s)).rstrip()
+        lines.append(line)
+    return "\n".join(lines)
+
 def check_prompt_injection(user_input: str) -> bool:
     for pattern in PROMPT_INJECTION_PATTERNS:
         if re.search(pattern, user_input):
@@ -164,25 +186,30 @@ AR_CONTACT_KEYWORDS = [
     "تواصل", "توظيف", "اجتماع", "موعد", "متاح", "وظيفة", "ايميل", "بريد", "اتصال", "مقابلة"
 ]
 
+# Single source of truth for "the user is asking about his work history". This list was
+# previously copy-pasted per section and had drifted out of sync with RULE_TIMELINE, which
+# listed "work history" but not plain "work" — so "where did he work before as full time?"
+# loaded the career bio sections while never telling the model the [ExperienceTimeline] tag
+# existed, and the timeline silently failed to render. Keep every career trigger here.
+CAREER_KEYWORDS = [
+    "experience", "career", "work", "worked", "working", "history", "employ", "employer",
+    "employment", "timeline", "job", "resume", "cv", "hire", "past", "previous", "prev",
+    # Stems, not whole words: these are matched as substrings, so "compan" catches both
+    # "company" and "companies" where the old "company" silently missed the plural.
+    "former", "before", "background", "full time", "full-time", "fulltime", "compan",
+    "role", "almosafer", "alrajhi", "al rajhi", "azmx", "contact financial", "gameit",
+    "algoriza", "british council",
+    *AR_CAREER_KEYWORDS
+]
+
 SECTION_KEYWORDS = {
-    "Past Employers": [
-        "experience", "career", "work", "history", "employ", "timeline", "job", "resume", "cv",
-        "hire", "past", "employer", "company", "role", "almosafer", "alrajhi", "al rajhi",
-        "azmx", "contact financial", "gameit", "algoriza", "background", "prev", "former", "timeline",
-        *AR_CAREER_KEYWORDS
-    ],
+    "Past Employers": [*CAREER_KEYWORDS],
     "Freelance Clients": [
-        "experience", "career", "work", "history", "employ", "timeline", "job", "resume", "cv",
-        "hire", "freelance", "upwork", "client", "company", "theradome", "supersight",
+        *CAREER_KEYWORDS,
+        "freelance", "upwork", "client", "theradome", "supersight",
         "solidity", "milt olin", "brackets", "iterationx",
-        *AR_CAREER_KEYWORDS
     ],
-    "Career Path (Full Work History)": [
-        "experience", "career", "work", "history", "employ", "timeline", "job", "resume", "cv",
-        "hire", "employer", "company", "role", "almosafer", "alrajhi", "al rajhi", "azmx",
-        "contact financial", "gameit", "algoriza", "british council", "background", "prev", "former", "timeline",
-        *AR_CAREER_KEYWORDS
-    ],
+    "Career Path (Full Work History)": [*CAREER_KEYWORDS],
     "Key Portfolio Projects & Case Studies": [
         "project", "case study", "work", "portfolio", "design", "lfg", "sanarte", "payroll",
         "alrajhi", "al rajhi", "airlab", "campus51", "deployo", "dhsc", "kobe", "nft", "pexlp",
@@ -358,12 +385,7 @@ RULE_TRIGGERS = [
     },
     {
         "rule": RULE_TIMELINE,
-        "keywords": [
-            "experience", "career", "work history", "employment", "timeline", "job", "resume", "cv",
-            "hire", "employer", "company", "role", "almosafer", "alrajhi", "al rajhi", "azmx",
-            "contact financial", "gameit", "algoriza", "british council", "history",
-            *AR_CAREER_KEYWORDS
-        ]
+        "keywords": [*CAREER_KEYWORDS]
     }
 ]
 
@@ -537,26 +559,51 @@ async def run_crew_stream(user_query: str, chat_history: List[Dict[str, str]] = 
             dynamic_rules = select_system_rules(user_query)
             dynamic_context = select_bio_sections(user_query, MAHER_BIO_SECTIONS)
 
+            # The Arabic guidance is long and, worse, contains Arabic script. Sending it on
+            # every request primed the smaller free models into answering English questions
+            # entirely in Arabic, so it is now gated on the user actually writing Arabic,
+            # the same way rules and bio sections are already selected. Telling the model
+            # the language outright also beats asking it to "detect" one.
+            user_wrote_arabic = contains_arabic(user_query)
+            if not user_wrote_arabic:
+                dynamic_context = strip_arabic_asides(dynamic_context)
+
+            language_rule = (
+                "LANGUAGE: Respond ENTIRELY in the same language the USER QUERY is written in, "
+                "mirroring its script and level of formality (reply in French to a French question, "
+                "in English to an English one, and so on). The biographical context below is written "
+                "in English; translate any facts you use into the user's language. Always keep proper "
+                "nouns (Maher Fayad, company names such as Almosafer and Al Rajhi Bank), email "
+                "addresses, URLs, markdown links, and every bracket tag (e.g. [ProjectCard: slug], "
+                "[PluginCard: slug], [CertificateCard: slug], [BookMeetingButton]) exactly as written, "
+                "never translate or alter them.\n"
+            )
+            if user_wrote_arabic:
+                language_rule += (
+                    "The user wrote in Arabic, so reply in Arabic. Default to Modern Standard Arabic "
+                    "with a warm, approachable register regardless of the user's dialect; only mirror "
+                    "their exact dialect (Egyptian, Gulf/Khaleeji, Saudi, Levantine, etc.) for greetings "
+                    "and small talk, never for factual, professional, or hiring-related content. Maher's "
+                    "name is written ماهر. He is one man (a single male individual), not a team or group, "
+                    "so use masculine singular grammar and the pronoun هو, never plural or feminine forms.\n"
+                )
+            else:
+                # Phrased without naming any language. Saying "do not reply in Arabic" would
+                # put the word back into a prompt we just cleaned, and a negated instruction
+                # is exactly the kind small models invert.
+                language_rule += (
+                    "Match the user's language exactly. Never switch to a different language "
+                    "than the one they wrote in.\n"
+                )
+
             print(f"[DYNAMIC PROMPT] Query: '{user_query}'", flush=True)
-            print(f"[DYNAMIC PROMPT] Loaded rules length: {len(dynamic_rules.splitlines())}, Bio context length: {len(dynamic_context)} chars", flush=True)
+            print(f"[DYNAMIC PROMPT] Loaded rules length: {len(dynamic_rules.splitlines())}, Bio context length: {len(dynamic_context)} chars, Arabic query: {user_wrote_arabic}", flush=True)
 
             system_prompt = (
                 "You are Maher Fayad's virtual double, acting as his Digital Representative.\n"
                 "Talk like a real person, not a corporate chatbot: natural phrasing, a bit of personality, "
                 "a touch of dry humor here and there, but still professional. Never sound robotic or scripted.\n"
-                "LANGUAGE: Detect the language of the USER QUERY and respond ENTIRELY in that same language, "
-                "mirroring its script and level of formality (this applies to every language, e.g. reply in Arabic "
-                "to an Arabic question, in French to a French question, in English to an English one). For Arabic "
-                "specifically, default to Modern Standard Arabic with a warm, approachable register regardless of "
-                "the user's dialect; only mirror their exact dialect (Egyptian, Gulf/Khaleeji, Saudi, Levantine, etc.) "
-                "for greetings and small talk, never for factual, professional, or hiring-related content. The biographical context below is written in "
-                "English; translate any facts you use into the user's language. Always keep proper nouns (Maher "
-                "Fayad, company names such as Almosafer and Al Rajhi Bank), email addresses, URLs, markdown links, "
-                "and every bracket tag (e.g. [ProjectCard: slug], [PluginCard: slug], [CertificateCard: slug], "
-                "[BookMeetingButton]) exactly as written, never translate or alter them.\n"
-                "In Arabic, Maher's name is written ماهر. Maher is one man (a single male individual), not a team or "
-                "group, so always refer to him in the singular masculine, using masculine singular grammar and the "
-                "pronoun هو in Arabic, never plural or feminine forms.\n"
+                f"{language_rule}"
                 "Keep responses short, highly structured, and to the point. Avoid writing long paragraphs. "
                 "Heavily prioritize structured output, using concise lists, key bullet points, or itemized facts over dense blocks of text. Make it easy to read at a glance.\n\n"
                 "VOICE: Confident through evidence, never through praise. State facts, numbers, "
@@ -574,7 +621,16 @@ async def run_crew_stream(user_query: str, chat_history: List[Dict[str, str]] = 
                 "Be warm, outcome-first, concise, and structured with clear bullet points.\n\n"
                 f"RULES:\n{dynamic_rules}\n\n"
                 f"CURRENT PAGE the user is viewing right now: {current_page or 'unknown'}\n\n"
-                f"CONTEXT:\n{dynamic_context}"
+                f"CONTEXT:\n{dynamic_context}\n\n"
+                # Repeated last on purpose: the context block above is long and the models in
+                # use weight the tail of the prompt most heavily, which is where a language
+                # instruction actually sticks.
+                + (
+                    "REMINDER: The user wrote in Arabic. Write your entire reply in Arabic."
+                    if user_wrote_arabic
+                    else "REMINDER: Write your entire reply in the same language the user's "
+                         "question is written in."
+                )
             )
 
             messages = [{"role": "system", "content": system_prompt}]
