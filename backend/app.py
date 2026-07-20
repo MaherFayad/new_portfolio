@@ -414,11 +414,16 @@ def rotate_api_key():
 # Diverse providers up front so a 429 on one falls through to another.
 # Every slug here must exist in https://openrouter.ai/api/v1/models; free-tier slugs
 # get retired regularly and a stale one costs a full round trip before it 404s.
+# Reasoning-tuned models are deliberately excluded: several of them (openai/gpt-oss-20b
+# most notably) stream their analysis channel as ordinary content, so the visitor sees
+# "We need to answer: ... Should list projects." instead of an answer. Only plain
+# instruct models belong here. The two gemma entries lead because they are the ones
+# observed actually serving this workload in production.
 MODELS_TO_TRY = [
     "google/gemma-4-31b-it:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
-    "openai/gpt-oss-20b:free",
     "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "tencent/hy3:free",
     "openrouter/free",
 ]
 
