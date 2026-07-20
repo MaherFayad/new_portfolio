@@ -28,6 +28,11 @@ const VALID_CERTIFICATE_SLUGS = new Set(CERTIFICATE_SLUGS);
 // collapse to "alrajhibankpayroll") so near-miss separators or casing still resolve.
 const normalizeSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
 
+// Every slug that owns a card, normalized, for recognising a bare "[slug]" bracket.
+const ALL_CARD_SLUGS = new Set(
+  [...PROJECT_SLUGS, ...PLUGIN_SLUGS, ...CERTIFICATE_SLUGS].map(normalizeSlug),
+);
+
 const buildNormalizedMap = (slugs: string[]) => {
   const map = new Map<string, string>();
   for (const slug of slugs) map.set(normalizeSlug(slug), slug);
@@ -56,12 +61,22 @@ function levenshtein(a: string, b: string): number {
 // (case/punctuation-insensitive) match, then a capped edit-distance match as a last resort
 // for typos. Returns null if nothing is close enough, so the tag is stripped rather than
 // rendering the wrong card.
-const resolveSlug = (rawSlug: string, validSlugs: Set<string>, normalizedMap: Map<string, string>): string | null => {
+// `allowFuzzy` is off for untagged `[slug]` brackets: there the bracket content is only a
+// guess at being a card, so an edit-distance match would happily turn prose like "[nft]"
+// into the "lfg" card. Explicit `[ProjectCard: ...]` tags keep the typo tolerance.
+const resolveSlug = (
+  rawSlug: string,
+  validSlugs: Set<string>,
+  normalizedMap: Map<string, string>,
+  allowFuzzy = true,
+): string | null => {
   if (validSlugs.has(rawSlug)) return rawSlug;
 
   const normalized = normalizeSlug(rawSlug);
   const normalizedMatch = normalizedMap.get(normalized);
   if (normalizedMatch) return normalizedMatch;
+
+  if (!allowFuzzy) return null;
 
   // Flat cap, not scaled by slug length: real model typos (a dropped hyphen, a swapped
   // letter, truncation) land at distance 1-3 regardless of how long the slug is. Also
@@ -1248,10 +1263,16 @@ export default function ChatAgent() {
     // bulleted assistant replies survive intact. We strip widget tags ([ProjectCard: ...],
     // [BookMeetingButton], etc.) since they are UI noise the model does not need, and cap
     // to the most recent turns to stay lean.
+    // The bare-slug pass matters beyond tidiness: feeding "[lfg]" back as history teaches
+    // the model that the prefix-less form is acceptable, which is how the malformed tags
+    // spread across a conversation in the first place.
     const sanitizeForHistory = (content: string) =>
       content
         .replace(/\[(?:ProjectCard|PluginCard|CertificateCard):[^\]]*\]/g, "")
         .replace(/\[(?:BookMeetingButton|ExperienceTimeline)\]/g, "")
+        .replace(/\[\s*([a-z0-9][a-z0-9 _-]{1,60}?)\s*\](?!\()/gi, (whole, slug: string) =>
+          ALL_CARD_SLUGS.has(normalizeSlug(slug)) ? "" : whole,
+        )
         .replace(/[ \t]+/g, " ")
         .trim();
 
@@ -1386,14 +1407,23 @@ export default function ChatAgent() {
     // Tolerate case and whitespace variance around the tag name/colon (free models aren't
     // perfectly consistent), but every slug is validated against a whitelist below — an
     // unknown slug is stripped rather than shown as a broken card or raw bracket text.
-    const regex = /\[\s*(ProjectCard|PluginCard|CertificateCard)\s*:\s*([^\]]+?)\s*\]|\[\s*(ExperienceTimeline|BookMeetingButton)\s*\]/gi;
+    // The final alternative catches the bare `[alrajhi-bank-payroll]` form: free models
+    // routinely drop the "ProjectCard:" prefix and emit just the slug, which used to fall
+    // through and render as literal bracket text. The negative lookahead leaves markdown
+    // links like `[LinkedIn](https://...)` alone, and the slug still has to match a known
+    // card exactly (no fuzzy matching) or it is left as plain text.
+    const regex = /\[\s*(ProjectCard|PluginCard|CertificateCard)\s*:\s*([^\]]+?)\s*\]|\[\s*(ExperienceTimeline|BookMeetingButton)\s*\]|\[\s*([a-z0-9][a-z0-9 _-]{1,60}?)\s*\](?!\()/gi;
     const parts = [];
     let lastIndex = 0;
     let match;
 
     while ((match = regex.exec(text)) !== null) {
       const textBefore = text.substring(lastIndex, match.index);
-      if (textBefore.trim()) {
+      // Whitespace between two cards is noise and gets dropped, but whitespace between two
+      // text runs is a real word gap: keep it when the previous part was also text, so an
+      // unresolved bracket mid-sentence doesn't silently eat the space around it.
+      const previousPart = parts[parts.length - 1];
+      if (textBefore.trim() || (textBefore && previousPart?.type === "text")) {
         parts.push({ type: "text", content: textBefore });
       }
 
@@ -1404,6 +1434,18 @@ export default function ChatAgent() {
         } else if (standalone === "experiencetimeline") {
           parts.push({ type: "timeline" });
         }
+      } else if (match[4] !== undefined) {
+        // Untagged bracket: try each whitelist in turn, and if none owns the slug put the
+        // original text back verbatim so genuine prose in brackets survives untouched.
+        const bare = match[4].trim();
+        const project = resolveSlug(bare, VALID_PROJECT_SLUGS, PROJECT_SLUGS_NORMALIZED, false);
+        const plugin = project ? null : resolveSlug(bare, VALID_PLUGIN_SLUGS, PLUGIN_SLUGS_NORMALIZED, false);
+        const certificate = project || plugin ? null : resolveSlug(bare, VALID_CERTIFICATE_SLUGS, CERTIFICATE_SLUGS_NORMALIZED, false);
+
+        if (project) parts.push({ type: "card", slug: project });
+        else if (plugin) parts.push({ type: "plugin", slug: plugin });
+        else if (certificate) parts.push({ type: "certificate", slug: certificate });
+        else parts.push({ type: "text", content: match[0] });
       } else {
         const tagType = match[1].toLowerCase();
         const rawSlug = match[2].trim();
@@ -1451,7 +1493,15 @@ export default function ChatAgent() {
           groupedParts.push({ type: groupType, slugs: [part.slug] });
         }
       } else {
-        groupedParts.push(part);
+        // Re-join consecutive text runs. Each entry renders as its own block in a
+        // flex-col, so a sentence containing an unrecognised bracket must come back
+        // together here or it would stack as separate gapped lines.
+        const last = groupedParts[groupedParts.length - 1];
+        if (part.type === "text" && last?.type === "text") {
+          last.content = (last.content ?? "") + (part.content ?? "");
+        } else {
+          groupedParts.push(part);
+        }
       }
     }
 
