@@ -12,6 +12,7 @@ import BookMeetingButton from "./BookMeetingButton";
 import { PROJECTS } from "@/data/projects";
 import { PLUGINS } from "@/data/plugins";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
+import ThinkingOrb, { type OrbState } from "./ThinkingOrb";
 
 // Free-tier models occasionally hallucinate a slug or malform a tag. Validate every
 // card tag against these whitelists before rendering so a bad slug is stripped instead
@@ -105,45 +106,7 @@ const resolveSlug = (
   return best;
 };
 
-const DotLottieReact = dynamic(
-  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
-  { ssr: false }
-);
-
-// Sparkle shape traced from Scene.lottie (shared by all three stars)
-const AI_ICON_SPARKLE_PATH =
-  "M-6.69,-85.362 C-4.604,-91.546 4.141,-91.546 6.227,-85.362 C6.227,-85.362 22.991,-35.658 22.991,-35.658 C24.148,-32.227 26.622,-29.398 29.868,-27.793 C29.868,-27.793 73.74,-6.11 73.74,-6.11 C78.802,-3.609 78.802,3.609 73.74,6.111 C73.74,6.111 29.868,27.794 29.868,27.794 C26.622,29.398 24.148,32.227 22.991,35.658 C22.991,35.658 6.227,85.362 6.227,85.362 C4.141,91.546 -4.604,91.546 -6.69,85.362 C-6.69,85.362 -23.454,35.658 -23.454,35.658 C-24.611,32.227 -27.085,29.398 -30.331,27.794 C-30.331,27.794 -74.204,6.111 -74.204,6.111 C-79.265,3.609 -79.265,-3.609 -74.204,-6.11 C-74.204,-6.11 -30.331,-27.793 -30.331,-27.793 C-27.085,-29.398 -24.611,-32.227 -23.454,-35.658 C-23.454,-35.658 -6.69,-85.362 -6.69,-85.362Z";
-
-// Position/scale/gradient for each star, frozen at frame 75 of Scene.lottie (the resting pose)
-const AI_ICON_STARS = [
-  {
-    transform: "translate(238.352 195.931) scale(0.579) translate(1 0)",
-    opacity: 0.7,
-    stops: [
-      { offset: 0.119, color: "#3D57C1" },
-      { offset: 0.715, color: "#4DAB5B" },
-    ],
-    x1: -222.183, y1: 4.04, x2: 93.267, y2: 235.649,
-  },
-  {
-    transform: "translate(228.853 333.306) scale(0.68) translate(1 0)",
-    opacity: 0.7,
-    stops: [
-      { offset: 0, color: "#4EAB5B" },
-      { offset: 1, color: "#3D57BF" },
-    ],
-    x1: 52.717, y1: 60.3, x2: -36.486, y2: -38.996,
-  },
-  {
-    transform: "translate(326.565 296.913) scale(0.82) translate(1 0)",
-    opacity: 1,
-    stops: [
-      { offset: 0.259, color: "#3D57C1" },
-      { offset: 0.982, color: "#4DAB5B" },
-    ],
-    x1: 0, y1: 0, x2: 132.752, y2: 111.796,
-  },
-];
+// Replaced DotLottie with canvas ThinkingOrb from libraries.dev (thinking-orbs)
 
 interface Message {
   role: "user" | "assistant";
@@ -473,60 +436,41 @@ function ThoughtAccordion({ thoughts, status, isLive = false, funnyText }: Thoug
 interface AIIconProps {
   className?: string;
   pulse?: boolean;
+  state?: OrbState;
+  size?: number;
+  speed?: number;
 }
 
-function AIIcon({ className = "w-8 h-8", pulse = false }: AIIconProps) {
-  const dotLottieRef = useRef<any>(null);
+function getOrbPixelSize(className: string): number {
+  if (className.includes("w-3.5") || className.includes("h-3.5")) return 14;
+  if (className.includes("w-4") || className.includes("h-4")) return 16;
+  if (className.includes("w-5") || className.includes("h-5")) return 20;
+  if (className.includes("w-6") || className.includes("h-6")) return 24;
+  if (className.includes("w-7") || className.includes("h-7")) return 28;
+  if (className.includes("w-8") || className.includes("h-8")) return 32;
+  if (className.includes("w-9") || className.includes("h-9")) return 36;
+  if (className.includes("w-10") || className.includes("h-10")) return 40;
+  if (className.includes("w-11") || className.includes("h-11")) return 44;
+  if (className.includes("w-12") || className.includes("h-12")) return 48;
+  return 40;
+}
 
-  useEffect(() => {
-    const player = dotLottieRef.current;
-    if (!player) return;
-
-    const syncPlayback = () => {
-      if (pulse) {
-        player.play();
-      } else {
-        player.pause();
-        player.setFrame(75);
-      }
-    };
-
-    player.addEventListener("load", syncPlayback);
-    player.addEventListener("ready", syncPlayback);
-
-    syncPlayback();
-
-    return () => {
-      player.removeEventListener("load", syncPlayback);
-      player.removeEventListener("ready", syncPlayback);
-    };
-  }, [pulse]);
-
+function AIIcon({
+  className = "w-8 h-8",
+  pulse = false,
+  state = "searching",
+  size,
+  speed,
+}: AIIconProps) {
+  const pixelSize = size ?? getOrbPixelSize(className);
   return (
-    <div className={`relative flex-shrink-0 overflow-hidden ${className}`}>
-      <div
-        className="w-full h-full"
-        style={{ transformOrigin: "55.36% 52.52%", transform: "scale(1.75)" }}
-      >
-        <DotLottieReact
-          src="/lottie/ai-orb.lottie"
-          loop
-          autoplay={pulse}
-          dotLottieRefCallback={(dotLottie) => {
-            dotLottieRef.current = dotLottie;
-            if (dotLottie) {
-              if (pulse) {
-                dotLottie.play();
-              } else {
-                dotLottie.pause();
-                dotLottie.setFrame(75);
-              }
-            }
-          }}
-          className="block w-full h-full"
-        />
-      </div>
-    </div>
+    <ThinkingOrb
+      state={state}
+      size={pixelSize}
+      theme="dark"
+      speed={speed}
+      className={className}
+    />
   );
 }
 
@@ -1847,7 +1791,7 @@ export default function ChatAgent() {
                                         className="flex items-start gap-4 w-full self-start max-w-full my-4"
                                       >
                                         {/* AI Icon */}
-                                        <AIIcon className="w-8 h-8 mt-1" />
+                                        <AIIcon className="w-8 h-8 mt-1" state="shaping" />
                                         {/* Message content - Containerless */}
                                         <div className="flex-1 flex flex-col gap-1.5 min-w-0">
                                           <div className="text-start text-[#e2e2e2] leading-relaxed text-sm mt-2">
@@ -1865,7 +1809,11 @@ export default function ChatAgent() {
                             {isTyping && (
                               <div className="flex items-start gap-4 w-full mt-6">
                                 {/* AI Icon */}
-                                <AIIcon className="w-8 h-8 mt-1" pulse />
+                                <AIIcon
+                                  className="w-8 h-8 mt-1"
+                                  pulse
+                                  state="working"
+                                />
 
                                 {/* ChatGPT-style thinking block + streaming text */}
                                 <div className="flex-1 min-w-0 flex flex-col gap-1.5">
@@ -1945,8 +1893,8 @@ export default function ChatAgent() {
         animate={{
           y: 0,
           opacity: 1,
-          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "170px",
-          height: isOpen ? "56px" : "48px",
+          width: isOpen ? "min(672px, calc(100vw - 3rem))" : "172px",
+          height: isOpen ? "56px" : "52px",
           bottom: (isOpen ? 32 : 24) + keyboardInset,
           backgroundColor: isOpen
             ? isInputFocused
@@ -1964,7 +1912,7 @@ export default function ChatAgent() {
           backdropFilter: isOpen ? "blur(24px)" : "blur(14px)",
         }}
         transition={chatLayoutTransition}
-        className="group fixed bottom-6 left-1/2 -translate-x-1/2 z-55 flex items-center border cursor-pointer text-white overflow-hidden"
+        className="group fixed bottom-6 left-1/2 -translate-x-1/2 z-55 flex items-center border cursor-pointer text-white overflow-hidden select-none"
         whileHover={isOpen ? undefined : { scale: 1.05 }}
         whileTap={isOpen ? undefined : { scale: 0.95 }}
       >
@@ -1976,10 +1924,12 @@ export default function ChatAgent() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.15 } }}
               exit={{ opacity: 0, y: 15, transition: { delay: 0, duration: 0.12 } }}
-              className="relative flex items-center gap-2.5 whitespace-nowrap pl-6 pr-6"
+              className="relative flex items-center pl-3.5 pr-6 gap-3.5 whitespace-nowrap h-full"
             >
-              <AIIcon className="w-6 h-6" pulse />
-              <span className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap">Ask Maher</span>
+              <AIIcon className="w-10 h-10" size={40} pulse state="searching" speed={0.35} />
+              <span className="text-[14.5px] font-medium text-white/95 tracking-[-0.01em] whitespace-nowrap leading-none">
+                Ask Maher
+              </span>
             </motion.div>
           ) : (
             <motion.div
@@ -1999,10 +1949,10 @@ export default function ChatAgent() {
                   duration: 0.12
                 }
               }}
-              className="relative w-full flex items-center"
+              className="relative w-full h-full flex items-center"
             >
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <AIIcon className="w-6 h-6" pulse={isTyping} />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                <AIIcon className="w-9 h-9" size={36} pulse state="searching" speed={0.35} />
               </span>
               <input
                 type="text"
@@ -2018,7 +1968,7 @@ export default function ChatAgent() {
                       : "Agent is replying, you can keep typing..."
                     : `${PLACEHOLDER_PREFIX}${placeholderText}`
                 }
-                className="w-full bg-transparent pl-12 pr-14 py-4 text-sm text-white placeholder-white/45 outline-none rounded-full disabled:opacity-50"
+                className="w-full h-full bg-transparent pl-[64px] pr-14 text-sm text-white placeholder-white/45 outline-none rounded-full disabled:opacity-50"
               />
               <motion.button
                 type="submit"
