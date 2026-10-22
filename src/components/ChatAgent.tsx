@@ -13,6 +13,7 @@ import { PROJECTS } from "@/data/projects";
 import { PLUGINS } from "@/data/plugins";
 import MobileHorizontalScroll from "./MobileHorizontalScroll";
 import ThinkingOrb, { type OrbState } from "./ThinkingOrb";
+import ThinkingRunner from "./ThinkingRunner";
 
 // Free-tier models occasionally hallucinate a slug or malform a tag. Validate every
 // card tag against these whitelists before rendering so a bad slug is stripped instead
@@ -1825,6 +1826,10 @@ export default function ChatAgent() {
                                       isLive={true}
                                     />
                                   )}
+                                  {/* Mini Maher Runner keeps the wait playful until the answer starts streaming */}
+                                  <AnimatePresence>
+                                    {!streamingText && <ThinkingRunner key="thinking-runner" />}
+                                  </AnimatePresence>
                                   {streamingText && (
                                     <div className="text-start text-[#e2e2e2] leading-relaxed text-sm mt-2">
                                       {renderMessageContent(stripTrailingUnclosedTag(streamingText))}
@@ -1864,6 +1869,7 @@ export default function ChatAgent() {
       {/* 2. Unified Input/Trigger Pill (Always mounted, morphs width directly without transform scale!) */}
       <motion.form
         ref={triggerFormRef}
+        data-ai-chat=""
         onSubmit={(e) => {
           e.preventDefault();
           if (!isOpen) return;

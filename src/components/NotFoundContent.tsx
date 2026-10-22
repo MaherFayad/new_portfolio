@@ -1,19 +1,28 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
-import ConcentricCircles from "@/components/ConcentricCircles";
 import Magnetic from "@/components/Magnetic";
 import SiteHeader from "@/components/SiteHeader";
+import RunnerScene, { type RunnerGame } from "@/components/RunnerScene";
 
 export default function NotFoundContent() {
+  const game = useRef<RunnerGame | null>(null);
+  const play = () => {
+    const g = game.current;
+    if (!g) return;
+    g.canvas?.scrollIntoView({ behavior: "smooth", block: "center" });
+    g.start();
+  };
+
   return (
     <main className="min-h-screen w-full px-5 max-sm:px-3 overflow-x-clip flex flex-col pb-10">
       <header className="w-full mt-5 relative z-10">
         <SiteHeader variant="static" />
       </header>
 
-      <section className="relative flex-1 flex flex-col justify-center mt-16 max-sm:mt-10">
+      <section className="relative flex-1 flex flex-col justify-center mt-10 max-sm:mt-8">
         <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
           <Reveal
             aboveFold
@@ -24,9 +33,6 @@ export default function NotFoundContent() {
           </Reveal>
         </div>
 
-        <Reveal duration={1.5} y={50} style={{ perspective: 800, marginTop: -100 }}>
-          <ConcentricCircles centerLabel="404" />
-        </Reveal>
 
         <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
           <Reveal
@@ -50,7 +56,7 @@ export default function NotFoundContent() {
             Head back to the homepage to explore projects, case studies, and ways to get in touch.
           </Reveal>
 
-          <Reveal aboveFold delay={0.2} className="col-span-4 max-sm:col-start-2 max-sm:col-span-3 sm:col-[3/5] lg:col-[9/12] mt-8 max-sm:mt-6">
+          <Reveal aboveFold delay={0.2} className="col-span-4 max-sm:col-start-2 max-sm:col-span-3 sm:col-[3/5] lg:col-[9/12] mt-8 max-sm:mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
             <Magnetic range={60} strength={0.4}>
               <Link
                 href="/"
@@ -59,7 +65,21 @@ export default function NotFoundContent() {
                 GO BACK HOME ↗
               </Link>
             </Magnetic>
+            <Magnetic range={60} strength={0.4}>
+              <button
+                type="button"
+                onClick={play}
+                className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70 cursor-pointer"
+              >
+                OR STAY AND PLAY ↓
+              </button>
+            </Magnetic>
           </Reveal>
+        </div>
+
+        {/* Maher Runner: full-bleed, dissolves into the black page, fades in once its art loads */}
+        <div className="-mx-5 max-sm:-mx-3 mt-4 max-sm:mt-6">
+          <RunnerScene onReady={(g) => (game.current = g)} />
         </div>
       </section>
     </main>
