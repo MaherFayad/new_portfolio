@@ -39,7 +39,7 @@ export default function NotFoundContent() {
           <RunnerScene onReady={(g) => (game.current = g)} />
         </div>
 
-        <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
+        <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 mt-16 max-sm:mt-10">
           <Reveal
             aboveFold
             as="h1"
