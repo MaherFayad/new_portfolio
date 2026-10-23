@@ -22,7 +22,7 @@ export default function NotFoundContent() {
         <SiteHeader variant="static" />
       </header>
 
-      <section className="relative flex-1 flex flex-col justify-center mt-10 max-sm:mt-8">
+      <section className="relative flex-1 flex flex-col justify-center mt-16 max-sm:mt-10">
         <div className="grid grid-cols-12 max-sm:grid-cols-1 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 items-start">
           <Reveal
             aboveFold
@@ -33,6 +33,11 @@ export default function NotFoundContent() {
           </Reveal>
         </div>
 
+        {/* Maher Runner takes the place of the 404 rings: full-bleed, dissolves into the black page,
+            fades in after the preloader. Pulled up like the rings were, into the label row. */}
+        <div className="-mx-5 max-sm:-mx-3 -mt-[100px] max-sm:-mt-16">
+          <RunnerScene onReady={(g) => (game.current = g)} />
+        </div>
 
         <div className="grid grid-cols-4 max-sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 max-sm:mt-10">
           <Reveal
@@ -71,15 +76,10 @@ export default function NotFoundContent() {
                 onClick={play}
                 className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70 cursor-pointer"
               >
-                OR STAY AND PLAY ↓
+                OR STAY AND PLAY ↑
               </button>
             </Magnetic>
           </Reveal>
-        </div>
-
-        {/* Maher Runner: full-bleed, dissolves into the black page, fades in once its art loads */}
-        <div className="-mx-5 max-sm:-mx-3 mt-4 max-sm:mt-6">
-          <RunnerScene onReady={(g) => (game.current = g)} />
         </div>
       </section>
     </main>
