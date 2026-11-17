@@ -37,6 +37,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - AI-agent endpoints: `/llms.txt`, `/llms-full.txt`, and `/projects/<slug>.md` (rewrite to `src/app/md/projects/[slug]`), all generated from site data.
 - The sheet's run frames are drawn with a bigger head and the jump frames smaller overall; `build-hero-vector.py` normalises both to the standing head (`RUN_HEAD`, `JUMP_SCALE`).
 - The home gradient band (`ParallaxMockups`) is revealed with the hero (`aboveFold`), not on scroll.
-- `SERVICES_OFFERED` and `PROFILE.goodFitFor` live in `src/data/profile.ts` and feed the home page, Person JSON-LD (`makesOffer`), and `/llms.txt`.
+- `SERVICES_OFFERED`, `HIRE_FIT`, `HIRE_STEPS`, `HIRE_FAQ` live in `src/data/profile.ts` and feed the home page, `/hire`, Person and FAQ JSON-LD, and `/llms.txt`. `/hire` is linked from the footer only, never the top navbar; its FAQ is shown in full because the markup must match visible text.
 - Requests with `Accept: text/markdown` on `/`, `/work`, `/about`, `/projects/<slug>` are rewritten to the markdown twins (`next.config.ts`, `beforeFiles`).
 - IndexNow: key file in `/public/<32 hex>.txt`; run `npm run indexnow` after a production deploy is live.

@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         { source: "/", has: wantsMarkdown, destination: "/llms.txt" },
         { source: "/work", has: wantsMarkdown, destination: "/llms.txt" },
+        { source: "/hire", has: wantsMarkdown, destination: "/llms.txt" },
         { source: "/about", has: wantsMarkdown, destination: "/llms-full.txt" },
         { source: "/projects/:slug", has: wantsMarkdown, destination: "/md/projects/:slug" },
       ],

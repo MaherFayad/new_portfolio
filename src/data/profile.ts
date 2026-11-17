@@ -14,14 +14,6 @@ export const PROFILE = {
   linkedin: "https://www.linkedin.com/in/maherfayad",
   figma: "https://www.figma.com/@maherfayad96",
   languages: ["Arabic", "English"],
-  // Plain statements of who should contact him, built only from facts stated elsewhere on the site.
-  goodFitFor: [
-    "Banks, fintechs, and payment products in Saudi Arabia and the GCC that need a senior product designer with enterprise banking experience (Al Rajhi Bank e-business, Contact Financial Holding).",
-    "Travel and booking products that need bilingual Arabic and English journeys (Almosafer).",
-    "Teams that need a token-driven design system or Figma library with Arabic, English, and RTL components.",
-    "Product teams that want a UX or accessibility audit turned into a prioritized, build-ready list of fixes.",
-    "Web3 and startup teams that need product design from first flows to shipped UI (Sanarte, LFG).",
-  ],
   summary:
     "Senior Product Designer based in Riyadh, Saudi Arabia, working on design systems and analytics-informed product design for banking, fintech, and travel products, in Arabic and English.",
 };
@@ -134,5 +126,80 @@ export const SERVICES_OFFERED = [
     name: "Analytics-informed Design",
     description: "Funnel and behavioral analytics translated into design decisions that measurably move conversion and engagement.",
     proof: "Bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
+  },
+];
+
+// The /hire page, its FAQ structured data, and the "Good fit for" block of /llms.txt.
+// Built only from facts stated elsewhere on the site: no availability, rates, or new metrics.
+export const HIRE_FIT = [
+  {
+    ref: "01",
+    name: "Banking and fintech",
+    description: "Banks, fintechs, and payment products in Saudi Arabia and the GCC that need a senior product designer with enterprise banking experience (Al Rajhi Bank e-business, Contact Financial Holding).",
+  },
+  {
+    ref: "02",
+    name: "Travel and booking",
+    description: "Travel and booking products that need bilingual Arabic and English journeys (Almosafer).",
+  },
+  {
+    ref: "03",
+    name: "Design system teams",
+    description: "Teams that need a token-driven design system or Figma library with Arabic, English, and RTL components.",
+  },
+  {
+    ref: "04",
+    name: "Products that need an audit",
+    description: "Product teams that want a UX or accessibility audit turned into a prioritized, build-ready list of fixes.",
+  },
+  {
+    ref: "05",
+    name: "Web3 and startups",
+    description: "Web3 and startup teams that need product design from first flows to shipped UI (Sanarte, LFG).",
+  },
+];
+
+export const HIRE_STEPS = [
+  {
+    ref: "01",
+    name: "Send a brief",
+    description: "Share the product, the problem you want solved, and your timeline through the contact form or by email. A few lines are enough to start.",
+  },
+  {
+    ref: "02",
+    name: "Book a call",
+    description: "Pick a slot for an intro call to go through goals, constraints, and what success looks like for your team.",
+  },
+  {
+    ref: "03",
+    name: "Get a reply",
+    description: "Messages are answered within one business day, with questions or a suggested way to approach the work.",
+  },
+];
+
+export const HIRE_FAQ = [
+  {
+    question: "Where is Maher Fayad based?",
+    answer: "Riyadh, Saudi Arabia. He works with teams across the GCC and with remote teams elsewhere.",
+  },
+  {
+    question: "Which industries has he designed for?",
+    answer: "Banking and fintech (Al Rajhi Bank through AZMX, Contact Financial Holding), travel (Almosafer), and Web3 and startup products (Sanarte, LFG), plus freelance work for clients such as Solidity Studios, Supersight, Konica Minolta, and Brackets.",
+  },
+  {
+    question: "Does he design in both Arabic and English?",
+    answer: "Yes. He designs bilingual Arabic and English products, including right-to-left layouts and components that work in both directions.",
+  },
+  {
+    question: "Can he build or extend a design system?",
+    answer: "Yes. He builds token-driven design systems and Figma libraries, and has published Figma community plugins that generate color and numeric tokens.",
+  },
+  {
+    question: "What results has his work produced?",
+    answer: "At Al Rajhi Bank he delivered 41 revamps and enhancements within the e-business program that lifted online account openings by 47% and transactions by 81%. Sanarte made it 30% easier for remote workers to find focus sounds, and LFG made habit tracking 20% more engaging.",
+  },
+  {
+    question: "How do I start working with him?",
+    answer: "Send a brief through the contact page, email Contact@maherfayad.com, or book a meeting. Messages are answered within one business day.",
   },
 ];

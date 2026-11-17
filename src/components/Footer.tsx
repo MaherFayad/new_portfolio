@@ -215,6 +215,14 @@ export default function Footer() {
               Figma
             </a>
           </Magnetic>
+          <Magnetic range={60} strength={0.4}>
+            <Link
+              href="/hire"
+              className="font-semibold text-sm uppercase text-[#c5c5c5] underline underline-offset-4 hover:opacity-70"
+            >
+              Hire me
+            </Link>
+          </Magnetic>
         </Reveal>
       </div>
     </footer>

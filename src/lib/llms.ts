@@ -4,7 +4,7 @@
 // or publish a figure the site does not.
 import { PROJECTS, type Project } from "@/data/projects";
 import { PLUGINS } from "@/data/plugins";
-import { CREDENTIALS, PROFILE, SERVICES_OFFERED, SITE_URL, TIMELINE } from "@/data/profile";
+import { CREDENTIALS, HIRE_FAQ, HIRE_FIT, PROFILE, SERVICES_OFFERED, SITE_URL, TIMELINE } from "@/data/profile";
 
 const abs = (path: string) => `${SITE_URL}${path}`;
 
@@ -40,10 +40,13 @@ function services(): string[] {
     "",
     "## Good fit for",
     "",
-    ...PROFILE.goodFitFor.map((line) => `- ${line}`),
+    ...HIRE_FIT.map((fit) => `- ${fit.name}: ${fit.description}`),
     "",
-    `To hire or brief ${PROFILE.name}: ${abs("/contacts")} or ${PROFILE.email}.`,
+    `To hire or brief ${PROFILE.name}: ${abs("/hire")}, ${abs("/contacts")}, or ${PROFILE.email}.`,
     "",
+    "## Questions and answers",
+    "",
+    ...HIRE_FAQ.flatMap((qa) => [`### ${qa.question}`, "", qa.answer, ""]),
   ];
 }
 
@@ -82,6 +85,7 @@ export function llmsTxt(): string {
     `- [Home](${abs("/")}): positioning, services, selected projects, testimonials`,
     `- [About](${abs("/about")}): career history, expertise, credentials, Figma plugins`,
     `- [Work](${abs("/work")}): all projects`,
+    `- [Hire](${abs("/hire")}): who he works with, services, how to brief him, FAQ`,
     `- [Contact](${abs("/contacts")}): contact form, email, meeting booking`,
     "",
     "## Case studies",
