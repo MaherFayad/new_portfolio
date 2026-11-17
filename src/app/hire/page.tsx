@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import Magnetic from "@/components/Magnetic";
 import SiteHeader from "@/components/SiteHeader";
 import BookMeetingButton from "@/components/BookMeetingButton";
-import { HIRE_FAQ, HIRE_FIT, HIRE_STEPS, SERVICES_OFFERED } from "@/data/profile";
+import { HIRE_FAQ, HIRE_FIT, HIRE_STEPS, PROFILE, SERVICES_OFFERED } from "@/data/profile";
 
 const GRID = "grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3";
 const LABEL = "col-span-1 max-sm:hidden sm:max-lg:hidden flex flex-col text-left self-end [&>span]:block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none lg:max-dt:text-[clamp(9px,0.8vw+0.8px,11px)] dt:text-sm";
@@ -82,6 +82,10 @@ export default function HirePage() {
               Send a brief
             </Link>
           </Magnetic>
+        </Reveal>
+
+        <Reveal aboveFold delay={0.2} as="p" className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-3 sm:col-[1/5] sm:row-start-3 lg:col-[3/10] lg:row-start-3 mt-6 font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)]">
+          {PROFILE.availability}
         </Reveal>
       </section>
 

@@ -4,7 +4,7 @@ import { HIRE_FAQ, SITE_URL } from "@/data/profile";
 export const metadata: Metadata = {
   title: { absolute: "Hire a Senior Product Designer in Riyadh | Maher Fayad" },
   description:
-    "Hire Maher Fayad, Senior Product Designer in Riyadh, Saudi Arabia: product design, design systems, and UX audits for banking, fintech, and travel products in Arabic and English. GCC and remote teams.",
+    "Hire Maher Fayad, Senior Product Designer in Riyadh, Saudi Arabia: product design, design systems, and UX audits for banking, fintech, and travel products in Arabic and English. Open to freelance projects and audits, remote worldwide.",
   alternates: { canonical: "/hire", types: { "text/markdown": "/llms.txt" } },
   openGraph: {
     title: "Hire a Senior Product Designer in Riyadh | Maher Fayad",

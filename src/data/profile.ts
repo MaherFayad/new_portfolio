@@ -14,6 +14,8 @@ export const PROFILE = {
   linkedin: "https://www.linkedin.com/in/maherfayad",
   figma: "https://www.figma.com/@maherfayad96",
   languages: ["Arabic", "English"],
+  // Stated by Maher (Nov 2026): update here when it changes.
+  availability: "Open to freelance work: projects and audits, remote worldwide.",
   summary:
     "Senior Product Designer based in Riyadh, Saudi Arabia, working on design systems and analytics-informed product design for banking, fintech, and travel products, in Arabic and English.",
 };
@@ -179,8 +181,16 @@ export const HIRE_STEPS = [
 
 export const HIRE_FAQ = [
   {
-    question: "Where is Maher Fayad based?",
-    answer: "Riyadh, Saudi Arabia. He works with teams across the GCC and with remote teams elsewhere.",
+    question: "Is Maher Fayad available for freelance work?",
+    answer: "Yes. He is open to freelance work alongside his role at Almosafer, as scoped projects or as audits.",
+  },
+  {
+    question: "What kinds of engagement does he take on?",
+    answer: "Two kinds. Projects: product design or design system work with a defined scope. Audits: a UX or accessibility review delivered as a prioritized, build-ready list of fixes.",
+  },
+  {
+    question: "Where is he based, and does he work remotely?",
+    answer: "He is based in Riyadh, Saudi Arabia, and works remotely with teams worldwide.",
   },
   {
     question: "Which industries has he designed for?",

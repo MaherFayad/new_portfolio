@@ -113,7 +113,7 @@ const siteJsonLd = {
           "@type": "Service",
           name: svc.name,
           description: svc.description,
-          areaServed: ["Saudi Arabia", "Gulf Cooperation Council", "Remote"],
+          areaServed: "Worldwide",
           provider: { "@id": `${SITE_URL}/#person` },
         },
       })),
