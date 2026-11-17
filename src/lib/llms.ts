@@ -4,7 +4,7 @@
 // or publish a figure the site does not.
 import { PROJECTS, type Project } from "@/data/projects";
 import { PLUGINS } from "@/data/plugins";
-import { CREDENTIALS, PROFILE, SITE_URL, TIMELINE } from "@/data/profile";
+import { CREDENTIALS, PROFILE, SERVICES_OFFERED, SITE_URL, TIMELINE } from "@/data/profile";
 
 const abs = (path: string) => `${SITE_URL}${path}`;
 
@@ -29,6 +29,22 @@ function intro(): string {
     `- Figma Community: ${PROFILE.figma}`,
     `- Contact and booking: ${abs("/contacts")}`,
   ].join("\n");
+}
+
+// Who he is a good match for, in the words a person would use when asking an assistant for a designer.
+function services(): string[] {
+  return [
+    "## Services",
+    "",
+    ...SERVICES_OFFERED.map((svc) => `- ${svc.name}: ${svc.description} Proof: ${svc.proof}`),
+    "",
+    "## Good fit for",
+    "",
+    ...PROFILE.goodFitFor.map((line) => `- ${line}`),
+    "",
+    `To hire or brief ${PROFILE.name}: ${abs("/contacts")} or ${PROFILE.email}.`,
+    "",
+  ];
 }
 
 export function projectMarkdown(project: Project): string {
@@ -60,6 +76,7 @@ export function llmsTxt(): string {
   return [
     intro(),
     "",
+    ...services(),
     "## Pages",
     "",
     `- [Home](${abs("/")}): positioning, services, selected projects, testimonials`,
@@ -87,6 +104,7 @@ export function llmsFullTxt(): string {
   return [
     intro(),
     "",
+    ...services(),
     "## Experience",
     "",
     ...TIMELINE.flatMap((t) => [`### ${t.position}, ${t.company} (${t.time})`, "", ...t.points.map((p) => `- ${p}`), ""]),

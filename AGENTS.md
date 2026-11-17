@@ -35,3 +35,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - The hero character's art is `/hero/maher.svg`, a vector sheet traced from the runner's pixel art by `scripts/build-hero-vector.py` (cleans background-remover leftovers, snaps to a fixed palette, outlines each colour region). Rerun the script instead of editing the SVG or `src/components/hero/frames.ts`. Standing poses are single still frames moved in code; never hand-draw the character, and do not use the sheet's off-model "look" frames.
 - Career facts live in `src/data/profile.ts` (TIMELINE, CREDENTIALS, PROFILE); About, JSON-LD, and `src/lib/llms.ts` read from it.
 - AI-agent endpoints: `/llms.txt`, `/llms-full.txt`, and `/projects/<slug>.md` (rewrite to `src/app/md/projects/[slug]`), all generated from site data.
+- The sheet's run frames are drawn with a bigger head and the jump frames smaller overall; `build-hero-vector.py` normalises both to the standing head (`RUN_HEAD`, `JUMP_SCALE`).
+- The home gradient band (`ParallaxMockups`) is revealed with the hero (`aboveFold`), not on scroll.
+- `SERVICES_OFFERED` and `PROFILE.goodFitFor` live in `src/data/profile.ts` and feed the home page, Person JSON-LD (`makesOffer`), and `/llms.txt`.
+- Requests with `Accept: text/markdown` on `/`, `/work`, `/about`, `/projects/<slug>` are rewritten to the markdown twins (`next.config.ts`, `beforeFiles`).
+- IndexNow: key file in `/public/<32 hex>.txt`; run `npm run indexnow` after a production deploy is live.

@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import RootLayoutClient from "./RootLayoutClient";
-import { CREDENTIALS, PROFILE, SITE_URL } from "@/data/profile";
+import { CREDENTIALS, PROFILE, SERVICES_OFFERED, SITE_URL } from "@/data/profile";
 import "./globals.css";
 
 const inter = Inter({
@@ -61,8 +61,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/opengraph-image.png",
-        width: 1024,
-        height: 1024,
+        width: 1200,
+        height: 630,
         alt: "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
       },
     ],
@@ -107,6 +107,16 @@ const siteJsonLd = {
         occupationLocation: { "@type": "Country", name: "Saudi Arabia" },
         skills: "Product design, design systems, UX research, product analytics, bilingual AR/EN interfaces",
       },
+      makesOffer: SERVICES_OFFERED.map((svc) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: svc.name,
+          description: svc.description,
+          areaServed: ["Saudi Arabia", "Gulf Cooperation Council", "Remote"],
+          provider: { "@id": `${SITE_URL}/#person` },
+        },
+      })),
       hasCredential: CREDENTIALS.map((c) => ({
         "@type": "EducationalOccupationalCredential",
         name: c.name,

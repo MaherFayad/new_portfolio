@@ -3,6 +3,8 @@
 
 export const SITE_URL = "https://maherfayad.com";
 
+
+
 export const PROFILE = {
   name: "Maher Fayad",
   jobTitle: "Senior Product Designer",
@@ -12,6 +14,14 @@ export const PROFILE = {
   linkedin: "https://www.linkedin.com/in/maherfayad",
   figma: "https://www.figma.com/@maherfayad96",
   languages: ["Arabic", "English"],
+  // Plain statements of who should contact him, built only from facts stated elsewhere on the site.
+  goodFitFor: [
+    "Banks, fintechs, and payment products in Saudi Arabia and the GCC that need a senior product designer with enterprise banking experience (Al Rajhi Bank e-business, Contact Financial Holding).",
+    "Travel and booking products that need bilingual Arabic and English journeys (Almosafer).",
+    "Teams that need a token-driven design system or Figma library with Arabic, English, and RTL components.",
+    "Product teams that want a UX or accessibility audit turned into a prioritized, build-ready list of fixes.",
+    "Web3 and startup teams that need product design from first flows to shipped UI (Sanarte, LFG).",
+  ],
   summary:
     "Senior Product Designer based in Riyadh, Saudi Arabia, working on design systems and analytics-informed product design for banking, fintech, and travel products, in Arabic and English.",
 };
@@ -96,4 +106,33 @@ export const CREDENTIALS = [
   { name: "McKinsey Forward Program", url: "https://www.credly.com/badges/0e8306a5-d19b-4524-94ca-a2f501be3d81/public_url" },
   { name: "Meta Front-End Developer Certificate", url: "https://www.credly.com/badges/2e307edc-0639-42bb-a70c-c6cac291fec3/public_url" },
   { name: "Product Analytics Certification", url: "https://www.credly.com/badges/bf32a815-e57e-4ed4-8475-45ccdceb586a/public_url" },
+];
+
+// Shown on the home page, and repeated in structured data and /llms.txt.
+// Dual-audience services block: each service framed as a business result with a proof point.
+export const SERVICES_OFFERED = [
+  {
+    ref: "01",
+    name: "Product Design",
+    description: "End-to-end product design for web and mobile, from problem framing and user flows to shipped, developer-ready UI.",
+    proof: "Shipped the Al Rajhi payroll revamp for enterprise customers on the e-business platform.",
+  },
+  {
+    ref: "02",
+    name: "Design Systems",
+    description: "Scalable, token-driven design systems and Figma libraries, including bilingual AR/EN and RTL components, so teams ship consistent UI faster.",
+    proof: "Author of two published Figma community plugins that automate color and numeric tokens.",
+  },
+  {
+    ref: "03",
+    name: "UX Audits",
+    description: "Heuristic and accessibility audits that turn usability friction into a prioritized, build-ready list of fixes.",
+    proof: "Delivered 41 revamps and enhancements across Al Rajhi e-business platforms.",
+  },
+  {
+    ref: "04",
+    name: "Analytics-informed Design",
+    description: "Funnel and behavioral analytics translated into design decisions that measurably move conversion and engagement.",
+    proof: "Bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
+  },
 ];

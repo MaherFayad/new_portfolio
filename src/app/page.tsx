@@ -22,6 +22,7 @@ import Testimonials from "@/components/Testimonials";
 import WhatIDoMobileCarousel from "@/components/WhatIDoMobileCarousel";
 import SiteHeader from "@/components/SiteHeader";
 import HeroCharacter from "@/components/HeroCharacter";
+import { SERVICES_OFFERED } from "@/data/profile";
 
 const SliderPopup = dynamic(() => import("@/components/SliderPopup"), {
   ssr: false,
@@ -83,34 +84,6 @@ const SERVICES = [
     paragraph: "Every redesign I ship starts and ends with the numbers. I build funnels in Amplitude, find the drop-offs, design against them, and verify the lift. That process ran through the 41 revamps I delivered on the Al Rajhi e-business team, feeding the program that drove a +47% boost in account openings and +81% in transactions.",
     points: ["Funnel Analysis", "Drop-off Diagnosis", "A/B Test Design", "Dashboard Building", "Impact Measurement"],
     label: "Open Product Analytics details",
-  },
-];
-
-// Dual-audience services block: each service framed as a business result with a proof point.
-const SERVICES_OFFERED = [
-  {
-    ref: "01",
-    name: "Product Design",
-    description: "End-to-end product design for web and mobile, from problem framing and user flows to shipped, developer-ready UI.",
-    proof: "Shipped the Al Rajhi payroll revamp for enterprise customers on the e-business platform.",
-  },
-  {
-    ref: "02",
-    name: "Design Systems",
-    description: "Scalable, token-driven design systems and Figma libraries, including bilingual AR/EN and RTL components, so teams ship consistent UI faster.",
-    proof: "Author of two published Figma community plugins that automate color and numeric tokens.",
-  },
-  {
-    ref: "03",
-    name: "UX Audits",
-    description: "Heuristic and accessibility audits that turn usability friction into a prioritized, build-ready list of fixes.",
-    proof: "Delivered 41 revamps and enhancements across Al Rajhi e-business platforms.",
-  },
-  {
-    ref: "04",
-    name: "Analytics-informed Design",
-    description: "Funnel and behavioral analytics translated into design decisions that measurably move conversion and engagement.",
-    proof: "Bilingual travel booking funnels at Almosafer, the GCC's leading travel platform.",
   },
 ];
 

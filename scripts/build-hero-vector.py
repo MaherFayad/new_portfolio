@@ -17,6 +17,7 @@ The wave pose is also split into body and hand, so the hand can swing at the wri
 """
 import json
 import numpy as np
+import math
 import cv2
 from PIL import Image
 from scipy import ndimage as ndi
@@ -118,8 +119,56 @@ def upscale(f):
     return np.clip(big, 0, 255).astype(np.uint8), big_a
 
 
-def trace(f, centers, rgb, ox):
+def head_of(alpha):
+    """The head as drawn: (mask, widest row width, neck row, neck centre x) of an alpha map.
+    Follows the silhouette down from the crown to the narrowest row under the widest one (the neck)."""
+    op = alpha > 0.5
+    rows = np.nonzero(op.any(1))[0]
+    top = rows[0]
+    cx = np.nonzero(op[top])[0].mean()
+    widths, mids = [], []
+    for r in range(top, op.shape[0]):
+        lab, n = ndi.label(op[r])
+        if not n:
+            break
+        runs = [np.nonzero(lab == i + 1)[0] for i in range(n)]
+        run = min(runs, key=lambda x: 0 if x[0] <= cx <= x[-1] else min(abs(x[0] - cx), abs(x[-1] - cx)))
+        widths.append(len(run)); mids.append(run.mean()); cx = run.mean()
+    widths = np.array(widths)
+    widest = int(widths[: len(widths) // 2].argmax())
+    span = widths[widest: widest + int(widths[widest] * 0.9)]
+    neck = widest + int(span.argmin())
+    above = op.copy(); above[top + neck:] = False
+    lab, n = ndi.label(above)
+    head = lab == (1 + np.argmax(ndi.sum(above, lab, range(1, n + 1))))
+    return head, int(widths[widest]), top + neck, float(mids[neck])
+
+
+def shrink_head(big, big_a, k):
+    """The run frames are drawn with a larger head than the standing poses. Scale the head by k
+    about the neck so every frame shares one head size; the body is left as drawn."""
+    head, _, neck, cx = head_of(big_a)
+    M = np.float32([[k, 0, cx * (1 - k)], [0, k, neck * (1 - k)]])
+    size = (big.shape[1], big.shape[0])
+    ha = cv2.warpAffine(big_a * head, M, size, flags=cv2.INTER_AREA)
+    pre = big.astype(np.float32) * (big_a * head)[..., None]
+    hc = cv2.warpAffine(pre, M, size, flags=cv2.INTER_AREA) / np.maximum(ha[..., None], 1e-3)
+    body_a = big_a * ~head
+    # the smaller head uncovers a sliver of shoulder it used to hide: continue the body under it
+    hole = cv2.dilate(head.astype(np.uint8), np.ones((UP * 3, UP * 3), np.uint8)).astype(bool) & (np.arange(big.shape[0])[:, None] > neck - UP * 6) & head
+    filled = cv2.inpaint(big, (head & ~hole).astype(np.uint8) * 0 + hole.astype(np.uint8), UP, cv2.INPAINT_TELEA)
+    body = np.where(hole[..., None], filled, big)
+    body_a = np.where(hole, 1.0, body_a).astype(np.float32)
+    a = ha[..., None]
+    out = hc * a + body.astype(np.float32) * (1 - a)
+    out_a = ha + body_a * (1 - ha)
+    return np.clip(out, 0, 255).astype(np.uint8), out_a
+
+
+def trace(f, centers, rgb, ox, head_k=1.0, scale=1.0):
     big, big_a = upscale(f)
+    if head_k < 0.99:
+        big, big_a = shrink_head(big, big_a, head_k)
     lab = cv2.cvtColor(big, cv2.COLOR_RGB2LAB).astype(np.float32)
     idx = ((lab[:, :, None, :] - centers[None, None]) ** 2).sum(-1).argmin(-1)
     # majority vote in a small neighbourhood: removes speckle and rounds the pixel stairs
@@ -136,7 +185,7 @@ def trace(f, centers, rgb, ox):
         for c in contours:
             if cv2.contourArea(c) < UP * UP * 1.5:
                 continue
-            c = cv2.approxPolyDP(c, UP * 0.4, True)[:, 0, :] / UP
+            c = cv2.approxPolyDP(c, UP * 0.4, True)[:, 0, :] / UP * scale
             if len(c) < 3:
                 continue
             # compact path data: integer tenths of a unit, relative moves
@@ -162,10 +211,21 @@ lab = cv2.cvtColor(px.reshape(-1, 1, 3), cv2.COLOR_RGB2LAB).reshape(-1, 3).astyp
 centers = KMeans(n_clusters=COLOURS, n_init=4, random_state=3).fit(lab[:: max(1, len(lab) // 60000)]).cluster_centers_
 rgb = cv2.cvtColor(centers.reshape(-1, 1, 3).astype(np.uint8), cv2.COLOR_LAB2RGB).reshape(-1, 3)
 
+# One head size for every frame. The sheet draws the run cycle with a bigger head on the same body,
+# and the jump frames smaller all over; the standing pose is the reference.
+head_w = {n: head_of(c[..., 3] / 255)[1] for n, (c, _) in cells.items()}
+REF = head_w["idle_0"]
+RUN_HEAD = 0.86    # row-width measure says 0.82 (70px vs 85px); 0.86 matches the face, which is what the eye compares
+JUMP_SCALE = 1.08  # measured by eye against the standing head: raised fists defeat head_of() here
+
 paths, layout, ox = [], {}, 0
 for name, (pixels, anchor) in cells.items():
     h, w = pixels.shape[:2]
-    paths += trace(pixels, centers, rgb, ox)
+    head_k = RUN_HEAD if name.startswith("runA") else 1.0
+    scale = JUMP_SCALE if name in ("jump_1", "jump_2", "jump_3") else 1.0
+    print(f"{name}: head {head_w[name]}px, head x{head_k:.2f}, frame x{scale:.2f}")
+    paths += trace(pixels, centers, rgb, ox, head_k, scale)
+    w, h, anchor = math.ceil(w * scale), math.ceil(h * scale), round(anchor * scale, 1)
     layout[name] = [ox, 0, w, h, anchor]
     ox += w + GAP
 W, H = ox - GAP, max(v[3] for v in layout.values())

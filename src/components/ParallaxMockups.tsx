@@ -136,9 +136,9 @@ function InteractiveDots() {
 
 function ParallaxMockupsStatic() {
   return (
-    <Reveal>
+    <Reveal aboveFold delay={0.15}>
       <section className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[120px] sm:h-[18vw] md:h-[200px] lg:h-[240px]">
-        <Reveal className="absolute inset-0 z-0 overflow-hidden">
+        <Reveal aboveFold delay={0.15} className="absolute inset-0 z-0 overflow-hidden">
           <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
           <div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]">
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
@@ -166,12 +166,12 @@ function ParallaxMockupsInteractive() {
   const bgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   return (
-    <Reveal>
+    <Reveal aboveFold delay={0.15}>
       <section
         ref={parallaxRef}
         className="relative w-full overflow-hidden bg-black z-0 mt-[60px] max-sm:!mt-[clamp(6rem,4vw+4rem,3rem)] sm:mt-[140px] min-[1024px]:max-[1399px]:!-mt-[-10px] 2xl:mt-[calc(260px-8vw)] min-[1920px]:max-[2000px]:!-mt-[calc(110px-8vw)] min-[1024px]:mt-[max(20px,calc(400px-22vw))] min-[1536px]:mt-[max(10px,calc(30px-8vw))] h-[120px] sm:h-[18vw] md:h-[200px] lg:h-[240px]"
       >
-        <Reveal className="absolute inset-0 z-0 overflow-hidden">
+        <Reveal aboveFold delay={0.15} className="absolute inset-0 z-0 overflow-hidden">
           <div aria-hidden="true" className="absolute inset-0 bg-black pointer-events-none" />
           <motion.div className="absolute inset-0 z-[1] w-full h-[120%] top-[-10%]" style={{ y: bgY }}>
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
