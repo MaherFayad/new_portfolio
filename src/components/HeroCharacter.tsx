@@ -14,7 +14,8 @@ import { useHomeRevealGate } from "@/components/HomeRevealGate";
 //
 // Running and jumping use the sprite's frames. Standing poses do not: the hand-drawn frames differ
 // too much from one to the next to animate smoothly, so each pose is ONE still frame moved in
-// code (slow breathing, a wave that rotates only the hand at the wrist, cross-fades between poses).
+// code (slow breathing, a wave that rotates only the hand at the wrist). Poses switch cleanly with
+// a small settle, never blended, and when he goes to rest the motion eases out instead of freezing.
 //
 // The canvas is absolutely positioned and pointer-transparent, so the hero layout is untouched,
 // and everything the intro changes (stat text, word tilt) is restored to the server-rendered
@@ -38,7 +39,6 @@ const STAND_H = 187; // sheet px of a standing frame
 const COIN_CELL = 108; // coin strip: 4 cells of 108 x 109
 const AWAKE_MS = 5000; // keep animating this long after the last input
 const TILT = "translateY(-0.16em) rotate(-5deg)";
-const FADE = 0.22; // seconds to cross-fade between standing poses
 
 // One still frame per standing pose. legsX is where his legs are in that frame (sheet px), so
 // every pose stands on the same spot; the sheet's own anchors are bounding-box centres and drift.
@@ -100,7 +100,8 @@ export default function HeroCharacter() {
     let x = 0, y = 0, vy = 0, floor = 0, facing = 1;
     let grounded = true, landT = 0, squash = 0, alpha = 0;
     let cue: Cue = null;
-    let pose: Pose = "idle", prevPose: Pose = "idle", poseAt = -1;
+    let pose: Pose = "idle", poseAt = 0;
+    let energy = 1; // 1 while awake, eases to 0 before he holds still, so nothing stops mid-motion
     let clock = 0, last = 0, lastInput = 0, phaseAt = 0;
     let coins: Coin[] = [];
     let taken = 0;
@@ -216,13 +217,12 @@ export default function HeroCharacter() {
       ctx.drawImage(sheet, sx, sy, w, h, -ax * s, -h * s, w * s, h * s);
     };
     // a standing pose: one still frame, breathing, drawn at one height so the head never bobs
-    const drawPose = (which: Pose, a: number, animate: boolean) => {
+    const drawPose = (which: Pose) => {
       const { frame, legsX } = POSES[which];
       const [sx, sy, w, h] = map.frames[frame];
       const s = charH / (which === "look" ? STAND_H : h);
-      const breath = animate ? 1 + Math.sin(clock * 1.9) * 0.008 : 1;
-      place(breath);
-      ctx.globalAlpha = alpha * a;
+      place(1 + Math.sin(clock * 1.9) * 0.008 * energy);
+      ctx.globalAlpha = alpha;
       const left = -legsX * s, top = -h * s;
       if (which !== "wave") {
         ctx.drawImage(sheet, sx, sy, w, h, left, top, w * s, h * s);
@@ -232,7 +232,7 @@ export default function HeroCharacter() {
       // only the hand moves: a smooth swing around the wrist
       const px = left + WRIST.x * s, py = top + WRIST.y * s;
       ctx.translate(px, py);
-      ctx.rotate(animate ? Math.sin((clock - poseAt) * 9) * 0.2 : 0);
+      ctx.rotate(Math.sin((clock - poseAt) * 9) * 0.2 * energy);
       ctx.translate(-px, -py);
       ctx.drawImage(waveImg, w, 0, w, h, left, top, w * s, h * s);
     };
@@ -257,23 +257,19 @@ export default function HeroCharacter() {
     };
     const wantedPose = (): Pose =>
       phase === "cheer" ? "wave" : cue === "chat" ? "look" : cue === "contact" ? "wave" : cue === "stats" ? "present" : "idle";
-    const render = (animate = true) => {
+    const render = () => {
       begin();
       drawCoins();
       const moving = movingFrame();
-      if (moving) {
-        drawFrame(moving);
-        poseAt = -1; // the next standing pose appears at once, no fade out of a jump
-        return;
-      }
+      if (moving) return drawFrame(moving);
       const next = wantedPose();
-      if (next !== pose) { prevPose = pose; pose = next; poseAt = poseAt < 0 ? clock - FADE : clock; }
-      if (poseAt < 0) poseAt = clock - FADE;
-      const t = clamp((clock - poseAt) / FADE, 0, 1);
-      // the new pose fades in over the old one, then the old one fades out, so the body they
-      // share never goes see-through mid-change
-      if (t < 1) drawPose(prevPose, Math.min(1, 2 - t * 2), animate);
-      drawPose(pose, Math.min(1, t * 2), animate);
+      if (next !== pose) {
+        // a clean switch with a small settle; blending two poses leaves a ghost of the old one
+        pose = next;
+        poseAt = clock;
+        squash = Math.max(squash, 0.045);
+      }
+      drawPose(pose);
     };
 
     // --- effects on the page content -----------------------------------------------------------
@@ -363,6 +359,7 @@ export default function HeroCharacter() {
           );
         } else dip(wrapped ? line : word, 4);
         setPhase(perch ? "stomp" : "cheer");
+        if (perch) landT = 0.26; // stay crouched, then spring straight into the hop
       } else if (phase === "hop") {
         x = perchX;
         if (perchWord) dip(perchWord, 4);
@@ -389,7 +386,7 @@ export default function HeroCharacter() {
         if (phase === "run" && landT === 0) {
           x += runSpeed * dt;
           if (x >= leapX) { phase = "leap"; grounded = false; vy = leapVy; }
-        } else if (phase === "stomp" && clock - phaseAt > 0.45) {
+        } else if (phase === "stomp" && landT === 0) {
           // off the end of the first line, down onto "accelerate"
           phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop; facing = 1;
         } else if (phase === "cheer" && clock - phaseAt > 1.7) {
@@ -403,9 +400,14 @@ export default function HeroCharacter() {
       }
       squash = Math.max(0, squash - dt * 1.2);
 
+      // ease the breathing and the wave in and out, then hold still
+      const awake = phase !== "idle" || !grounded || landT > 0 || now - lastInput < AWAKE_MS;
+      energy += ((awake ? 1 : 0) - energy) * Math.min(1, dt * 4);
+      if (!awake && energy < 0.01) energy = 0;
+
       render();
 
-      if (phase !== "idle" || !grounded || landT > 0 || now - lastInput < AWAKE_MS) schedule();
+      if (awake || energy > 0) schedule();
     };
     const schedule = () => {
       if (!raf && !disposed) raf = requestAnimationFrame(tick);
@@ -450,7 +452,7 @@ export default function HeroCharacter() {
     const ro = new ResizeObserver(() => {
       if (!ready) return;
       measure();
-      if (!raf && phase !== "wait") render(false);
+      if (!raf && phase !== "wait") render();
     });
 
     // The headline is still fading in at this point, so the tilt and the zeroed stats are set
@@ -464,9 +466,9 @@ export default function HeroCharacter() {
         measure();
         ro.observe(h1);
         if (reduced) {
-          phase = "idle"; alpha = 1;
+          phase = "idle"; alpha = 1; energy = 0;
           measure(); // places him on his final spot
-          render(false);
+          render();
           return;
         }
         if (performance.now() - revealedAt < 250) {
