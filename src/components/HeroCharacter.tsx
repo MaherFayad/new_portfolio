@@ -2,42 +2,58 @@
 
 import { useEffect, useRef } from "react";
 import { useHomeRevealGate } from "@/components/HomeRevealGate";
-import { POSES, clonePose, drawPuppet, easePose, runPose, type Pose, type PoseName } from "@/components/hero/puppet";
+import { FRAMES, SHEET_H, SHEET_W, WRIST } from "@/components/hero/frames";
 
-// Vector Maher treats the home headline as his level. Once the preloader hands over he plays a
+// Maher treats the home headline as his level. Once the preloader hands over he plays a
 // short scripted intro, then settles into a calm presenter:
 //   1. drops out of the empty band onto "Senior Product Designer" (the line gives under him)
 //   2. runs the line collecting coins; each coin flies into the stats and counts them up
 //   3. jumps onto the tilted word "Designer" and stomps it level
 //   4. hops down to the far end of "accelerate" and waves while the Contact ring completes a lap
-// Afterwards he turns to whatever hero content is hovered (Contact, stats, Ask Maher) and jumps
-// when clicked. He never chases the cursor.
+// Afterwards he reacts to whatever hero content is hovered (waves at Contact, presents the stats,
+// thinks at Ask Maher) and jumps when clicked. He never chases the cursor.
 //
-// He is a jointed puppet drawn with vector paths (src/components/hero/puppet.ts), not a sprite:
-// every pose is a set of joint angles and every change eases between them, so nothing flips,
-// ghosts, or blurs, and he is sharp at any size. The home hero loads no image for him.
+// The art is a vector sheet traced from the runner's pixel art (scripts/build-hero-vector.py), so
+// it keeps his likeness but stays sharp at any size; it is rasterised once at the exact size
+// needed. Running and jumping play its frames. Standing poses do not: each is ONE still frame
+// moved in code (slow breathing, a wave that swings only the hand at the wrist). Poses switch
+// cleanly with a small settle, and when he goes to rest the motion eases out instead of freezing.
 //
 // The canvas is absolutely positioned and pointer-transparent, so the hero layout is untouched,
 // and everything the intro changes (stat text, word tilt) is restored to the server-rendered
-// values. Motion eases to a stop 5 s after the last visitor input (WCAG 2.2 SC 2.2.2) and is
-// replaced by a still pose under prefers-reduced-motion (SC 2.3.3). He is decorative: aria-hidden.
+// values. Motion stops 5 s after the last visitor input (WCAG 2.2 SC 2.2.2) and is replaced by a
+// still pose under prefers-reduced-motion (SC 2.3.3). He is decorative: aria-hidden.
+
+const SHEET = "/hero/maher.svg";
 
 type Cue = "contact" | "stats" | "chat" | null;
 type Phase = "wait" | "drop" | "run" | "leap" | "stomp" | "hop" | "cheer" | "idle";
+type Pose = "idle" | "wave" | "present" | "think";
 type Coin = { x: number; y: number; taken: boolean };
 
-const PUPPET_H = 187; // his height in puppet units
+const STAND_H = 187; // sheet units of a standing frame
 const AWAKE_MS = 5000; // keep animating this long after the last input
 const TILT = "translateY(-0.16em) rotate(-5deg)";
+
+// One still frame per standing pose (anchored on his legs, see the build script).
+const POSES: Record<Pose, string> = { idle: "idle_0", wave: "wave_body", present: "waiting_2", think: "thinking_1" };
+const RUN = Array.from({ length: 8 }, (_, i) => `runA_${i}`);
 const COIN_SVG =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='9' fill='%23f5b82e' stroke='%23b9791a' stroke-width='2'/%3E%3Ccircle cx='10' cy='10' r='4.5' fill='none' stroke='%23ffe08a' stroke-width='1.6'/%3E%3C/svg%3E\")";
 
 export default function HeroCharacter() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const revealed = useHomeRevealGate();
+  const assets = useRef<Promise<HTMLImageElement> | null>(null);
+
+  // load during the preloader so the intro can start the moment the page is revealed
+  useEffect(() => {
+    assets.current = loadImage(SHEET);
+    assets.current.catch(() => {});
+  }, []);
 
   useEffect(() => {
-    if (!revealed) return;
+    if (!revealed || !assets.current) return;
     const canvas = canvasRef.current;
     const section = canvas?.parentElement;
     const h1 = section?.querySelector("h1");
@@ -57,6 +73,10 @@ export default function HeroCharacter() {
     let disposed = false;
     let raf = 0;
     let timer = 0;
+    let art: HTMLImageElement;
+    // the vector sheet rasterised at exactly the size he is drawn (R = bitmap px per sheet unit)
+    const bitmap = document.createElement("canvas");
+    let R = 0;
     let ready = false;
 
     // layout, in CSS px relative to the canvas. y is height above the first line; `base` is that
@@ -66,11 +86,10 @@ export default function HeroCharacter() {
     let perch = false, perchX = 0, perchDrop = 0, hopVx = 0;
     // actor
     let phase: Phase = "wait";
-    let x = 0, y = 0, vy = 0, floor = 0;
-    let grounded = true, landT = 0, alpha = 0;
+    let x = 0, y = 0, vy = 0, floor = 0, facing = 1;
+    let grounded = true, landT = 0, squash = 0, alpha = 0;
     let cue: Cue = null;
-    const pose: Pose = clonePose(POSES.idle); // the joints as drawn; eases towards the wanted pose
-    let stride = 0, wave = 0, blinkAt = 2.5;
+    let pose: Pose = "idle", poseAt = 0;
     let energy = 1; // 1 while awake, eases to 0 before he holds still, so nothing stops mid-motion
     let clock = 0, last = 0, lastInput = 0, phaseAt = 0;
     let coins: Coin[] = [];
@@ -117,6 +136,7 @@ export default function HeroCharacter() {
           perchDrop = p.top - text.top;
         }
       }
+
       if (tilted) word.style.transform = TILT;
 
       const extra = perch ? perchDrop : 0;
@@ -127,9 +147,16 @@ export default function HeroCharacter() {
       canvas.style.top = `${h1.offsetTop - base + ground}px`;
       canvas.style.width = `${CW}px`;
       canvas.style.height = `${H}px`;
-      dpr = Math.min(window.devicePixelRatio || 1, 3);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(CW * dpr);
       canvas.height = Math.round(H * dpr);
+      const wantR = (charH / STAND_H) * dpr * 1.04;
+      if (Math.abs(wantR - R) > 0.01) {
+        R = wantR;
+        bitmap.width = Math.ceil(SHEET_W * R);
+        bitmap.height = Math.ceil(SHEET_H * R);
+        bitmap.getContext("2d")?.drawImage(art, 0, 0, bitmap.width, bitmap.height);
+      }
 
       // the leap onto "Designer": same gravity as the game, sized to the character
       leapVy = 560 * k;
@@ -166,45 +193,80 @@ export default function HeroCharacter() {
     };
 
     // --- drawing -----------------------------------------------------------------------------
-    const wanted = (): PoseName =>
-      !grounded ? (vy > 0 ? "rise" : "fall")
-      : landT > 0 ? "crouch"
-      : phase === "cheer" || cue === "contact" ? "wave"
-      : cue === "chat" ? "look"
-      : cue === "stats" ? "present"
-      : "idle";
-
-    const render = () => {
+    const begin = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, CW, H);
-
-      // coins: flat gold discs that turn on their axis
-      if (phase !== "idle" && phase !== "wait" && taken < coins.length) {
-        const r = charH * 0.085;
-        ctx.globalAlpha = Math.min(1, (clock - 0.1) * 4);
-        for (const c of coins) {
-          if (c.taken) continue;
-          const turn = Math.abs(Math.cos(clock * 5 + c.x * 0.02));
-          const cy = base - c.y + Math.sin(clock * 4 + c.x * 0.02) * charH * 0.02;
-          ctx.beginPath(); ctx.ellipse(c.x, cy, r * Math.max(0.18, turn), r, 0, 0, Math.PI * 2);
-          ctx.fillStyle = "#f5b82e"; ctx.fill();
-          ctx.lineWidth = r * 0.22; ctx.strokeStyle = "#b9791a"; ctx.stroke();
-          ctx.beginPath(); ctx.ellipse(c.x, cy, r * 0.5 * Math.max(0.18, turn), r * 0.5, 0, 0, Math.PI * 2);
-          ctx.lineWidth = r * 0.16; ctx.strokeStyle = "#ffe08a"; ctx.stroke();
-        }
-      }
-
-      const s = charH / PUPPET_H;
-      ctx.globalAlpha = alpha;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+    };
+    const place = (stretch: number) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.translate(x, base - y);
-      ctx.scale(s, s);
-      const blink = clock > blinkAt ? Math.sin(Math.min(1, (clock - blinkAt) / 0.14) * Math.PI) : 0;
-      drawPuppet(ctx, pose, {
-        grounded,
-        blink,
-        waveL: Math.sin(clock * 8.5) * 0.3 * wave * energy,
-        breath: 1 + Math.sin(clock * 1.9) * 0.008 * energy,
-      });
+      ctx.scale(facing * (1 + squash * 0.6), (1 - squash) * stretch);
+    };
+    const blit = (name: string, s: number) => {
+      const [sx, sy, w, h, ax] = FRAMES[name];
+      ctx.drawImage(bitmap, sx * R, sy * R, w * R, h * R, -ax * s, -h * s, w * s, h * s);
+    };
+    // a moving frame (run, jump, land) straight from the sheet
+    const drawFrame = (name: string) => {
+      place(1);
+      ctx.globalAlpha = alpha;
+      blit(name, charH / STAND_H);
+    };
+    // a standing pose: one still frame, breathing, drawn at one height so the head never bobs
+    const drawPose = (which: Pose) => {
+      const [, , , h, ax] = FRAMES[POSES[which]];
+      const s = charH / h;
+      place(1 + Math.sin(clock * 1.9) * 0.008 * energy);
+      ctx.globalAlpha = alpha;
+      blit(POSES[which], s);
+      if (which !== "wave") return;
+      // only the hand moves: a smooth swing around the wrist
+      const px = (WRIST.x - ax) * s, py = (WRIST.y - h) * s;
+      ctx.translate(px, py);
+      ctx.rotate(Math.sin((clock - poseAt) * 9) * 0.2 * energy);
+      ctx.translate(-px, -py);
+      blit("wave_hand", s);
+    };
+    // coins: flat gold discs that turn on their axis
+    const drawCoins = () => {
+      if (phase === "idle" || phase === "wait" || taken >= coins.length) return;
+      const r = charH * 0.085;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalAlpha = Math.min(1, (clock - 0.1) * 4);
+      for (const c of coins) {
+        if (c.taken) continue;
+        const turn = Math.max(0.18, Math.abs(Math.cos(clock * 5 + c.x * 0.02)));
+        const cy = base - c.y + Math.sin(clock * 4 + c.x * 0.02) * charH * 0.02;
+        ctx.beginPath(); ctx.ellipse(c.x, cy, r * turn, r, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "#f5b82e"; ctx.fill();
+        ctx.lineWidth = r * 0.22; ctx.strokeStyle = "#b9791a"; ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(c.x, cy, r * 0.5 * turn, r * 0.5, 0, 0, Math.PI * 2);
+        ctx.lineWidth = r * 0.16; ctx.strokeStyle = "#ffe08a"; ctx.stroke();
+      }
+    };
+    const movingFrame = (): string | null => {
+      if (!grounded) return vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
+      if (landT > 0) return "jump_4";
+      if (phase === "run") return RUN[Math.floor(clock * 13) % RUN.length];
+      return null;
+    };
+    const wantedPose = (): Pose =>
+      phase === "cheer" ? "wave" : cue === "chat" ? "think" : cue === "contact" ? "wave" : cue === "stats" ? "present" : "idle";
+    const render = () => {
+      begin();
+      drawCoins();
+      const moving = movingFrame();
+      if (moving) return drawFrame(moving);
+      const next = wantedPose();
+      if (next !== pose) {
+        // a clean switch with a small settle; blending two poses leaves a ghost of the old one
+        pose = next;
+        poseAt = clock;
+        squash = Math.max(squash, 0.045);
+      }
+      drawPose(pose);
     };
 
     // --- effects on the page content -----------------------------------------------------------
@@ -221,7 +283,7 @@ export default function HeroCharacter() {
         easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
       });
     };
-    // a picked-up coin leaves the canvas as a DOM element and arcs into a stat, which ticks on arrival
+    // a picked-up coin leaves the canvas as a DOM sprite and arcs into a stat, which ticks on arrival
     const flyCoin = (from: Coin, statIdx: number, value: string) => {
       const stat = stats[statIdx];
       if (!stat) return;
@@ -275,10 +337,10 @@ export default function HeroCharacter() {
         ring.style.strokeDashoffset = "0";
         timer = window.setTimeout(() => (ring.style.strokeDashoffset = ""), 1000);
       }
-      if (next === "idle") restore();
+      if (next === "idle") { facing = 1; restore(); }
     };
     const land = () => {
-      y = floor; vy = 0; grounded = true; landT = 0.16;
+      y = floor; vy = 0; grounded = true; landT = 0.14; squash = 0.16;
       if (phase === "drop") {
         dip(line);
         setPhase("run");
@@ -323,26 +385,17 @@ export default function HeroCharacter() {
           if (x >= leapX) { phase = "leap"; grounded = false; vy = leapVy; }
         } else if (phase === "stomp" && landT === 0) {
           // off the end of the first line, down onto "accelerate"
-          phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop;
+          phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop; facing = 1;
         } else if (phase === "cheer" && clock - phaseAt > 1.7) {
           setPhase("idle");
+        } else if (phase === "idle") {
+          facing = cue === "contact" ? -1 : 1;
         }
       }
       if (phase === "run" || phase === "leap") {
         for (const c of coins) if (!c.taken && x >= c.x - charH * 0.12) collect(c);
       }
-
-      // joints: the run is a cycle tied to his speed; everything else eases towards a pose
-      const running = phase === "run" && grounded && landT === 0;
-      if (running) {
-        stride += (runSpeed / (charH * 0.21)) * dt;
-        easePose(pose, runPose(stride), 1 - Math.exp(-dt * 30));
-      } else {
-        const name = wanted();
-        easePose(pose, POSES[name], 1 - Math.exp(-dt * (name === "crouch" || name === "rise" ? 22 : 12)));
-        wave += ((name === "wave" ? 1 : 0) - wave) * Math.min(1, dt * 6);
-      }
-      if (clock > blinkAt + 0.14) blinkAt = clock + 2.6 + Math.random() * 2.4;
+      squash = Math.max(0, squash - dt * 1.2);
 
       // ease the breathing and the wave in and out, then hold still
       const awake = phase !== "idle" || !grounded || landT > 0 || now - lastInput < AWAKE_MS;
@@ -385,7 +438,7 @@ export default function HeroCharacter() {
       const r = canvas.getBoundingClientRect();
       const px = e.clientX - r.left, py = r.top + base - floor - e.clientY; // height above his feet
       if (Math.abs(px - x) < charH * 0.3 && py > 0 && py < charH && grounded) {
-        grounded = false; vy = leapVy * 0.9;
+        grounded = false; vy = leapVy * 0.9; squash = 0;
       }
       wake();
     };
@@ -400,40 +453,45 @@ export default function HeroCharacter() {
     });
 
     // The headline is still fading in at this point, so the tilt and the zeroed stats are set
-    // before they can be seen.
-    document.fonts.ready.then(() => {
-      if (disposed) return;
-      ready = true;
-      measure();
-      ro.observe(h1);
-      if (reduced) {
-        phase = "idle"; alpha = 1; energy = 0;
-        measure(); // places him on his final spot
-        render();
-        return;
-      }
-      if (!wrapped) {
-        tilted = true;
-        word.style.transformOrigin = "0 100%";
-        word.style.transform = TILT;
-      }
-      counting = stats.length === 2;
-      if (counting) stats.forEach((el) => (el.textContent = "0+"));
-      // let the headline finish rising, then drop in from the band above
-      timer = window.setTimeout(() => {
+    // before they can be seen. If the art arrives late, the intro runs without touching either.
+    const revealedAt = performance.now();
+    Promise.all([assets.current, document.fonts.ready])
+      .then(([img]) => {
         if (disposed) return;
-        phase = "drop";
-        x = startX; y = base - charH; vy = 0; floor = 0; grounded = false; alpha = 0;
-        easePose(pose, POSES.fall, 1);
-        last = lastInput = performance.now();
-        schedule();
-      }, 800);
-      document.addEventListener("pointerover", onOver, { passive: true });
-      window.addEventListener("pointerdown", onDown, { passive: true });
-      window.addEventListener("scroll", onScroll, { passive: true });
-      document.addEventListener("focusin", onFocusIn);
-      document.addEventListener("focusout", onFocusOut);
-    });
+        art = img;
+        ready = true;
+        measure();
+        ro.observe(h1);
+        if (reduced) {
+          phase = "idle"; alpha = 1; energy = 0;
+          measure(); // places him on his final spot
+          render();
+          return;
+        }
+        if (performance.now() - revealedAt < 250) {
+          if (!wrapped) {
+            tilted = true;
+            word.style.transformOrigin = "0 100%";
+            word.style.transform = TILT;
+          }
+          counting = stats.length === 2;
+          if (counting) stats.forEach((el) => (el.textContent = "0+"));
+        }
+        // let the headline finish rising, then drop in from the band above
+        timer = window.setTimeout(() => {
+          if (disposed) return;
+          phase = "drop";
+          x = startX; y = base - charH; vy = 0; floor = 0; grounded = false; alpha = 0;
+          last = lastInput = performance.now();
+          schedule();
+        }, 800);
+        document.addEventListener("pointerover", onOver, { passive: true });
+        window.addEventListener("pointerdown", onDown, { passive: true });
+        window.addEventListener("scroll", onScroll, { passive: true });
+        document.addEventListener("focusin", onFocusIn);
+        document.addEventListener("focusout", onFocusOut);
+      })
+      .catch(() => {});
 
     return () => {
       disposed = true;
@@ -455,4 +513,13 @@ export default function HeroCharacter() {
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
 }
