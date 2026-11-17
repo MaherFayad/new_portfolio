@@ -30,8 +30,22 @@ type Coin = { x: number; y: number; taken: boolean };
 const STAND_H = 187; // sheet px of a standing frame
 const COIN_CELL = 108; // coin strip: 4 cells of 108 x 109
 const AWAKE_MS = 5000; // keep animating this long after the last input
-const FLOURISHES = ["wave", "thinking", "waiting", "review"] as const;
+const FLOURISHES = ["wave", "thinking", "review"] as const;
 const TILT = "translateY(-0.16em) rotate(-5deg)";
+
+// The sheet anchors each frame at the centre of its bounding box, so a raised arm widens the box
+// and drags the body sideways, and standing frames vary in height by up to 3%. For the standing
+// poses we pin every frame to where his legs are (sheet px, fitted against idle_0) and draw them
+// all at one height, so only the limbs move.
+const LEGS_X: Record<string, number> = {
+  idle_0: 40, idle_1: 38, idle_2: 38, idle_3: 39,
+  wave_0: 39.5, wave_1: 43, wave_2: 47, wave_3: 53,
+  waiting_0: 42.3, waiting_1: 42.3, waiting_2: 45.6, waiting_3: 42.9, waiting_4: 42.5, waiting_5: 42.1,
+  thinking_0: 41, thinking_1: 41.5, thinking_2: 41.5, thinking_3: 43, thinking_4: 41.5, thinking_5: 43,
+  review_0: 35, review_1: 36, review_2: 35, review_3: 35, review_4: 34, review_5: 36,
+  look_0: 51,
+};
+const STEADY = /^(idle|wave|waiting|thinking|review)_/;
 
 export default function HeroCharacter() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -147,31 +161,37 @@ export default function HeroCharacter() {
     const frameName = (): string => {
       const an = map.anims;
       const loop = (name: string, fps: number, t = clock) => an[name][Math.floor(t * fps) % an[name].length];
+      // gestures play forwards then backwards, so they never snap from the last frame to the first
+      const sway = (name: string, fps: number, t = clock) => {
+        const n = an[name].length, i = Math.floor(Math.max(0, t) * fps) % (2 * n - 2);
+        return an[name][i < n ? i : 2 * n - 2 - i];
+      };
       if (!grounded) return vy > 300 * k ? an.jump[1] : vy > -250 * k ? an.jump[2] : an.jump[3];
       if (landT > 0) return an.jump[4];
       if (phase === "run") return loop("runA", 13);
-      if (phase === "cheer") return loop("wave", 8, clock - phaseAt);
+      if (phase === "cheer") return sway("wave", 7, clock - phaseAt);
       const ct = clock - cueAt;
       if (cue === "chat") {
         if (ct < 0.35) return an.look[0];
         if (ct < 1.1) return an.look[1];
         return Math.sin((ct - 1.1) * 6.5) > 0.3 ? an.look[2] : an.look[1];
       }
-      if (cue === "contact") return loop("wave", 8, ct);
-      if (cue === "stats") return loop("waiting", 6, ct);
-      // idle: breathe, with a short flourish every seven seconds
+      if (cue === "contact") return sway("wave", 7, ct);
+      if (cue === "stats") return sway("waiting", 5, ct);
+      // idle: breathe slowly, with one short gesture every nine seconds
       const since = clock - idleAt;
-      const cyc = since % 7;
-      if (since > 3 && cyc < 1.5) {
-        const name = FLOURISHES[Math.floor(since / 7) % FLOURISHES.length];
-        return loop(name, name === "wave" ? 8 : 6, cyc);
+      const cyc = since % 9;
+      if (since > 4 && cyc < 1.7) {
+        const name = FLOURISHES[Math.floor(since / 9) % FLOURISHES.length];
+        return sway(name, name === "wave" ? 7 : 5, cyc);
       }
-      return loop("idle", 3);
+      return sway("idle", 2.5);
     };
 
     const draw = (name: string) => {
-      const [sx, sy, w, h, ax] = map.frames[name];
-      const s = charH / STAND_H;
+      const [sx, sy, w, h, boxX] = map.frames[name];
+      const ax = LEGS_X[name] ?? boxX;
+      const s = charH / (STEADY.test(name) ? h : STAND_H);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
       ctx.imageSmoothingEnabled = true;
