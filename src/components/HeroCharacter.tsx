@@ -38,17 +38,17 @@ const TILT = "translateY(-0.16em) rotate(-5deg)";
 // One still frame per standing pose (anchored on his legs, see the build script).
 const POSES: Record<Pose, string> = { idle: "idle_0", wave: "wave_body", present: "waiting_2", think: "thinking_1" };
 const RUN = Array.from({ length: 8 }, (_, i) => `runA_${i}`);
-const COIN_SVG =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='9' fill='%23f5b82e' stroke='%23b9791a' stroke-width='2'/%3E%3Ccircle cx='10' cy='10' r='4.5' fill='none' stroke='%23ffe08a' stroke-width='1.6'/%3E%3C/svg%3E\")";
+const COIN = "/runner/assets/coin.webp"; // the runner's own pixel-art coin: a strip of 4 cells
+const COIN_CELL = 108; // each cell is 108 x 109
 
 export default function HeroCharacter() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const revealed = useHomeRevealGate();
-  const assets = useRef<Promise<HTMLImageElement> | null>(null);
+  const assets = useRef<Promise<[HTMLImageElement, HTMLImageElement]> | null>(null);
 
   // load during the preloader so the intro can start the moment the page is revealed
   useEffect(() => {
-    assets.current = loadImage(SHEET);
+    assets.current = Promise.all([loadImage(SHEET), loadImage(COIN)]);
     assets.current.catch(() => {});
   }, []);
 
@@ -73,7 +73,7 @@ export default function HeroCharacter() {
     let disposed = false;
     let raf = 0;
     let timer = 0;
-    let art: HTMLImageElement;
+    let art: HTMLImageElement, coinImg: HTMLImageElement;
     // the vector sheet rasterised at exactly the size he is drawn (R = bitmap px per sheet unit)
     const bitmap = document.createElement("canvas");
     let R = 0;
@@ -86,10 +86,13 @@ export default function HeroCharacter() {
     let perch = false, perchX = 0, perchDrop = 0, hopVx = 0;
     // actor
     let phase: Phase = "wait";
-    let x = 0, y = 0, vy = 0, floor = 0, facing = 1;
+    let x = 0, y = 0, vy = 0, floor = 0;
     let grounded = true, landT = 0, squash = 0, alpha = 0;
     let cue: Cue = null;
-    let pose: Pose = "idle", poseAt = 0;
+    // the standing pose on screen, which way it faces, when it appeared, and when a change began
+    let pose: Pose = "idle", poseFacing = 1, poseAt = -10, swapAt = -1;
+    let press = 0; // how far he is pressed down, 0..~0.07 (anticipation, then a springy settle)
+    let jumpQueued = false;
     let energy = 1; // 1 while awake, eases to 0 before he holds still, so nothing stops mid-motion
     let clock = 0, last = 0, lastInput = 0, phaseAt = 0;
     let coins: Coin[] = [];
@@ -202,7 +205,7 @@ export default function HeroCharacter() {
     const place = (stretch: number) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.translate(x, base - y);
-      ctx.scale(facing * (1 + squash * 0.6), (1 - squash) * stretch);
+      ctx.scale(poseFacing * (1 + squash * 0.6) * (1 + press * 0.6), (1 - squash) * (1 - press) * stretch);
     };
     const blit = (name: string, s: number) => {
       const [sx, sy, w, h, ax] = FRAMES[name];
@@ -222,28 +225,24 @@ export default function HeroCharacter() {
       ctx.globalAlpha = alpha;
       blit(POSES[which], s);
       if (which !== "wave") return;
-      // only the hand moves: a smooth swing around the wrist
+      // only the hand moves: it swings up from his side as the pose arrives, then waves at the wrist
       const px = (WRIST.x - ax) * s, py = (WRIST.y - h) * s;
+      const t = clock - poseAt;
       ctx.translate(px, py);
-      ctx.rotate(Math.sin((clock - poseAt) * 9) * 0.2 * energy);
+      ctx.rotate(-1.1 * Math.exp(-t * 8) + Math.sin(t * 9) * 0.2 * (1 - Math.exp(-t * 4)) * energy);
       ctx.translate(-px, -py);
       blit("wave_hand", s);
     };
-    // coins: flat gold discs that turn on their axis
     const drawCoins = () => {
       if (phase === "idle" || phase === "wait" || taken >= coins.length) return;
-      const r = charH * 0.085;
+      const size = charH * 0.2;
+      const cell = Math.floor(clock * 10) % 4;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalAlpha = Math.min(1, (clock - 0.1) * 4);
       for (const c of coins) {
         if (c.taken) continue;
-        const turn = Math.max(0.18, Math.abs(Math.cos(clock * 5 + c.x * 0.02)));
-        const cy = base - c.y + Math.sin(clock * 4 + c.x * 0.02) * charH * 0.02;
-        ctx.beginPath(); ctx.ellipse(c.x, cy, r * turn, r, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "#f5b82e"; ctx.fill();
-        ctx.lineWidth = r * 0.22; ctx.strokeStyle = "#b9791a"; ctx.stroke();
-        ctx.beginPath(); ctx.ellipse(c.x, cy, r * 0.5 * turn, r * 0.5, 0, 0, Math.PI * 2);
-        ctx.lineWidth = r * 0.16; ctx.strokeStyle = "#ffe08a"; ctx.stroke();
+        const bob = Math.sin(clock * 4 + c.x * 0.02) * charH * 0.02;
+        ctx.drawImage(coinImg, cell * COIN_CELL, 0, COIN_CELL, 109, c.x - size / 2, base - c.y - size / 2 + bob, size, size * (109 / COIN_CELL));
       }
     };
     const movingFrame = (): string | null => {
@@ -254,17 +253,34 @@ export default function HeroCharacter() {
     };
     const wantedPose = (): Pose =>
       phase === "cheer" ? "wave" : cue === "chat" ? "think" : cue === "contact" ? "wave" : cue === "stats" ? "present" : "idle";
+    const wantedFacing = () => (phase === "idle" && cue === "contact" ? -1 : 1);
+    // Changing pose is a three-beat move, not a cut and not a blend (a blend ghosts):
+    //   1. anticipation: he presses down slightly in the old pose (0.1 s)
+    //   2. the pose changes at the lowest point, where the eye expects a change
+    //   3. settle: he springs up a touch past full height and comes to rest (about 0.3 s)
+    const SWAP = 0.1;
     const render = () => {
       begin();
       drawCoins();
       const moving = movingFrame();
-      if (moving) return drawFrame(moving);
-      const next = wantedPose();
-      if (next !== pose) {
-        // a clean switch with a small settle; blending two poses leaves a ghost of the old one
-        pose = next;
-        poseAt = clock;
-        squash = Math.max(squash, 0.045);
+      if (moving) {
+        // jumps and landings carry their own squash; the pose under them changes unseen
+        pose = wantedPose(); poseFacing = 1; poseAt = clock; swapAt = -1; press = 0;
+        return drawFrame(moving);
+      }
+      const next = wantedPose(), nextFacing = wantedFacing();
+      const changing = next !== pose || nextFacing !== poseFacing;
+      if (changing && swapAt < 0) swapAt = clock;
+      if (!changing) swapAt = -1;
+      if (swapAt >= 0 && clock - swapAt >= SWAP) {
+        pose = next; poseFacing = nextFacing; poseAt = clock; swapAt = -1;
+      }
+      if (swapAt >= 0) {
+        const p = (clock - swapAt) / SWAP;
+        press = 0.07 * p * p;
+      } else {
+        const t = clock - poseAt;
+        press = t < 0.6 ? 0.07 * Math.exp(-t * 11) * Math.cos(t * 20) : 0;
       }
       drawPose(pose);
     };
@@ -287,7 +303,7 @@ export default function HeroCharacter() {
     const flyCoin = (from: Coin, statIdx: number, value: string) => {
       const stat = stats[statIdx];
       if (!stat) return;
-      const size = charH * 0.17;
+      const size = charH * 0.2;
       const c = canvas.getBoundingClientRect();
       const s = section.getBoundingClientRect();
       const t = stat.getBoundingClientRect();
@@ -295,7 +311,7 @@ export default function HeroCharacter() {
       const x1 = t.left - s.left + t.width / 2 - size / 2, y1 = t.top - s.top + t.height / 2 - size / 2;
       const el = document.createElement("span");
       el.setAttribute("aria-hidden", "true");
-      el.style.cssText = `position:absolute;left:0;top:0;width:${size}px;height:${size}px;pointer-events:none;z-index:2;background:${COIN_SVG} center / contain no-repeat;will-change:transform`;
+      el.style.cssText = `position:absolute;left:0;top:0;width:${size}px;height:${size}px;pointer-events:none;z-index:2;background:url(${COIN}) 0 0 / 400% 100% no-repeat;will-change:transform`;
       section.appendChild(el);
       const lift = Math.min(120, Math.abs(x1 - x0) * 0.18 + 30);
       const fly = el.animate(
@@ -337,7 +353,7 @@ export default function HeroCharacter() {
         ring.style.strokeDashoffset = "0";
         timer = window.setTimeout(() => (ring.style.strokeDashoffset = ""), 1000);
       }
-      if (next === "idle") { facing = 1; restore(); }
+      if (next === "idle") restore();
     };
     const land = () => {
       y = floor; vy = 0; grounded = true; landT = 0.14; squash = 0.16;
@@ -385,11 +401,12 @@ export default function HeroCharacter() {
           if (x >= leapX) { phase = "leap"; grounded = false; vy = leapVy; }
         } else if (phase === "stomp" && landT === 0) {
           // off the end of the first line, down onto "accelerate"
-          phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop; facing = 1;
+          phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop;
         } else if (phase === "cheer" && clock - phaseAt > 1.7) {
           setPhase("idle");
-        } else if (phase === "idle") {
-          facing = cue === "contact" ? -1 : 1;
+        } else if (jumpQueued && landT === 0) {
+          // the click-jump: a short crouch first, then the spring
+          jumpQueued = false; grounded = false; vy = leapVy * 0.9;
         }
       }
       if (phase === "run" || phase === "leap") {
@@ -438,7 +455,7 @@ export default function HeroCharacter() {
       const r = canvas.getBoundingClientRect();
       const px = e.clientX - r.left, py = r.top + base - floor - e.clientY; // height above his feet
       if (Math.abs(px - x) < charH * 0.3 && py > 0 && py < charH && grounded) {
-        grounded = false; vy = leapVy * 0.9; squash = 0;
+        jumpQueued = true; landT = 0.1; // wind up in the crouch, then tick() launches him
       }
       wake();
     };
@@ -456,9 +473,9 @@ export default function HeroCharacter() {
     // before they can be seen. If the art arrives late, the intro runs without touching either.
     const revealedAt = performance.now();
     Promise.all([assets.current, document.fonts.ready])
-      .then(([img]) => {
+      .then(([[img, coin]]) => {
         if (disposed) return;
-        art = img;
+        art = img; coinImg = coin;
         ready = true;
         measure();
         ro.observe(h1);
