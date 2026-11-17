@@ -290,6 +290,8 @@ export default function ContactsPage() {
           <span>Get in</span>
           <span>Touch</span>
         </Reveal>
+        {/* The page had no h1: a visually hidden one names it for search engines and screen readers (WCAG 2.2 SC 2.4.6) */}
+        <h1 className="sr-only">Contact Maher Fayad, Senior Product Designer</h1>
 
       </section>
 

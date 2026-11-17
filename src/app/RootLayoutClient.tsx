@@ -255,6 +255,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
             </div>
 
             <div
+              data-page-shell=""
               className="relative z-0"
               style={
                 !pageActive

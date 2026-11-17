@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      // Markdown twins of the case studies for AI agents: /projects/sanarte.md
+      { source: "/projects/:slug.md", destination: "/md/projects/:slug" },
+    ];
+  },
 };
 
 export default nextConfig;

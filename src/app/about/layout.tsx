@@ -10,7 +10,9 @@ export const metadata: Metadata = {
 const profilePageJsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfilePage",
-  mainEntity: { "@type": "Person", name: "Maher Fayad", url: "https://maherfayad.com" },
+  name: "About Maher Fayad",
+  mainEntity: { "@id": "https://maherfayad.com/#person" },
+  isPartOf: { "@id": "https://maherfayad.com/#website" },
   url: "https://maherfayad.com/about",
   dateCreated: "2024-03-01T00:00:00.000Z",
   dateModified: "2026-06-01T00:00:00.000Z",

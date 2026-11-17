@@ -14,6 +14,7 @@ import AboutProjectsScroll from "@/components/AboutProjectsScroll";
 import Testimonials from "@/components/Testimonials";
 import SiteHeader from "@/components/SiteHeader";
 import CvModal from "@/components/CvModal";
+import { TIMELINE } from "@/data/profile";
 
 // Swap to "/cv/Maher-Fayad-CV.pdf" once the PDF is added under public/cv/.
 const CV_URL = "https://drive.google.com/file/d/17gjXpoyjISAdNi6Jw8E-3052SkGq1TRc/view?usp=sharing";
@@ -23,77 +24,6 @@ const STATS = [
   { name: ["COMPLETED", "PROJECTS"], value: "50+" },
   { name: ["FIGMA PLUGINS", "PUBLISHED"], value: "4" },
   { name: ["BRANDS", "WORKED WITH"], value: "40+" },
-];
-
-const TIMELINE = [
-  {
-    position: "Senior Product Designer",
-    company: "Almosafer",
-    time: "2025 - Present",
-    points: [
-      "Designing for the GCC's leading travel platform across Arabic and English product experiences.",
-      "Driving design-system work and analytics-informed funnel improvements across booking journeys.",
-      "Building AI-augmented design workflows with Figma MCP and Claude-driven design ops.",
-    ],
-  },
-  {
-    position: "Sr. User Experience Designer",
-    company: "AZMX · Al Rajhi Bank",
-    time: "Dec. 2023 - 2025",
-    points: [
-      "Delivered 41 revamps and enhancements to Al Rajhi e-business platforms, including the enterprise payroll journey.",
-      "These revamps fed the e-business program that lifted online account openings by 47% and transactions by 81%.",
-      "Worked day to day with product, engineering, and analytics teams inside Saudi Arabia's largest bank.",
-    ],
-  },
-  {
-    position: "Product Designer",
-    company: "Contact Financial Holding",
-    time: "Dec. 2022 - Nov. 2023",
-    points: [
-      "Owned the design lifecycle from initial ideation through shipped implementation.",
-      "Crafted user flows, high-fidelity mockups, interactive prototypes, and ran comprehensive user research.",
-      "Contributed to core financial products, including Contact Now and Contact Brokerage apps.",
-    ],
-  },
-  {
-    position: "UI/UX Designer",
-    company: "GameIT",
-    time: "Jun. 2022 - Dec. 2022",
-    points: [
-      "Refined website experiences for maximum usability, engagement, and customer satisfaction.",
-      "Collaborated with marketing to deliver high-quality video and visual brand assets.",
-      "Partnered with the game development team to optimize accessibility of game user interfaces.",
-    ],
-  },
-  {
-    position: "Freelance UI/UX Designer",
-    company: "Upwork",
-    time: "Aug. 2022 - Present",
-    points: [
-      "Collaborated with Solidity Studios, Supersight, Konica Minolta, Mit Olin Foundation, and Brackets.",
-      "Implemented gamification aspects using the Octalysis framework to build high-engagement habit-tracking apps.",
-      "Designed remote team collaboration platforms integrating sound-based destress workflows.",
-    ],
-  },
-  {
-    position: "User Experience Intern Designer",
-    company: "Algoriza",
-    time: "Mar. 2022 - Jun. 2022",
-    points: [
-      "Mastered UX design processes, user interview methodologies, and target customer mapping.",
-      "Practiced interface guidelines, responsive web grids, accessibility standards, and styling guides.",
-    ],
-  },
-  {
-    position: "Intern",
-    company: "British Council",
-    time: "Jun. 2018 - May 2019",
-    points: [
-      "Interfaced between the British Council and the university to coordinate events and academic cooperation.",
-      "Successfully led the organization of major events, each drawing over 200 participants.",
-    ],
-  },
 ];
 
 const EXPERTISE = [

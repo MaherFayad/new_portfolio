@@ -31,3 +31,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Project routes split server `page.tsx` (metadata/`generateMetadata`) and client `ProjectPageClient.tsx`.
 - Mouse-movement JS and WebGL displacement effects load only at viewport widths ≥1100px (`MOUSE_EFFECTS_MIN_WIDTH`).
 - Mobile carousels (What I do) use `MobileHorizontalScroll` with native touch scroll below lg; Certificates use a grid on mobile/tablet.
+- Home hero character is `HeroCharacter` (canvas sprite from `/runner/assets/hero-home.webp`): scripted intro on the headline, then reacts to `[data-hero-cue]`, `[data-hero-stat]`, `[data-hero-word]`, and `[data-ai-chat]`. No cursor chasing.
+- Career facts live in `src/data/profile.ts` (TIMELINE, CREDENTIALS, PROFILE); About, JSON-LD, and `src/lib/llms.ts` read from it.
+- AI-agent endpoints: `/llms.txt`, `/llms-full.txt`, and `/projects/<slug>.md` (rewrite to `src/app/md/projects/[slug]`), all generated from site data.

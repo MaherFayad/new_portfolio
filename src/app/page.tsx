@@ -21,6 +21,7 @@ import ParallaxMockups from "@/components/ParallaxMockups";
 import Testimonials from "@/components/Testimonials";
 import WhatIDoMobileCarousel from "@/components/WhatIDoMobileCarousel";
 import SiteHeader from "@/components/SiteHeader";
+import HeroCharacter from "@/components/HeroCharacter";
 
 const SliderPopup = dynamic(() => import("@/components/SliderPopup"), {
   ssr: false,
@@ -202,7 +203,10 @@ export default function HomePage() {
 
 
       {/* 3. Hero Section */}
-      <section id="hero-section" className="grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start max-sm:h-auto max-sm:min-h-0 rp-hero-section lg:h-auto lg:!mt-[calc(843.5658px-17.7514vw)] min-[1024px]:max-[1399px]:h-[450px] min-[1024px]:max-[1399px]:!mt-[80px] sm:max-lg:h-auto sm:max-lg:!mt-[140px] max-sm:!mt-[160px]">
+      <section id="hero-section" className="relative grid grid-cols-12 max-sm:grid-cols-4 sm:grid-cols-4 lg:grid-cols-12 gap-5 max-sm:gap-3 w-full items-start max-sm:h-auto max-sm:min-h-0 rp-hero-section lg:h-auto lg:!mt-[calc(843.5658px-17.7514vw)] min-[1024px]:max-[1399px]:h-[450px] min-[1024px]:max-[1399px]:!mt-[80px] sm:max-lg:h-auto sm:max-lg:!mt-[140px] max-sm:!mt-[160px]">
+
+        {/* Pixel Maher: stands on the headline and reacts to the hero content (decorative, no layout impact) */}
+        <HeroCharacter />
 
         {/* Contact Button */}
         <Reveal aboveFold className="col-span-2 max-sm:mt-2 max-sm:row-start-2 max-sm:col-[1/3] sm:col-[1/3] sm:row-start-2 sm:mt-2.5 sm:flex lg:col-span-2 lg:row-auto lg:mt-0 self-start flex items-start justify-between sm:max-lg:text-[clamp(0.75rem,2.2vw-2.115vw,1.125rem)] max-sm:text-[0.75rem]">
@@ -211,6 +215,7 @@ export default function HomePage() {
               <Link
                 href="/contacts"
                 aria-label="Contact"
+                data-hero-cue="contact"
                 className="group flex items-center gap-5 cursor-pointer bg-transparent border-none p-0 text-inherit text-left no-underline"
               >
                 <div className="relative w-20 h-20 shrink-0">
@@ -259,7 +264,7 @@ export default function HomePage() {
         {/* Hero Title Heading */}
         <Reveal aboveFold as="h1" className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-1 max-sm:text-[clamp(28px,8vw,40px)] sm:col-[1/5] sm:row-start-1 sm:text-[clamp(48px,4.688vw,68px)] lg:col-[3/10] dt:text-[clamp(46px,3.462vw-2.46px,64px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] text-[#c5c5c5] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[100%] tracking-[-0.06em] self-start">
           <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
-            Senior Product Designer
+            Senior Product <span data-hero-word="" className="inline-block">Designer</span>
           </span>
           crafting interfaces that
           accelerate revenue
@@ -267,10 +272,10 @@ export default function HomePage() {
 
         {/* Design Awards Stats */}
         <Reveal aboveFold className="col-[11/12] max-sm:mt-5 max-sm:col-[3/4] sm:col-[3/4] sm:row-start-2 lg:row-start-1 sm:mt-5 sm:flex lg:col-[11/12] lg:mt-[90px] flex flex-col gap-[14px] self-start">
-          <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
+          <span data-hero-cue="stats" data-hero-stat="" className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
             50+
           </span>
-          <span className="flex flex-col [&>span]:block">
+          <span data-hero-cue="stats" className="flex flex-col [&>span]:block">
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
               COMPLETED
             </span>
@@ -282,10 +287,10 @@ export default function HomePage() {
 
         {/* Experience Stats */}
         <Reveal aboveFold className="col-[12/13] max-sm:mt-5 max-sm:col-[4/5] sm:col-[4/5] sm:row-start-2 lg:row-start-1 sm:mt-5 sm:flex lg:col-[12/13] lg:mt-[90px] flex flex-col gap-[14px] self-start">
-          <span className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
+          <span data-hero-cue="stats" data-hero-stat="" className="font-medium text-[32px] leading-[100%] tracking-[-0.03em] text-[#c5c5c5] max-sm:text-[24px] lg:max-dt:text-[clamp(22px,3.2vw-4.77px,32px)] sm:max-lg:text-[clamp(24px,3.2vw-4.77px,28px)]">
             4+
           </span>
-          <span className="flex flex-col [&>span]:block">
+          <span data-hero-cue="stats" className="flex flex-col [&>span]:block">
             <span className="block font-semibold text-sm tracking-[-0.03em] uppercase text-[rgba(197,197,197,0.62)] leading-none max-sm:text-[10px] lg:max-dt:text-[clamp(11px,0.8vw+0.8px,11px)] sm:max-lg:text-[clamp(11px,1.25vw-0.5px,14px)]">
               YEARS OF
             </span>

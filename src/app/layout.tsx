@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import RootLayoutClient from "./RootLayoutClient";
+import { CREDENTIALS, PROFILE, SITE_URL } from "@/data/profile";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,9 +28,15 @@ export const metadata: Metadata = {
     template: "%s | Maher Fayad",
   },
   description:
-    "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel. Delivered 41 revamps at Al Rajhi Bank within the program that lifted account openings 47% and transactions 81%.",
+    "Senior Product Designer in Riyadh, Saudi Arabia. Design systems and analytics-informed product design for banking, fintech, and travel. Delivered 41 revamps at Al Rajhi Bank within the program that lifted account openings 47% and transactions 81%.",
   manifest: "/manifest.webmanifest",
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    // machine-readable profile for AI agents (see src/lib/llms.ts)
+    types: { "text/markdown": "/llms.txt" },
+  },
+  authors: [{ name: "Maher Fayad", url: "https://maherfayad.com" }],
+  creator: "Maher Fayad",
   keywords: [
     "senior product designer Riyadh",
     "senior product designer Saudi Arabia",
@@ -37,12 +44,16 @@ export const metadata: Metadata = {
     "Figma design systems consultant",
     "Maher Fayad",
   ],
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
   openGraph: {
     title:
       "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
     description:
-      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design for banking, fintech, and travel.",
+      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems and analytics-informed product design for banking, fintech, and travel.",
     url: "https://maherfayad.com",
     siteName: "Maher Fayad | Senior Product Designer",
     locale: "en_US",
@@ -60,39 +71,64 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Maher Fayad | Senior Product Designer",
     description:
-      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems, and analytics-informed product design.",
+      "Senior Product Designer in Riyadh, Saudi Arabia. Design systems and analytics-informed product design.",
     images: ["/opengraph-image.png"],
   },
 };
 
-const personJsonLd = {
+// One connected graph: the Person is the entity every other page's structured data points back to
+// (ProfilePage on /about, CollectionPage on /work, CreativeWork on each case study).
+const siteJsonLd = {
   "@context": "https://schema.org",
-  "@type": "Person",
-  name: "Maher Fayad",
-  jobTitle: "Senior Product Designer",
-  worksFor: { "@type": "Organization", name: "Almosafer" },
-  url: "https://maherfayad.com",
-  email: "mailto:Contact@maherfayad.com",
-  address: { "@type": "PostalAddress", addressLocality: "Riyadh", addressCountry: "SA" },
-  knowsLanguage: ["ar", "en"],
-  knowsAbout: [
-    "Product Design",
-    "UX Design",
-    "Design Systems",
-    "Product Analytics",
-  ],
-  sameAs: [
-    "https://www.linkedin.com/in/maherfayad",
-    "https://www.credly.com/badges/5f3aa817-a4c2-4cee-8364-bd8b163a737b/public_url",
-    "https://www.credly.com/badges/4b94e10d-d67c-43cb-b529-f9127c04ed91/public_url",
-    "https://www.credly.com/badges/ed0ef7e8-cc68-41e9-8e10-664be336e779/public_url",
-    "https://www.credly.com/badges/32de5750-f31b-470d-a179-8dadc54756fd/public_url",
-    "https://www.credly.com/badges/0e8306a5-d19b-4524-94ca-a2f501be3d81/public_url",
-    "https://www.credly.com/badges/2e307edc-0639-42bb-a70c-c6cac291fec3/public_url",
-    "https://www.credly.com/badges/bf32a815-e57e-4ed4-8475-45ccdceb586a/public_url",
-    "https://www.figma.com/community/plugin/1444818529763652434/primitive-semantic-colors-generator",
-    "https://www.figma.com/community/plugin/1457720620225105340/numeric-tokens-generator",
-    "https://www.figma.com/@maherfayad96",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#person`,
+      name: PROFILE.name,
+      jobTitle: PROFILE.jobTitle,
+      description: PROFILE.summary,
+      worksFor: { "@type": "Organization", name: PROFILE.employer },
+      url: SITE_URL,
+      image: `${SITE_URL}/assets/Maher.png`,
+      email: `mailto:${PROFILE.email}`,
+      address: { "@type": "PostalAddress", addressLocality: "Riyadh", addressCountry: "SA" },
+      knowsLanguage: ["ar", "en"],
+      knowsAbout: [
+        "Product Design",
+        "UX Design",
+        "Design Systems",
+        "Product Analytics",
+        "Arabic and English (RTL) interface design",
+        "Figma plugin development",
+      ],
+      hasOccupation: {
+        "@type": "Occupation",
+        name: PROFILE.jobTitle,
+        occupationLocation: { "@type": "Country", name: "Saudi Arabia" },
+        skills: "Product design, design systems, UX research, product analytics, bilingual AR/EN interfaces",
+      },
+      hasCredential: CREDENTIALS.map((c) => ({
+        "@type": "EducationalOccupationalCredential",
+        name: c.name,
+        url: c.url,
+      })),
+      sameAs: [
+        PROFILE.linkedin,
+        ...CREDENTIALS.map((c) => c.url),
+        "https://www.figma.com/community/plugin/1444818529763652434/primitive-semantic-colors-generator",
+        "https://www.figma.com/community/plugin/1457720620225105340/numeric-tokens-generator",
+        PROFILE.figma,
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Maher Fayad | Senior Product Designer",
+      description: PROFILE.summary,
+      inLanguage: "en",
+      publisher: { "@id": `${SITE_URL}/#person` },
+    },
   ],
 };
 
@@ -106,13 +142,13 @@ export default function RootLayout({
       <head>
         <meta name="google-site-verification" content="jSkR22cF6TasEMLo9kxXI633TLgjeEot3Fo9U-Rx6pA" />
         <noscript>
-          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+          <style>{`[data-reveal],[data-page-shell]{opacity:1!important;transform:none!important;pointer-events:auto!important}.loader{display:none!important}`}</style>
         </noscript>
       </head>
       <body className="min-h-full flex flex-col bg-black text-white">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
         <RootLayoutClient>{children}</RootLayoutClient>
         <Analytics />
