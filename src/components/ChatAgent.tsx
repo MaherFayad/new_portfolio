@@ -1894,7 +1894,9 @@ export default function ChatAgent() {
             handleOpen();
           }
         }}
-        style={{ borderRadius: "9999px", WebkitBackdropFilter: "blur(20px)" }}
+        // The backdrop is dimmed as well as blurred, so the white label stays readable when the pill
+        // floats over a light image (WCAG 2.2 SC 1.4.3). Over the black page, dimming black changes nothing.
+        style={{ borderRadius: "9999px", WebkitBackdropFilter: "blur(20px) brightness(0.3)" }}
         initial={{ y: 120, opacity: 0, bottom: 24 }}
         animate={{
           y: 0,
@@ -1915,7 +1917,7 @@ export default function ChatAgent() {
               ? "0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 28px rgba(99, 102, 241, 0.18), 0 0 60px rgba(56, 189, 248, 0.08), 0 12px 40px rgba(0, 0, 0, 0.55)"
               : "0 10px 36px rgba(0, 0, 0, 0.5)"
             : "0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 30px rgba(99, 102, 241, 0.14), 0 0 64px rgba(56, 189, 248, 0.06)",
-          backdropFilter: isOpen ? "blur(24px)" : "blur(14px)",
+          backdropFilter: isOpen ? "blur(24px) brightness(0.3)" : "blur(14px) brightness(0.3)",
         }}
         transition={chatLayoutTransition}
         className="group fixed bottom-6 left-1/2 -translate-x-1/2 z-55 flex items-center border cursor-pointer text-white overflow-hidden select-none"
