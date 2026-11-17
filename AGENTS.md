@@ -31,7 +31,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Project routes split server `page.tsx` (metadata/`generateMetadata`) and client `ProjectPageClient.tsx`.
 - Mouse-movement JS and WebGL displacement effects load only at viewport widths ≥1100px (`MOUSE_EFFECTS_MIN_WIDTH`).
 - Mobile carousels (What I do) use `MobileHorizontalScroll` with native touch scroll below lg; Certificates use a grid on mobile/tablet.
-- Home hero character is `HeroCharacter` (canvas): scripted intro on the headline, ends standing on the far end of "accelerate" (`[data-hero-perch]`; phones stay on "Designer"), then reacts to `[data-hero-cue]`, `[data-hero-stat]`, and `[data-ai-chat]`. No cursor chasing. Standing poses are single still frames animated in code (breathing, hand-only wave), never frame flipping.
-- Hero sprite assets (`hero-home.webp`, `hero-wave.webp`) are generated from the runner sheet by `scripts/build-hero-sprite.py`, which also removes background-remover leftovers; rerun it instead of editing the WebP files.
+- Home hero character is `HeroCharacter` (canvas): scripted intro on the headline, ends standing on the far end of "accelerate" (`[data-hero-perch]`; phones stay on "Designer"), then reacts to `[data-hero-cue]`, `[data-hero-stat]`, and `[data-ai-chat]`. No cursor chasing.
+- The hero character is a jointed vector puppet drawn in code (`src/components/hero/puppet.ts`: poses are joint angles, eased between), not the pixel sprite. The pixel-art runner sheet stays for the 404 game and chat only; do not reuse it in the hero.
 - Career facts live in `src/data/profile.ts` (TIMELINE, CREDENTIALS, PROFILE); About, JSON-LD, and `src/lib/llms.ts` read from it.
 - AI-agent endpoints: `/llms.txt`, `/llms-full.txt`, and `/projects/<slug>.md` (rewrite to `src/app/md/projects/[slug]`), all generated from site data.
