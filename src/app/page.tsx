@@ -266,8 +266,8 @@ export default function HomePage() {
           <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
             Senior Product <span data-hero-word="" className="inline-block">Designer</span>
           </span>
-          crafting interfaces that
-          accelerate revenue
+          crafting interfaces that{" "}
+          <span data-hero-perch="" className="inline-block">accelerate</span> revenue
         </Reveal>
 
         {/* Design Awards Stats */}
