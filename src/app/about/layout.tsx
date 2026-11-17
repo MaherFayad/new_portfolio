@@ -11,9 +11,9 @@ const profilePageJsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfilePage",
   name: "About Maher Fayad",
-  mainEntity: { "@id": "https://maherfayad.com/#person" },
-  isPartOf: { "@id": "https://maherfayad.com/#website" },
-  url: "https://maherfayad.com/about",
+  mainEntity: { "@id": "https://www.maherfayad.com/#person" },
+  isPartOf: { "@id": "https://www.maherfayad.com/#website" },
+  url: "https://www.maherfayad.com/about",
   dateCreated: "2024-03-01T00:00:00.000Z",
   dateModified: "2026-06-01T00:00:00.000Z",
 };

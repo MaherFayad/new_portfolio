@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://maherfayad.com"),
+  metadataBase: new URL("https://www.maherfayad.com"),
   title: {
     default:
       "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     // machine-readable profile for AI agents (see src/lib/llms.ts)
     types: { "text/markdown": "/llms.txt" },
   },
-  authors: [{ name: "Maher Fayad", url: "https://maherfayad.com" }],
+  authors: [{ name: "Maher Fayad", url: "https://www.maherfayad.com" }],
   creator: "Maher Fayad",
   keywords: [
     "senior product designer Riyadh",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
       "Maher Fayad | Senior Product Designer (UX/UI, Design Systems)",
     description:
       "Senior Product Designer in Riyadh, Saudi Arabia. Design systems and analytics-informed product design for banking, fintech, and travel.",
-    url: "https://maherfayad.com",
+    url: "https://www.maherfayad.com",
     siteName: "Maher Fayad | Senior Product Designer",
     locale: "en_US",
     type: "website",

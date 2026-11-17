@@ -12,16 +12,16 @@ const collectionPageJsonLd = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   name: "Work",
-  url: "https://maherfayad.com/work",
-  isPartOf: { "@id": "https://maherfayad.com/#website" },
-  author: { "@id": "https://maherfayad.com/#person" },
+  url: "https://www.maherfayad.com/work",
+  isPartOf: { "@id": "https://www.maherfayad.com/#website" },
+  author: { "@id": "https://www.maherfayad.com/#person" },
   mainEntity: {
     "@type": "ItemList",
     itemListElement: PROJECTS.map((project, idx) => ({
       "@type": "ListItem",
       position: idx + 1,
       name: project.title,
-      url: `https://maherfayad.com/projects/${project.slug}`,
+      url: `https://www.maherfayad.com/projects/${project.slug}`,
     })),
   },
 };

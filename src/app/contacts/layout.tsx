@@ -13,9 +13,9 @@ const contactPageJsonLd = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
   name: "Contact Maher Fayad",
-  url: "https://maherfayad.com/contacts",
-  isPartOf: { "@id": "https://maherfayad.com/#website" },
-  mainEntity: { "@id": "https://maherfayad.com/#person" },
+  url: "https://www.maherfayad.com/contacts",
+  isPartOf: { "@id": "https://www.maherfayad.com/#website" },
+  mainEntity: { "@id": "https://www.maherfayad.com/#person" },
 };
 
 export default function ContactsLayout({ children }: { children: React.ReactNode }) {

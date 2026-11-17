@@ -3,7 +3,7 @@
 // Run after a production deploy is live:  npm run indexnow
 import { readdirSync, readFileSync } from "node:fs";
 
-const HOST = "maherfayad.com";
+const HOST = "www.maherfayad.com";
 const key = readdirSync("public").find((f) => /^[0-9a-f]{32}\.txt$/.test(f))?.replace(".txt", "");
 if (!key) throw new Error("No IndexNow key file in /public");
 

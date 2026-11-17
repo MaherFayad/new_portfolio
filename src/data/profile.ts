@@ -1,7 +1,7 @@
 // Career facts shared by the About page, structured data, and the machine-readable
 // endpoints (/llms.txt, /llms-full.txt). Single source of truth: edit here, not in the consumers.
 
-export const SITE_URL = "https://maherfayad.com";
+export const SITE_URL = "https://www.maherfayad.com";
 
 
 

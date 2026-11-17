@@ -39,9 +39,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description,
-      url: `https://maherfayad.com/projects/${project.slug}`,
+      url: `https://www.maherfayad.com/projects/${project.slug}`,
       type: "article",
-      authors: ["https://maherfayad.com/about"],
+      authors: ["https://www.maherfayad.com/about"],
       images: [{ url: image, alt: title }],
     },
     twitter: {
@@ -61,7 +61,7 @@ export default async function ProjectPage({ params }: PageProps) {
     notFound();
   }
 
-  const url = `https://maherfayad.com/projects/${project.slug}`;
+  const url = `https://www.maherfayad.com/projects/${project.slug}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -73,19 +73,19 @@ export default async function ProjectPage({ params }: PageProps) {
         description: project.subtitle,
         abstract: project.caseFraming.outcome,
         url,
-        image: project.images.slice(0, 3).map((src) => `https://maherfayad.com${src}`),
+        image: project.images.slice(0, 3).map((src) => `https://www.maherfayad.com${src}`),
         genre: "Product design case study",
         inLanguage: "en",
-        author: { "@id": "https://maherfayad.com/#person" },
-        creator: { "@id": "https://maherfayad.com/#person" },
-        isPartOf: { "@id": "https://maherfayad.com/#website" },
+        author: { "@id": "https://www.maherfayad.com/#person" },
+        creator: { "@id": "https://www.maherfayad.com/#person" },
+        isPartOf: { "@id": "https://www.maherfayad.com/#website" },
         ...(project.externalUrl ? { sameAs: project.externalUrl } : {}),
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: "https://maherfayad.com" },
-          { "@type": "ListItem", position: 2, name: "Work", item: "https://maherfayad.com/work" },
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://www.maherfayad.com" },
+          { "@type": "ListItem", position: 2, name: "Work", item: "https://www.maherfayad.com/work" },
           { "@type": "ListItem", position: 3, name: project.title, item: url },
         ],
       },
