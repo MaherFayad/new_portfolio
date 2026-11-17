@@ -38,6 +38,7 @@ const TILT = "translateY(-0.16em) rotate(-5deg)";
 // One still frame per standing pose (anchored on his legs, see the build script).
 const POSES: Record<Pose, string> = { idle: "idle_0", wave: "wave_body", present: "waiting_2", think: "thinking_1" };
 const RUN = Array.from({ length: 8 }, (_, i) => `runA_${i}`);
+const RUN_FPS = 9;
 const COIN = "/runner/assets/coin.webp"; // the runner's own pixel-art coin: a strip of 4 cells
 const COIN_CELL = 108; // each cell is 108 x 109
 
@@ -248,7 +249,9 @@ export default function HeroCharacter() {
     const movingFrame = (): string | null => {
       if (!grounded) return vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
       if (landT > 0) return "jump_4";
-      if (phase === "run") return RUN[Math.floor(clock * 13) % RUN.length];
+      // the runner game plays this cycle at 9 frames a second at its starting pace; faster than
+      // that and his legs spin quicker than he covers ground
+      if (phase === "run") return RUN[Math.floor((clock - phaseAt) * RUN_FPS) % RUN.length];
       return null;
     };
     const wantedPose = (): Pose =>
