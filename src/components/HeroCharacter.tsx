@@ -11,7 +11,13 @@ import { FRAMES, SHEET_H, SHEET_W, WRIST } from "@/components/hero/frames";
 //   3. jumps onto the tilted word "Designer" and stomps it level
 //   4. hops down to the far end of "accelerate" and waves while the Contact ring completes a lap
 // Afterwards he reacts to whatever hero content is hovered (waves at Contact, presents the stats,
-// thinks at Ask Maher) and jumps when clicked. He never chases the cursor.
+// thinks at Ask Maher), says hello when the pointer comes up to him, and jumps when clicked. While
+// the visitor is active he also blinks, breathes, and now and then gestures or hops unprompted.
+// He never chases the cursor.
+//
+// What makes it read as one body rather than a strip of frames: the run eases in and its frames
+// follow the ground covered, he leans into it, jumps stretch with speed, landings are a damped
+// spring, and feet raise dust.
 //
 // The art is a vector sheet traced from the runner's pixel art (scripts/build-hero-vector.py), so
 // it keeps his likeness but stays sharp at any size; it is rasterised once at the exact size
@@ -30,6 +36,8 @@ type Cue = "contact" | "stats" | "chat" | null;
 type Phase = "wait" | "drop" | "run" | "leap" | "stomp" | "hop" | "cheer" | "idle";
 type Pose = "idle" | "wave" | "present" | "think";
 type Coin = { x: number; y: number; taken: boolean };
+// dust kicked up by his feet and the sparkle of a collected coin, in the same units as x / y
+type Puff = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; gold: boolean };
 
 const STAND_H = 187; // sheet units of a standing frame
 const AWAKE_MS = 5000; // keep animating this long after the last input
@@ -41,6 +49,17 @@ const RUN = Array.from({ length: 8 }, (_, i) => `runA_${i}`);
 const RUN_FPS = 9;
 const COIN = "/runner/assets/coin.webp"; // the runner's own pixel-art coin: a strip of 4 cells
 const COIN_CELL = 108; // each cell is 108 x 109
+
+// Where his eyes are in each standing frame (sheet units: centre x, centre y, radius x, radius y,
+// tilt), read off the traced sheet. A blink paints a closed lid over them for a few frames.
+const EYES: Record<Pose, [number, number, number, number, number][]> = {
+  idle: [[45, 46.6, 6.4, 3.1, 0], [61.6, 46.7, 6.2, 2.9, 0]],
+  wave: [[55.3, 51.4, 7.2, 3, 0], [74.9, 51.5, 5.6, 3.1, 0]],
+  present: [[44.1, 48.8, 6.6, 3.5, -0.35], [61.4, 44.3, 5, 3.5, -0.35]],
+  think: [[48.8, 49.3, 6.6, 2.9, 0.1], [64.3, 50.5, 3.2, 2.2, 0.1]],
+};
+const SKIN = "#efc894", LASH = "#54514e"; // from the sheet's palette
+const BLINK = 0.13; // seconds an eye stays shut
 
 export default function HeroCharacter() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -97,6 +116,14 @@ export default function HeroCharacter() {
     let energy = 1; // 1 while awake, eases to 0 before he holds still, so nothing stops mid-motion
     let clock = 0, last = 0, lastInput = 0, phaseAt = 0;
     let coins: Coin[] = [];
+    let puffs: Puff[] = [];
+    // motion that makes him read as one body instead of a row of frames
+    let runT = 0, runDist = 0, runFrame = -1; // the run eases in, and its frames follow the ground covered
+    let lean = 0, air = 0; // forward lean (radians) and the stretch of a jump, both eased
+    let landAt = -10, landPow = 0; // a landing is a damped spring, not a linear decay
+    // signs of life while he stands: blinks, the odd unprompted gesture, a hello when the pointer comes close
+    let blinkAt = 2, act: Pose | null = null, actUntil = 0, nextActAt = 0;
+    let near = false, nearFacing = 1, lastMove = 0;
     let taken = 0;
     let tilted = false, counting = false, wrapped = false;
 
@@ -203,10 +230,14 @@ export default function HeroCharacter() {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
     };
-    const place = (stretch: number) => {
+    const place = (stretch: number, widen = 1) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.translate(x, base - y);
-      ctx.scale(poseFacing * (1 + squash * 0.6) * (1 + press * 0.6), (1 - squash) * (1 - press) * stretch);
+      ctx.rotate(lean * poseFacing);
+      ctx.scale(
+        poseFacing * (1 + squash * 0.6) * (1 + press * 0.6) * (1 - air * 0.5) * widen,
+        (1 - squash) * (1 - press) * (1 + air) * stretch
+      );
     };
     const blit = (name: string, s: number) => {
       const [sx, sy, w, h, ax] = FRAMES[name];
@@ -222,9 +253,27 @@ export default function HeroCharacter() {
     const drawPose = (which: Pose) => {
       const [, , , h, ax] = FRAMES[POSES[which]];
       const s = charH / h;
-      place(1 + Math.sin(clock * 1.9) * 0.008 * energy);
+      // breathing: the chest rises and widens a touch, feet planted
+      const breath = Math.sin(clock * 1.9) * energy;
+      place(1 + breath * 0.011, 1 + breath * 0.004);
       ctx.globalAlpha = alpha;
       blit(POSES[which], s);
+      if (clock >= blinkAt && clock < blinkAt + BLINK) {
+        for (const [ex, ey, rx, ry, rot] of EYES[which]) {
+          const cx = (ex - ax) * s, cy = (ey - h) * s;
+          ctx.fillStyle = SKIN;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx * s, ry * s, rot, 0, Math.PI * 2);
+          ctx.fill();
+          // the closed eye: one lash line along the lower lid
+          ctx.strokeStyle = LASH;
+          ctx.lineWidth = 1.3 * s;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.ellipse(cx, cy - ry * s * 0.15, rx * s * 0.72, ry * s * 0.7, rot, Math.PI * 0.12, Math.PI * 0.88);
+          ctx.stroke();
+        }
+      }
       if (which !== "wave") return;
       // only the hand moves: it swings up from his side as the pose arrives, then waves at the wrist
       const px = (WRIST.x - ax) * s, py = (WRIST.y - h) * s;
@@ -233,6 +282,47 @@ export default function HeroCharacter() {
       ctx.rotate(-1.1 * Math.exp(-t * 8) + Math.sin(t * 9) * 0.2 * (1 - Math.exp(-t * 4)) * energy);
       ctx.translate(-px, -py);
       blit("wave_hand", s);
+    };
+    const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
+    // dust at his feet: `dir` -1 / 1 throws it to one side, 0 to both
+    const dust = (n: number, dir = 0, power = 1) => {
+      for (let i = 0; i < n; i++) {
+        const side = dir || (i % 2 ? 1 : -1);
+        puffs.push({
+          x: x + side * charH * rand(0.04, 0.12), y: y + charH * 0.02,
+          vx: side * charH * rand(0.35, 0.9) * power, vy: charH * rand(0.05, 0.3) * power,
+          age: 0, life: rand(0.32, 0.5), size: charH * rand(0.018, 0.034), gold: false,
+        });
+      }
+    };
+    const sparkle = (c: Coin) => {
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + rand(0, 0.6);
+        puffs.push({
+          x: c.x, y: c.y, vx: Math.cos(a) * charH * rand(0.5, 0.9), vy: Math.sin(a) * charH * rand(0.5, 0.9),
+          age: 0, life: rand(0.28, 0.42), size: charH * rand(0.016, 0.026), gold: true,
+        });
+      }
+    };
+    const drawPuffs = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const p of puffs) {
+        const f = p.age / p.life;
+        if (p.gold) {
+          // square, like the pixel-art coin it came from
+          const sz = p.size * (1 - f * 0.6);
+          ctx.globalAlpha = (1 - f) * alpha;
+          ctx.fillStyle = "#ffcf3f";
+          ctx.fillRect(p.x - sz / 2, base - p.y - sz / 2, sz, sz);
+        } else {
+          ctx.globalAlpha = (1 - f) * (1 - f) * 0.32 * alpha;
+          ctx.fillStyle = "#c5c5c5";
+          ctx.beginPath();
+          ctx.arc(p.x, base - p.y, p.size * (0.7 + f * 1.1), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
     };
     const drawCoins = () => {
       if (phase === "idle" || phase === "wait" || taken >= coins.length) return;
@@ -251,12 +341,21 @@ export default function HeroCharacter() {
       if (landT > 0) return "jump_4";
       // the runner game plays this cycle at 9 frames a second at its starting pace; faster than
       // that and his legs spin quicker than he covers ground
-      if (phase === "run") return RUN[Math.floor((clock - phaseAt) * RUN_FPS) % RUN.length];
+      // ...so the frame follows the ground he has covered, not the clock: no sliding feet while he
+      // gets up to speed
+      if (phase === "run") return RUN[Math.floor((runDist * RUN_FPS) / runSpeed) % RUN.length];
       return null;
     };
     const wantedPose = (): Pose =>
-      phase === "cheer" ? "wave" : cue === "chat" ? "think" : cue === "contact" ? "wave" : cue === "stats" ? "present" : "idle";
-    const wantedFacing = () => (phase === "idle" && cue === "contact" ? -1 : 1);
+      phase === "cheer" ? "wave"
+        : cue === "chat" ? "think"
+        : cue === "contact" ? "wave"
+        : cue === "stats" ? "present"
+        : near ? "wave"
+        : act && clock < actUntil ? act
+        : "idle";
+    const wantedFacing = () =>
+      phase !== "idle" ? 1 : cue === "contact" ? -1 : cue ? 1 : near ? nearFacing : 1;
     // Changing pose is a three-beat move, not a cut and not a blend (a blend ghosts):
     //   1. anticipation: he presses down slightly in the old pose (0.1 s)
     //   2. the pose changes at the lowest point, where the eye expects a change
@@ -264,6 +363,7 @@ export default function HeroCharacter() {
     const SWAP = 0.1;
     const render = () => {
       begin();
+      drawPuffs();
       drawCoins();
       const moving = movingFrame();
       if (moving) {
@@ -277,6 +377,8 @@ export default function HeroCharacter() {
       if (!changing) swapAt = -1;
       if (swapAt >= 0 && clock - swapAt >= SWAP) {
         pose = next; poseFacing = nextFacing; poseAt = clock; swapAt = -1;
+        // people blink as they turn to something new
+        if (clock > blinkAt + BLINK && Math.random() < 0.6) blinkAt = clock + 0.04;
       }
       if (swapAt >= 0) {
         const p = (clock - swapAt) / SWAP;
@@ -335,6 +437,7 @@ export default function HeroCharacter() {
     const collect = (c: Coin) => {
       c.taken = true;
       taken++;
+      sparkle(c);
       // five coins: projects climb 10+ .. 50+, years climb 1+ .. 4+ (from the second coin)
       flyCoin(c, 0, taken >= coins.length ? statText[0] : `${taken * 10}+`);
       if (taken > 1) flyCoin(c, 1, taken >= coins.length ? statText[1] : `${taken - 1}+`);
@@ -356,10 +459,18 @@ export default function HeroCharacter() {
         ring.style.strokeDashoffset = "0";
         timer = window.setTimeout(() => (ring.style.strokeDashoffset = ""), 1000);
       }
-      if (next === "idle") restore();
+      if (next === "run") { runT = 0; runDist = 0; runFrame = -1; }
+      if (next === "idle") {
+        restore();
+        nextActAt = clock + rand(5, 8);
+      }
     };
     const land = () => {
-      y = floor; vy = 0; grounded = true; landT = 0.14; squash = 0.16;
+      // harder landings squash more and raise more dust
+      const impact = clamp(-vy / (leapVy * 1.25), 0.5, 1.2);
+      y = floor; vy = 0; grounded = true; landT = 0.14;
+      landAt = clock; landPow = 0.15 * impact;
+      dust(6, 0, impact);
       if (phase === "drop") {
         dip(line);
         setPhase("run");
@@ -400,25 +511,61 @@ export default function HeroCharacter() {
       } else {
         landT = Math.max(0, landT - dt);
         if (phase === "run" && landT === 0) {
-          x += runSpeed * dt;
-          if (x >= leapX) { phase = "leap"; grounded = false; vy = leapVy; }
+          // push off: a quarter of a second to reach full pace
+          runT += dt;
+          const e = Math.min(1, runT / 0.26);
+          const speed = runSpeed * (0.3 + 0.7 * e * (2 - e));
+          x += speed * dt;
+          runDist += speed * dt;
+          const f = Math.floor((runDist * RUN_FPS) / runSpeed) % RUN.length;
+          if (f !== runFrame) {
+            if (runFrame < 0) dust(3, -1); // the first stride kicks back
+            else if (f % 4 === 1) dust(1, -1, 0.6); // each footfall
+            runFrame = f;
+          }
+          if (x >= leapX) { phase = "leap"; grounded = false; vy = leapVy; dust(3, -1); }
         } else if (phase === "stomp" && landT === 0) {
           // off the end of the first line, down onto "accelerate"
-          phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop;
+          phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop; dust(3, -1);
         } else if (phase === "cheer" && clock - phaseAt > 1.7) {
           setPhase("idle");
         } else if (jumpQueued && landT === 0) {
           // the click-jump: a short crouch first, then the spring
-          jumpQueued = false; grounded = false; vy = leapVy * 0.9;
+          jumpQueued = false; grounded = false; vy = leapVy * 0.9; dust(4);
+        } else if (phase === "idle" && !cue && !near && !act && clock > nextActAt && now - lastInput < AWAKE_MS) {
+          // nobody asked: now and then he does something on his own, as long as the visitor is around
+          const r = Math.random();
+          if (r < 0.4) { act = "wave"; actUntil = clock + 1.6; }
+          else if (r < 0.72) { act = "present"; actUntil = clock + 1.5; }
+          else { jumpQueued = true; landT = 0.1; }
+          nextActAt = clock + rand(8, 14);
         }
+        if (act && (clock >= actUntil || cue || near)) act = null;
       }
       if (phase === "run" || phase === "leap") {
         for (const c of coins) if (!c.taken && x >= c.x - charH * 0.12) collect(c);
       }
-      squash = Math.max(0, squash - dt * 1.2);
+      // landing: squash, spring a little past full height, settle
+      const sinceLand = clock - landAt;
+      squash = sinceLand < 0.7 ? landPow * Math.exp(-sinceLand * 8) * Math.cos(sinceLand * 17) : 0;
+      // he leans into a run, tips forward going up and back coming down, and stretches with speed
+      const running = phase === "run" && grounded && landT === 0;
+      const wantLean = running ? 0.055 : !grounded ? clamp(vy / leapVy, -1, 1) * -0.05 + (phase === "leap" || phase === "hop" ? 0.03 : 0) : 0;
+      lean += (wantLean - lean) * Math.min(1, dt * 12);
+      air += ((grounded ? 0 : clamp(Math.abs(vy) / leapVy, 0, 1) * 0.06) - air) * Math.min(1, dt * 14);
+
+      for (const p of puffs) {
+        p.age += dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vx *= 1 - Math.min(1, dt * (p.gold ? 4 : 6));
+        p.vy = p.gold ? p.vy - charH * 2.2 * dt : p.vy * (1 - Math.min(1, dt * 5));
+      }
+      if (puffs.length) puffs = puffs.filter((p) => p.age < p.life);
+      if (clock >= blinkAt + BLINK) blinkAt = clock + (Math.random() < 0.18 ? 0.16 : rand(2.2, 5.5));
 
       // ease the breathing and the wave in and out, then hold still
-      const awake = phase !== "idle" || !grounded || landT > 0 || now - lastInput < AWAKE_MS;
+      const awake = phase !== "idle" || !grounded || landT > 0 || puffs.length > 0 || act !== null || now - lastInput < AWAKE_MS;
       energy += ((awake ? 1 : 0) - energy) * Math.min(1, dt * 4);
       if (!awake && energy < 0.01) energy = 0;
 
@@ -452,6 +599,19 @@ export default function HeroCharacter() {
       if (!hovers.matches || !visible()) return;
       const next = cueOf(e.target);
       if (next !== cue) { cue = next; wake(); }
+    };
+    // Any pointer movement while the hero is on screen keeps him awake, and coming right up to him
+    // gets a hello (he turns to the side the pointer arrived from, once, and does not follow it).
+    const onMove = (e: PointerEvent) => {
+      if (!hovers.matches || e.timeStamp - lastMove < 120) return;
+      lastMove = e.timeStamp;
+      if (!visible()) return;
+      const r = canvas.getBoundingClientRect();
+      const px = e.clientX - r.left, py = r.top + base - floor - e.clientY;
+      const close = phase === "idle" && Math.abs(px - x) < charH * 0.5 && py > -charH * 0.1 && py < charH * 1.1;
+      if (close && !near) nearFacing = px < x - charH * 0.12 ? -1 : 1;
+      near = close;
+      wake();
     };
     const onDown = (e: PointerEvent) => {
       if (phase !== "idle" || !visible()) return;
@@ -506,6 +666,7 @@ export default function HeroCharacter() {
           schedule();
         }, 800);
         document.addEventListener("pointerover", onOver, { passive: true });
+        window.addEventListener("pointermove", onMove, { passive: true });
         window.addEventListener("pointerdown", onDown, { passive: true });
         window.addEventListener("scroll", onScroll, { passive: true });
         document.addEventListener("focusin", onFocusIn);
@@ -521,6 +682,7 @@ export default function HeroCharacter() {
       restore();
       if (ring) ring.style.strokeDashoffset = "";
       document.removeEventListener("pointerover", onOver);
+      window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("focusin", onFocusIn);
