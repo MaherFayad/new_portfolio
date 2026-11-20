@@ -10,9 +10,15 @@ import { FRAMES, SHEET_H, SHEET_W, WRIST } from "@/components/hero/frames";
 //   2. runs the line collecting coins; each coin flies into the stats and counts them up
 //   3. jumps onto the tilted word "Designer" and stomps it level
 //   4. hops down to the far end of "accelerate" and waves while the Contact ring completes a lap
-// Afterwards he reacts to whatever hero content is hovered (waves at Contact, presents the stats,
-// thinks at Ask Maher), says hello when the pointer comes up to him, and jumps when clicked. While
-// the visitor is active he also blinks, breathes, and now and then gestures or hops unprompted.
+// Afterwards the headline is his playground. While the visitor is active he keeps himself busy from
+// a weighted, non-repeating pool: strolls along the first line, hops between it and "accelerate",
+// flips, a little dance, a double take, a coin run, or "Designer" pops up crooked again and he goes
+// and stomps it. The visitor can join in:
+//   - hover Contact / the stats / Ask Maher: he waves, presents, thinks
+//   - bring the pointer up to him: hello; swipe past him fast: he jumps
+//   - click him: a trick, a different one each time
+//   - drag him: he dangles from the pointer, and where he is let go (or thrown) he falls and lands
+//   - click the headline: he runs (or hops) to that spot
 // He never chases the cursor.
 //
 // What makes it read as one body rather than a strip of frames: the run eases in and its frames
@@ -33,7 +39,19 @@ import { FRAMES, SHEET_H, SHEET_W, WRIST } from "@/components/hero/frames";
 const SHEET = "/hero/maher.svg";
 
 type Cue = "contact" | "stats" | "chat" | null;
-type Phase = "wait" | "drop" | "run" | "leap" | "stomp" | "hop" | "cheer" | "idle";
+// the intro runs wait..cheer; after it he is "idle" (standing), "walk" (running to a spot),
+// "fly" (in the air towards a spot) or "drag" (held by the pointer)
+type Phase = "wait" | "drop" | "run" | "leap" | "stomp" | "hop" | "cheer" | "idle" | "walk" | "fly" | "drag";
+// what he does after the intro is a queue of small steps
+type Step =
+  | { kind: "run"; x: number }
+  | { kind: "jump"; x: number; plat: 0 | 1 } // leap to a spot; plat 0 is the first line, 1 is "accelerate"
+  | { kind: "hop"; power: number; flip: number } // on the spot; flip = whole turns, signed
+  | { kind: "pose"; pose: Pose; dur: number; facing?: number }
+  | { kind: "face"; dir: number }
+  | { kind: "wait"; dur: number }
+  | { kind: "tilt" } // "Designer" pops up crooked
+  | { kind: "loot"; xs: number[] }; // coins appear along the first line
 type Pose = "idle" | "wave" | "present" | "think";
 type Coin = { x: number; y: number; taken: boolean };
 // dust kicked up by his feet and the sparkle of a collected coin, in the same units as x / y
@@ -102,7 +120,7 @@ export default function HeroCharacter() {
     // layout, in CSS px relative to the canvas. y is height above the first line; `base` is that
     // line's position in the canvas, and the perch on "accelerate" sits `perchDrop` below it.
     let CW = 0, H = 0, base = 0, charH = 0, k = 1, dpr = 1;
-    let startX = 0, leapX = 0, restX = 0, runSpeed = 0, leapVy = 0;
+    let startX = 0, leapX = 0, restX = 0, lineEndX = 0, lineH = 48, runSpeed = 0, leapVy = 0;
     let perch = false, perchX = 0, perchDrop = 0, hopVx = 0;
     // actor
     let phase: Phase = "wait";
@@ -112,7 +130,17 @@ export default function HeroCharacter() {
     // the standing pose on screen, which way it faces, when it appeared, and when a change began
     let pose: Pose = "idle", poseFacing = 1, poseAt = -10, swapAt = -1;
     let press = 0; // how far he is pressed down, 0..~0.07 (anticipation, then a springy settle)
-    let jumpQueued = false;
+    // free roaming after the intro
+    let plat: 0 | 1 = 0; // which line he is on
+    let face = 1, stayFacing = 1; // direction of travel, and the way he stands once stopped
+    let plan: Step[] = [], step: Step | null = null, stepAt = 0, busy = false, lastAct = "";
+    let pending: (() => void) | null = null; // a launch waiting for the crouch to finish
+    let targetX = 0, vx = 0, landX = 0, spin = 0, spinRate = 0;
+    let loot: (Coin & { born: number })[] = [];
+    // being held by the pointer
+    let armed: { x: number; y: number } | null = null;
+    let dragVx = 0, dragVy = 0, dragPx = 0, dragPy = 0, dragT = 0;
+    let lastStartle = 0, tricks = 0;
     let energy = 1; // 1 while awake, eases to 0 before he holds still, so nothing stops mid-motion
     let clock = 0, last = 0, lastInput = 0, phaseAt = 0;
     let coins: Coin[] = [];
@@ -123,12 +151,13 @@ export default function HeroCharacter() {
     let landAt = -10, landPow = 0; // a landing is a damped spring, not a linear decay
     // signs of life while he stands: blinks, the odd unprompted gesture, a hello when the pointer comes close
     let blinkAt = 2, act: Pose | null = null, actUntil = 0, nextActAt = 0;
-    let near = false, nearFacing = 1, lastMove = 0;
+    let near = false, nearFacing = 1, lastMove = 0, lastMoveX = 0;
     let taken = 0;
     let tilted = false, counting = false, wrapped = false;
 
     const measure = () => {
       const fontSize = parseFloat(getComputedStyle(h1).fontSize) || 48;
+      lineH = fontSize;
       charH = Math.max(92, Math.min(176, fontSize * 2.7));
       k = charH / 78; // same world scale the runner game uses
       // feet rest on the cap height of a line (Inter: caps start ~0.137em below the line box)
@@ -152,6 +181,8 @@ export default function HeroCharacter() {
       } else {
         restX = clamp(target.left - box.left + target.width / 2, startX, h1.offsetWidth - charH * 0.3);
       }
+      // how far along the first line he can walk
+      lineEndX = wrapped ? restX : Math.max(restX, Math.min(target.right - box.left - charH * 0.22, h1.offsetWidth - charH * 0.3));
 
       // The perch: the far end of "accelerate", when it sits on the line right under the first one
       // and sticks out past it far enough for him to stand clear of "Designer".
@@ -216,9 +247,16 @@ export default function HeroCharacter() {
       ].map((c, i) => ({ ...c, taken: prev[i]?.taken ?? false }));
 
       if (phase === "wait") x = startX;
-      else if (phase === "idle" || phase === "cheer") {
+      else if (phase === "cheer") {
         x = perch ? perchX : restX;
         floor = perch ? -perchDrop : 0;
+        if (grounded) y = floor;
+      } else if (phase === "idle" || phase === "walk") {
+        // keep him where he was, on whatever the new layout still offers
+        if (plat === 1 && !perch) plat = 0;
+        x = plat ? perchX : clamp(x, startX, lineEndX);
+        targetX = clamp(targetX, startX, lineEndX);
+        floor = plat ? -perchDrop : 0;
         if (grounded) y = floor;
       }
     };
@@ -233,6 +271,12 @@ export default function HeroCharacter() {
     const place = (stretch: number, widen = 1) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.translate(x, base - y);
+      if (spin) {
+        // a somersault turns about his middle, not his feet
+        ctx.translate(0, -charH * 0.5);
+        ctx.rotate(spin);
+        ctx.translate(0, charH * 0.5);
+      }
       ctx.rotate(lean * poseFacing);
       ctx.scale(
         poseFacing * (1 + squash * 0.6) * (1 + press * 0.6) * (1 - air * 0.5) * widen,
@@ -336,14 +380,30 @@ export default function HeroCharacter() {
         ctx.drawImage(coinImg, cell * COIN_CELL, 0, COIN_CELL, 109, c.x - size / 2, base - c.y - size / 2 + bob, size, size * (109 / COIN_CELL));
       }
     };
+    const drawLoot = () => {
+      if (!loot.length) return;
+      const size = charH * 0.2;
+      const cell = Math.floor(clock * 10) % 4;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const c of loot) {
+        if (c.taken) continue;
+        const t = Math.min(1, (clock - c.born) * 5);
+        const pop = size * (0.4 + 0.6 * t * (2 - t)); // they pop into existence
+        const bob = Math.sin(clock * 4 + c.x * 0.02) * charH * 0.02;
+        ctx.globalAlpha = t * alpha;
+        ctx.drawImage(coinImg, cell * COIN_CELL, 0, COIN_CELL, 109, c.x - pop / 2, base - c.y - pop / 2 + bob, pop, pop * (109 / COIN_CELL));
+      }
+      ctx.globalAlpha = 1;
+    };
     const movingFrame = (): string | null => {
-      if (!grounded) return vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
+      if (phase === "drag") return "jump_2"; // arms up: he hangs from the pointer
+      if (!grounded) return spinRate ? "jump_2" : vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
       if (landT > 0) return "jump_4";
       // the runner game plays this cycle at 9 frames a second at its starting pace; faster than
       // that and his legs spin quicker than he covers ground
       // ...so the frame follows the ground he has covered, not the clock: no sliding feet while he
       // gets up to speed
-      if (phase === "run") return RUN[Math.floor((runDist * RUN_FPS) / runSpeed) % RUN.length];
+      if (phase === "run" || phase === "walk") return RUN[Math.floor((runDist * RUN_FPS) / runSpeed) % RUN.length];
       return null;
     };
     const wantedPose = (): Pose =>
@@ -355,7 +415,7 @@ export default function HeroCharacter() {
         : act && clock < actUntil ? act
         : "idle";
     const wantedFacing = () =>
-      phase !== "idle" ? 1 : cue === "contact" ? -1 : cue ? 1 : near ? nearFacing : 1;
+      phase !== "idle" ? 1 : cue === "contact" ? -1 : cue ? 1 : near ? nearFacing : stayFacing;
     // Changing pose is a three-beat move, not a cut and not a blend (a blend ghosts):
     //   1. anticipation: he presses down slightly in the old pose (0.1 s)
     //   2. the pose changes at the lowest point, where the eye expects a change
@@ -365,10 +425,11 @@ export default function HeroCharacter() {
       begin();
       drawPuffs();
       drawCoins();
+      drawLoot();
       const moving = movingFrame();
       if (moving) {
         // jumps and landings carry their own squash; the pose under them changes unseen
-        pose = wantedPose(); poseFacing = 1; poseAt = clock; swapAt = -1; press = 0;
+        pose = wantedPose(); poseFacing = face; poseAt = clock; swapAt = -1; press = 0;
         return drawFrame(moving);
       }
       const next = wantedPose(), nextFacing = wantedFacing();
@@ -462,29 +523,155 @@ export default function HeroCharacter() {
       if (next === "run") { runT = 0; runDist = 0; runFrame = -1; }
       if (next === "idle") {
         restore();
-        nextActAt = clock + rand(5, 8);
+        plat = perch ? 1 : 0;
+        nextActAt = clock + rand(3, 5);
       }
     };
+    // "Designer" is knocked level (stomped, or it gives up on its own)
+    const level = () => {
+      if (!tilted) return;
+      tilted = false;
+      word.style.transform = "";
+      word.animate(
+        [{ transform: TILT }, { transform: "translateY(0.07em) rotate(0.8deg)", offset: 0.45 }, { transform: "none" }],
+        { duration: 420, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
+      );
+    };
+    const tiltWord = () => {
+      if (tilted || wrapped) return;
+      tilted = true;
+      word.style.transformOrigin = "0 100%";
+      word.style.transform = TILT;
+      word.animate(
+        [{ transform: "none" }, { transform: "translateY(-0.22em) rotate(-7deg)", offset: 0.55 }, { transform: TILT }],
+        { duration: 380, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
+      );
+    };
+
+    // --- free roaming -----------------------------------------------------------------------------
+    const free = () => phase === "idle" || phase === "walk" || phase === "fly" || phase === "drag";
+    const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
+    // Leave the ground for (tx, line): the arc clears the higher of the two lines, same gravity as
+    // the intro. `flips` whole somersaults are fitted into the airtime.
+    const launch = (tx: number, to: 0 | 1, power = 1, flips = 0) => {
+      const gU = 2600 * k, gD = 3600 * k;
+      const y1 = to ? -perchDrop : 0;
+      const top = Math.max(y, y1) + 45 * k * power;
+      vy = Math.sqrt(2 * gU * (top - y));
+      const T = vy / gU + Math.sqrt((2 * (top - y1)) / gD);
+      vx = (tx - x) / T;
+      if (Math.abs(tx - x) > 1) face = tx > x ? 1 : -1;
+      floor = y1; plat = to; landX = tx;
+      spin = 0; spinRate = (flips * face * Math.PI * 2) / T;
+      grounded = false; phase = "fly";
+      dust(3, -face);
+    };
+    // steps that take him from where he is to a spot on either line
+    const route = (tx: number, to: 0 | 1): Step[] => {
+      if (to === plat) return to ? [] : [{ kind: "run", x: tx }];
+      if (to === 1) return [{ kind: "run", x: restX }, { kind: "jump", x: perchX, plat: 1 }];
+      return [{ kind: "jump", x: restX, plat: 0 }, { kind: "run", x: tx }];
+    };
+    const nextStep = () => {
+      step = plan.shift() ?? null;
+      stepAt = clock;
+      if (!step) return;
+      busy = true;
+      const s = step;
+      if (s.kind === "run") {
+        if (Math.abs(s.x - x) < 2) { step = null; return; }
+        targetX = s.x; runT = 0; runFrame = -1; phase = "walk";
+      } else if (s.kind === "jump") {
+        landT = 0.09; pending = () => launch(s.x, s.plat);
+      } else if (s.kind === "hop") {
+        landT = 0.1; pending = () => launch(x, plat, s.power, s.flip);
+      } else if (s.kind === "pose") {
+        act = s.pose; actUntil = clock + s.dur;
+        if (s.facing) stayFacing = s.facing;
+      } else if (s.kind === "face") stayFacing = s.dir;
+      else if (s.kind === "tilt") tiltWord();
+      else if (s.kind === "loot") loot = s.xs.map((cx) => ({ x: cx, y: charH * 0.55, taken: false, born: clock }));
+    };
+    const stepTime = (s: Step) =>
+      s.kind === "pose" || s.kind === "wait" ? s.dur : s.kind === "face" ? 0.4 : s.kind === "tilt" ? 0.5 : s.kind === "loot" ? 0.3 : Infinity;
+    // replace whatever he was doing (he finishes a jump first)
+    const command = (steps: Step[]) => {
+      plan = steps; busy = true; act = null; pending = null;
+      if (phase === "walk") phase = "idle";
+      if (phase !== "fly") step = null;
+    };
+    const GESTURES: Pose[] = ["wave", "present", "think"];
+    // a somersault needs air: higher for one turn, higher still for two
+    const flipHop = (turns: number): Step => ({ kind: "hop", power: Math.abs(turns) > 1 ? 2 : 1.5, flip: turns });
+    // Unprompted: something from the pool, weighted, never the same thing twice running.
+    const improvise = () => {
+      const here = plat ? restX : x; // where he will be once on the first line
+      const span = lineEndX - startX;
+      const home = perch ? plat === 1 : Math.abs(x - restX) < 4;
+      const options: [string, number][] = [
+        ["gesture", 2.6], ["hop", 1], ["flip", 1.6], ["stroll", 3.2], ["take", 1], ["dance", 1.1],
+        ["coins", span > charH * 2.2 ? 1.7 : 0],
+        ["word", !wrapped && !tilted && (plat === 1 || Math.abs(x - restX) > charH * 0.8) ? 1.3 : 0],
+        ["perch", perch && plat === 0 ? 1.4 : 0],
+        ["home", home ? 0 : 0.8],
+      ];
+      const pool = options.filter(([name, w]) => w > 0 && name !== lastAct);
+      let r = Math.random() * pool.reduce((sum, [, w]) => sum + w, 0);
+      const name = (pool.find(([, w]) => (r -= w) < 0) ?? pool[0])[0];
+      lastAct = name;
+      const f = stayFacing;
+      if (name === "gesture") plan = [{ kind: "pose", pose: pick(GESTURES), dur: rand(1.2, 1.8), facing: pick([-1, 1, 1]) }];
+      else if (name === "hop") plan = [{ kind: "hop", power: rand(0.6, 1), flip: 0 }];
+      else if (name === "flip") plan = [flipHop(pick([1, -1, 1, 2]))];
+      else if (name === "take") plan = [{ kind: "face", dir: -f }, { kind: "wait", dur: rand(0.3, 0.7) }, { kind: "face", dir: f }];
+      else if (name === "dance")
+        plan = [{ kind: "hop", power: 0.5, flip: 0 }, { kind: "face", dir: -f }, { kind: "hop", power: 0.5, flip: 0 }, { kind: "face", dir: f }, flipHop(1)];
+      else if (name === "perch") plan = route(perchX, 1);
+      else if (name === "home") plan = perch ? route(perchX, 1) : route(restX, 0);
+      else if (name === "word")
+        plan = [{ kind: "tilt" }, { kind: "pose", pose: "think", dur: 0.8, facing: plat === 1 || restX < x ? -1 : 1 }, { kind: "jump", x: restX, plat: 0 }, { kind: "pose", pose: "wave", dur: 1 }];
+      else if (name === "coins") {
+        const dest = here - startX > lineEndX - here ? startX : lineEndX;
+        const xs = [0.3, 0.55, 0.8].map((t) => here + (dest - here) * t);
+        plan = [{ kind: "loot", xs }, ...route(dest, 0), { kind: "pose", pose: "wave", dur: 1.2, facing: dest < here ? 1 : -1 }];
+      } else {
+        // a stroll: somewhere else on the first line, sometimes with a gesture on arrival
+        let tx = startX + Math.random() * span;
+        for (let i = 0; i < 6 && Math.abs(tx - here) < charH * 0.9; i++) tx = startX + Math.random() * span;
+        plan = route(tx, 0);
+        if (Math.random() < 0.5) plan.push({ kind: "pose", pose: pick(GESTURES), dur: rand(1, 1.5), facing: pick([-1, 1]) });
+      }
+      busy = true;
+    };
+    // a click on him: a different trick each time, and every third one throws coins
+    const trick = () => {
+      tricks++;
+      const flip = pick([0, 1, -1, 1, 2]);
+      command([flip ? flipHop(flip) : { kind: "hop", power: 1, flip: 0 }]);
+      if (tricks % 3 === 0) sparkle({ x, y: y + charH * 0.6, taken: true });
+    };
+
     const land = () => {
       // harder landings squash more and raise more dust
       const impact = clamp(-vy / (leapVy * 1.25), 0.5, 1.2);
       y = floor; vy = 0; grounded = true; landT = 0.14;
       landAt = clock; landPow = 0.15 * impact;
       dust(6, 0, impact);
-      if (phase === "drop") {
+      if (phase === "fly") {
+        const moved = Math.abs(vx) > 1;
+        x = landX; vx = 0; spin = 0; spinRate = 0;
+        phase = "idle"; step = null;
+        if (moved) stayFacing = Math.random() < 0.65 ? 1 : face;
+        if (tilted && plat === 0 && Math.abs(x - restX) < charH * 0.5) level();
+        else dip(plat ? perchWord ?? line : !wrapped && Math.abs(x - restX) < charH * 0.6 ? word : line, 4);
+      } else if (phase === "drop") {
         dip(line);
         setPhase("run");
       } else if (phase === "leap") {
         // stomp "Designer" level
         x = restX;
-        if (tilted) {
-          tilted = false;
-          word.style.transform = "";
-          word.animate(
-            [{ transform: TILT }, { transform: "translateY(0.07em) rotate(0.8deg)", offset: 0.45 }, { transform: "none" }],
-            { duration: 420, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
-          );
-        } else dip(wrapped ? line : word, 4);
+        if (tilted) level();
+        else dip(wrapped ? line : word, 4);
         setPhase(perch ? "stomp" : "cheer");
         if (perch) landT = 0.26; // stay crouched, then spring straight into the hop
       } else if (phase === "hop") {
@@ -502,15 +689,57 @@ export default function HeroCharacter() {
       clock += dt;
       alpha = Math.min(1, alpha + dt * 5);
 
-      if (!grounded) {
+      if (phase === "drag") {
+        // held: the pointer moves him (see onMove); he just swings
+        dragVx *= 1 - Math.min(1, dt * 5);
+        dragVy *= 1 - Math.min(1, dt * 5);
+      } else if (!grounded) {
         vy -= (vy > 0 ? 2600 : 3600) * k * dt;
         y += vy * dt;
         if (phase === "leap") x += runSpeed * dt;
         if (phase === "hop") x += hopVx * dt;
+        if (phase === "fly") { x += vx * dt; spin += spinRate * dt; }
         if (y <= floor && vy < 0) land();
       } else {
         landT = Math.max(0, landT - dt);
-        if (phase === "run" && landT === 0) {
+        if (pending && landT === 0) {
+          const go = pending;
+          pending = null;
+          go();
+        } else if (phase === "walk" && landT === 0) {
+          // to a spot on his line: push off, then ease in to a stop
+          const d = targetX - x;
+          face = d < 0 ? -1 : 1;
+          runT += dt;
+          const e = Math.min(1, runT / 0.22);
+          const speed = Math.min(runSpeed * 0.85 * (0.3 + 0.7 * e * (2 - e)), Math.abs(d) * 7 + charH * 0.3);
+          const move = Math.min(Math.abs(d), speed * dt);
+          x += face * move;
+          runDist += move;
+          const f = Math.floor((runDist * RUN_FPS) / runSpeed) % RUN.length;
+          if (f !== runFrame) {
+            if (runFrame < 0) dust(3, -face);
+            else if (f % 4 === 1) dust(1, -face, 0.6);
+            runFrame = f;
+          }
+          if (Math.abs(targetX - x) < 0.5) {
+            x = targetX;
+            dust(2, face, 0.5); // the skid
+            phase = "idle"; step = null;
+            stayFacing = Math.random() < 0.6 ? 1 : face;
+          }
+        } else if (phase === "idle") {
+          if (step) {
+            if (clock - stepAt >= stepTime(step)) step = null;
+          } else if (plan.length) nextStep();
+          else if (busy) {
+            // done: tidy up, then leave a gap before the next idea
+            busy = false;
+            loot = [];
+            if (tilted) level();
+            nextActAt = clock + rand(2.5, 6.5);
+          } else if (!cue && !near && !act && clock > nextActAt && now - lastInput < AWAKE_MS) improvise();
+        } else if (phase === "run" && landT === 0) {
           // push off: a quarter of a second to reach full pace
           runT += dt;
           const e = Math.min(1, runT / 0.26);
@@ -529,18 +758,15 @@ export default function HeroCharacter() {
           phase = "hop"; grounded = false; vy = leapVy; floor = -perchDrop; dust(3, -1);
         } else if (phase === "cheer" && clock - phaseAt > 1.7) {
           setPhase("idle");
-        } else if (jumpQueued && landT === 0) {
-          // the click-jump: a short crouch first, then the spring
-          jumpQueued = false; grounded = false; vy = leapVy * 0.9; dust(4);
-        } else if (phase === "idle" && !cue && !near && !act && clock > nextActAt && now - lastInput < AWAKE_MS) {
-          // nobody asked: now and then he does something on his own, as long as the visitor is around
-          const r = Math.random();
-          if (r < 0.4) { act = "wave"; actUntil = clock + 1.6; }
-          else if (r < 0.72) { act = "present"; actUntil = clock + 1.5; }
-          else { jumpQueued = true; landT = 0.1; }
-          nextActAt = clock + rand(8, 14);
         }
-        if (act && (clock >= actUntil || cue || near)) act = null;
+        if (act && clock >= actUntil) act = null;
+      }
+      // coins he put there himself: picked up on the way past, and a stat gives a little jump
+      for (const c of loot) {
+        if (c.taken || Math.abs(x - c.x) > charH * 0.14 || y > charH * 0.5 || plat !== 0) continue;
+        c.taken = true;
+        sparkle(c);
+        if (stats.length) pop(pick(stats));
       }
       if (phase === "run" || phase === "leap") {
         for (const c of coins) if (!c.taken && x >= c.x - charH * 0.12) collect(c);
@@ -549,8 +775,12 @@ export default function HeroCharacter() {
       const sinceLand = clock - landAt;
       squash = sinceLand < 0.7 ? landPow * Math.exp(-sinceLand * 8) * Math.cos(sinceLand * 17) : 0;
       // he leans into a run, tips forward going up and back coming down, and stretches with speed
-      const running = phase === "run" && grounded && landT === 0;
-      const wantLean = running ? 0.055 : !grounded ? clamp(vy / leapVy, -1, 1) * -0.05 + (phase === "leap" || phase === "hop" ? 0.03 : 0) : 0;
+      const running = (phase === "run" || phase === "walk") && grounded && landT === 0;
+      const wantLean = phase === "drag"
+        ? clamp(dragVx * -0.0007, -0.5, 0.5) * face // he trails behind the hand that carries him
+        : running ? 0.055
+        : !grounded ? clamp(vy / leapVy, -1, 1) * -0.05 + (phase === "leap" || phase === "hop" || vx ? 0.03 : 0)
+        : 0;
       lean += (wantLean - lean) * Math.min(1, dt * 12);
       air += ((grounded ? 0 : clamp(Math.abs(vy) / leapVy, 0, 1) * 0.06) - air) * Math.min(1, dt * 14);
 
@@ -565,7 +795,7 @@ export default function HeroCharacter() {
       if (clock >= blinkAt + BLINK) blinkAt = clock + (Math.random() < 0.18 ? 0.16 : rand(2.2, 5.5));
 
       // ease the breathing and the wave in and out, then hold still
-      const awake = phase !== "idle" || !grounded || landT > 0 || puffs.length > 0 || act !== null || now - lastInput < AWAKE_MS;
+      const awake = phase !== "idle" || !grounded || landT > 0 || puffs.length > 0 || act !== null || busy || now - lastInput < AWAKE_MS;
       energy += ((awake ? 1 : 0) - energy) * Math.min(1, dt * 4);
       if (!awake && energy < 0.01) energy = 0;
 
@@ -600,31 +830,112 @@ export default function HeroCharacter() {
       const next = cueOf(e.target);
       if (next !== cue) { cue = next; wake(); }
     };
-    // Any pointer movement while the hero is on screen keeps him awake, and coming right up to him
-    // gets a hello (he turns to the side the pointer arrived from, once, and does not follow it).
-    const onMove = (e: PointerEvent) => {
-      if (!hovers.matches || e.timeStamp - lastMove < 120) return;
-      lastMove = e.timeStamp;
-      if (!visible()) return;
+    // pointer position in his world: x along the headline, height above the first line
+    const world = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
-      const px = e.clientX - r.left, py = r.top + base - floor - e.clientY;
-      const close = phase === "idle" && Math.abs(px - x) < charH * 0.5 && py > -charH * 0.1 && py < charH * 1.1;
-      if (close && !near) nearFacing = px < x - charH * 0.12 ? -1 : 1;
-      near = close;
-      wake();
+      return { px: e.clientX - r.left, py: r.top + base - e.clientY };
     };
-    const onDown = (e: PointerEvent) => {
-      if (phase !== "idle" || !visible()) return;
-      const r = canvas.getBoundingClientRect();
-      const px = e.clientX - r.left, py = r.top + base - floor - e.clientY; // height above his feet
-      if (Math.abs(px - x) < charH * 0.3 && py > 0 && py < charH && grounded) {
-        jumpQueued = true; landT = 0.1; // wind up in the crouch, then tick() launches him
+    const onHim = (px: number, py: number, pad = 0) =>
+      Math.abs(px - x) < charH * (0.3 + pad) && py - y > -charH * pad && py - y < charH * (1 + pad);
+    const grabCursor = (v: string) => { section.style.cursor = v; };
+
+    // Pointer movement keeps him awake. Coming right up to him gets a hello (he turns to the side
+    // the pointer arrived from, once, and does not follow it); swiping past him fast makes him jump;
+    // with the button held on him, it carries him.
+    const onMove = (e: PointerEvent) => {
+      if (reduced) return;
+      const { px, py } = world(e);
+      if (armed && e.pointerType === "mouse" && phase !== "drag" && free() && Math.hypot(e.clientX - armed.x, e.clientY - armed.y) > 5) {
+        // picked up
+        plan = []; step = null; pending = null; act = null; busy = true;
+        phase = "drag"; grounded = false; vy = 0; vx = 0; spin = 0; spinRate = 0; landT = 0;
+        dragPx = px; dragPy = py; dragT = e.timeStamp; dragVx = dragVy = 0;
+        grabCursor("grabbing");
+        wake();
+      }
+      if (phase === "drag") {
+        const dt = Math.max(1, e.timeStamp - dragT) / 1000;
+        dragVx += ((px - dragPx) / dt - dragVx) * 0.4;
+        dragVy += ((py - dragPy) / dt - dragVy) * 0.4;
+        dragPx = px; dragPy = py; dragT = e.timeStamp;
+        if (Math.abs(dragVx) > 40) face = dragVx > 0 ? 1 : -1;
+        x = clamp(px, charH * 0.3, CW - charH * 0.3);
+        const lowest = perch && x > lineEndX + charH * 0.2 ? -perchDrop : 0;
+        y = clamp(py - charH * 0.72, lowest, base - charH * 1.02); // held by the collar
+        lastInput = performance.now();
+        return;
+      }
+      if (!hovers.matches || e.timeStamp - lastMove < 120) return;
+      const speed = Math.abs(e.clientX - lastMoveX) / Math.max(1, e.timeStamp - lastMove); // px per ms
+      lastMove = e.timeStamp; lastMoveX = e.clientX;
+      if (!visible()) return;
+      const close = phase === "idle" && grounded && onHim(px, py, 0.18);
+      if (close && !near) nearFacing = px < x - charH * 0.12 ? -1 : 1;
+      if (close !== near) grabCursor(close ? "grab" : "");
+      near = close;
+      if (close && !busy && speed > 1.4 && e.timeStamp - lastStartle > 2500) {
+        lastStartle = e.timeStamp;
+        command([{ kind: "hop", power: 0.8, flip: 0 }]);
       }
       wake();
     };
+    const onDown = (e: PointerEvent) => {
+      if (reduced || !free() || !visible() || e.button > 0) return;
+      const { px, py } = world(e);
+      if (phase !== "drag" && onHim(px, py, 0.05)) {
+        armed = { x: e.clientX, y: e.clientY };
+      } else if (hovers.matches && phase !== "drag") {
+        // a click on the headline sends him there
+        const box = h1.getBoundingClientRect();
+        const row = Math.floor((e.clientY - box.top) / lineH);
+        const inside = e.clientX > box.left && e.clientX < box.left + CW;
+        if (inside && row === 0 && px < lineEndX + charH * 0.4) command(route(clamp(px, startX, lineEndX), 0));
+        else if (inside && perch && row === 1 && px > lineEndX) command(route(perchX, 1));
+      }
+      wake();
+    };
+    const onUp = () => {
+      if (phase === "drag") {
+        // let go, or thrown: he falls to the nearest line he can stand on, tumbling if thrown hard
+        const gU = 2600 * k, gD = 3600 * k;
+        const reach = x + clamp(dragVx, -1400, 1400) * 0.18;
+        const to: 0 | 1 = perch && reach > lineEndX + charH * 0.35 ? 1 : 0;
+        const tx = to ? perchX : clamp(reach, startX, lineEndX);
+        const y1 = to ? -perchDrop : 0;
+        y = Math.max(y, y1 + 1);
+        vy = clamp(dragVy, -leapVy, leapVy * 0.9);
+        const T = Math.max(
+          0.14,
+          vy > 0
+            ? vy / gU + Math.sqrt((2 * (y + (vy * vy) / (2 * gU) - y1)) / gD)
+            : (vy + Math.sqrt(vy * vy + 2 * gD * (y - y1))) / gD
+        );
+        vx = (tx - x) / T;
+        if (Math.abs(vx) > 1) face = vx > 0 ? 1 : -1;
+        floor = y1; plat = to; landX = tx;
+        spin = 0; spinRate = Math.abs(dragVx) > 500 && T > 0.35 ? (face * Math.PI * 2) / T : 0;
+        phase = "fly";
+        near = false;
+        grabCursor("");
+      } else if (armed && free() && grounded) trick();
+      armed = null;
+      wake();
+    };
+    const onCancel = () => { armed = null; if (phase === "drag") onUp(); };
+    // holding the button on him must not start selecting the headline under the pointer
+    const onSelect = (e: Event) => { if (armed || phase === "drag") e.preventDefault(); };
     const onFocusIn = (e: FocusEvent) => { if (cueOf(e.target) === "chat") { cue = "chat"; wake(); } };
     const onFocusOut = (e: FocusEvent) => { if (cueOf(e.target) === "chat") { cue = null; wake(); } };
-    const onScroll = () => { if (visible()) wake(); };
+    const onScroll = () => {
+      if (!visible()) return;
+      // now and then a scroll makes him jump
+      const now = performance.now();
+      if (phase === "idle" && grounded && !busy && !reduced && now - lastStartle > 5000 && Math.random() < 0.4) {
+        lastStartle = now;
+        command([{ kind: "hop", power: 0.7, flip: 0 }]);
+      }
+      wake();
+    };
 
     const ro = new ResizeObserver(() => {
       if (!ready) return;
@@ -668,6 +979,9 @@ export default function HeroCharacter() {
         document.addEventListener("pointerover", onOver, { passive: true });
         window.addEventListener("pointermove", onMove, { passive: true });
         window.addEventListener("pointerdown", onDown, { passive: true });
+        window.addEventListener("pointerup", onUp, { passive: true });
+        window.addEventListener("pointercancel", onCancel, { passive: true });
+        document.addEventListener("selectstart", onSelect);
         window.addEventListener("scroll", onScroll, { passive: true });
         document.addEventListener("focusin", onFocusIn);
         document.addEventListener("focusout", onFocusOut);
@@ -684,6 +998,10 @@ export default function HeroCharacter() {
       document.removeEventListener("pointerover", onOver);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      document.removeEventListener("selectstart", onSelect);
+      section.style.cursor = "";
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
