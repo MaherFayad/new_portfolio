@@ -120,6 +120,9 @@ export default function HeroCharacter() {
     // layout, in CSS px relative to the canvas. y is height above the first line; `base` is that
     // line's position in the canvas, and the perch on "accelerate" sits `perchDrop` below it.
     let CW = 0, H = 0, base = 0, charH = 0, k = 1, dpr = 1;
+    // The canvas reaches past the headline to the page edges and up to the top of the page, so he
+    // is never clipped while carried or thrown. x = 0 is still the headline's left edge.
+    let padL = 0, padR = 0;
     let startX = 0, leapX = 0, restX = 0, lineEndX = 0, lineH = 48, runSpeed = 0, leapVy = 0;
     let perch = false, perchX = 0, perchDrop = 0, hopVx = 0;
     // actor
@@ -202,15 +205,20 @@ export default function HeroCharacter() {
       if (tilted) word.style.transform = TILT;
 
       const extra = perch ? perchDrop : 0;
-      H = Math.round(charH * 2.3 + extra);
-      base = H - extra;
+      // room above the first line: all the way to the top of the page
+      // (measured from the section, which is never transformed; the headline is while it fades in)
+      const lineTop = section.getBoundingClientRect().top + window.scrollY + h1.offsetTop + ground;
+      base = Math.round(Math.max(charH * 2.3, lineTop));
+      H = base + extra;
       CW = Math.ceil(Math.max(h1.offsetWidth, perch ? perchX + charH * 0.5 : 0));
-      canvas.style.left = `${h1.offsetLeft}px`;
+      padL = Math.max(0, Math.floor(box.left + window.scrollX));
+      padR = Math.max(0, Math.floor(document.documentElement.clientWidth - (box.left + window.scrollX + CW)));
+      canvas.style.left = `${h1.offsetLeft - padL}px`;
       canvas.style.top = `${h1.offsetTop - base + ground}px`;
-      canvas.style.width = `${CW}px`;
+      canvas.style.width = `${padL + CW + padR}px`;
       canvas.style.height = `${H}px`;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(CW * dpr);
+      canvas.width = Math.round((padL + CW + padR) * dpr);
       canvas.height = Math.round(H * dpr);
       const wantR = (charH / STAND_H) * dpr * 1.04;
       if (Math.abs(wantR - R) > 0.01) {
@@ -263,13 +271,13 @@ export default function HeroCharacter() {
 
     // --- drawing -----------------------------------------------------------------------------
     const begin = () => {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, CW, H);
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
+      ctx.clearRect(-padL, 0, padL + CW + padR, H);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
     };
     const place = (stretch: number, widen = 1) => {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
       ctx.translate(x, base - y);
       if (spin) {
         // a somersault turns about his middle, not his feet
@@ -349,7 +357,7 @@ export default function HeroCharacter() {
       }
     };
     const drawPuffs = () => {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
       for (const p of puffs) {
         const f = p.age / p.life;
         if (p.gold) {
@@ -372,7 +380,7 @@ export default function HeroCharacter() {
       if (phase === "idle" || phase === "wait" || taken >= coins.length) return;
       const size = charH * 0.2;
       const cell = Math.floor(clock * 10) % 4;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
       ctx.globalAlpha = Math.min(1, (clock - 0.1) * 4);
       for (const c of coins) {
         if (c.taken) continue;
@@ -384,7 +392,7 @@ export default function HeroCharacter() {
       if (!loot.length) return;
       const size = charH * 0.2;
       const cell = Math.floor(clock * 10) % 4;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
       for (const c of loot) {
         if (c.taken) continue;
         const t = Math.min(1, (clock - c.born) * 5);
@@ -473,7 +481,7 @@ export default function HeroCharacter() {
       const c = canvas.getBoundingClientRect();
       const s = section.getBoundingClientRect();
       const t = stat.getBoundingClientRect();
-      const x0 = c.left - s.left + from.x - size / 2, y0 = c.top - s.top + base - from.y - size / 2;
+      const x0 = c.left - s.left + padL + from.x - size / 2, y0 = c.top - s.top + base - from.y - size / 2;
       const x1 = t.left - s.left + t.width / 2 - size / 2, y1 = t.top - s.top + t.height / 2 - size / 2;
       const el = document.createElement("span");
       el.setAttribute("aria-hidden", "true");
@@ -833,7 +841,7 @@ export default function HeroCharacter() {
     // pointer position in his world: x along the headline, height above the first line
     const world = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
-      return { px: e.clientX - r.left, py: r.top + base - e.clientY };
+      return { px: e.clientX - r.left - padL, py: r.top + base - e.clientY };
     };
     const onHim = (px: number, py: number, pad = 0) =>
       Math.abs(px - x) < charH * (0.3 + pad) && py - y > -charH * pad && py - y < charH * (1 + pad);
@@ -859,7 +867,7 @@ export default function HeroCharacter() {
         dragVy += ((py - dragPy) / dt - dragVy) * 0.4;
         dragPx = px; dragPy = py; dragT = e.timeStamp;
         if (Math.abs(dragVx) > 40) face = dragVx > 0 ? 1 : -1;
-        x = clamp(px, charH * 0.3, CW - charH * 0.3);
+        x = clamp(px, charH * 0.35 - padL, CW + padR - charH * 0.35);
         const lowest = perch && x > lineEndX + charH * 0.2 ? -perchDrop : 0;
         y = clamp(py - charH * 0.72, lowest, base - charH * 1.02); // held by the collar
         lastInput = performance.now();
@@ -972,7 +980,7 @@ export default function HeroCharacter() {
         timer = window.setTimeout(() => {
           if (disposed) return;
           phase = "drop";
-          x = startX; y = base - charH; vy = 0; floor = 0; grounded = false; alpha = 0;
+          x = startX; y = charH * 1.3; vy = 0; floor = 0; grounded = false; alpha = 0;
           last = lastInput = performance.now();
           schedule();
         }, 800);
@@ -1008,7 +1016,7 @@ export default function HeroCharacter() {
     };
   }, [revealed]);
 
-  return <canvas ref={canvasRef} aria-hidden="true" className="absolute left-0 top-0 pointer-events-none select-none" />;
+  return <canvas ref={canvasRef} aria-hidden="true" className="absolute left-0 top-0 z-20 pointer-events-none select-none" />;
 }
 
 function clamp(v: number, lo: number, hi: number) {
