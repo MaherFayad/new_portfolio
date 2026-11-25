@@ -30,7 +30,9 @@ GAP = 4         # sheet px between frames
 
 # (the sheet's "look" frames are drawn off-model, so the hero does not use them)
 USED = (["idle_0", "wave_2", "waiting_2", "thinking_1"]
-        + [f"runA_{i}" for i in range(8)] + [f"jump_{i}" for i in range(1, 5)])
+        + [f"runA_{i}" for i in range(8)] + [f"jump_{i}" for i in range(1, 5)]
+        # the hard landing (crouch, then down on his knees and back up) and the limp carry
+        + ["jump_0", "failed_1", "failed_2", "failed_3", "duck_0"])
 # where his legs are in the standing frames (sheet px), so every pose stands on the same spot;
 # the sheet's own anchors are bounding-box centres and drift when an arm goes out
 LEGS_X = {"idle_0": 40, "wave_2": 47, "waiting_2": 45.6, "thinking_1": 41.5}
@@ -216,12 +218,13 @@ rgb = cv2.cvtColor(centers.reshape(-1, 1, 3).astype(np.uint8), cv2.COLOR_LAB2RGB
 head_w = {n: head_of(c[..., 3] / 255)[1] for n, (c, _) in cells.items()}
 REF = head_w["idle_0"]
 RUN_HEAD = 0.86    # row-width measure says 0.82 (70px vs 85px); 0.86 matches the face, which is what the eye compares
+FAILED_HEAD = 0.9  # the slumped frames are drawn with a bigger head too
 JUMP_SCALE = 1.08  # measured by eye against the standing head: raised fists defeat head_of() here
 
 paths, layout, ox = [], {}, 0
 for name, (pixels, anchor) in cells.items():
     h, w = pixels.shape[:2]
-    head_k = RUN_HEAD if name.startswith("runA") else 1.0
+    head_k = RUN_HEAD if name.startswith("runA") else FAILED_HEAD if name.startswith("failed") else 1.0
     scale = JUMP_SCALE if name in ("jump_1", "jump_2", "jump_3") else 1.0
     print(f"{name}: head {head_w[name]}px, head x{head_k:.2f}, frame x{scale:.2f}")
     paths += trace(pixels, centers, rgb, ox, head_k, scale)

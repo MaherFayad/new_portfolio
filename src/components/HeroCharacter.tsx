@@ -17,7 +17,12 @@ import { FRAMES, SHEET_H, SHEET_W, WRIST } from "@/components/hero/frames";
 //   - hover Contact / the stats / Ask Maher: he waves, presents, thinks
 //   - bring the pointer up to him: hello; swipe past him fast: he jumps
 //   - click him: a trick, a different one each time
-//   - drag him: he dangles from the pointer, and where he is let go (or thrown) he falls and lands
+//   - drag him, at any time, even mid-intro: he is picked up by the scruff of the neck (the cursor
+//     pinches his collar), kicks, then hangs limp and swings. Let go or thrown, he falls: a
+//     superhero landing, then his knees remind him; or now and then he lands in the gap between two
+//     words and has to wriggle out. Dropped during the intro, he goes back for the coins.
+//   - pass the pointer over his face: he ducks. Under his feet: he jumps. Come at him: sometimes he
+//     says hello, sometimes he legs it.
 //   - click the headline: he runs (or hops) to that spot
 // He never chases the cursor.
 //
@@ -51,7 +56,8 @@ type Step =
   | { kind: "face"; dir: number }
   | { kind: "wait"; dur: number }
   | { kind: "tilt" } // "Designer" pops up crooked
-  | { kind: "loot"; xs: number[] }; // coins appear along the first line
+  | { kind: "loot"; xs: number[] } // coins appear along the first line
+  | { kind: "resume" }; // pick the intro's run back up
 type Pose = "idle" | "wave" | "present" | "think";
 type Coin = { x: number; y: number; taken: boolean };
 // dust kicked up by his feet and the sparkle of a collected coin, in the same units as x / y
@@ -78,6 +84,18 @@ const EYES: Record<Pose, [number, number, number, number, number][]> = {
 };
 const SKIN = "#efc894", LASH = "#54514e"; // from the sheet's palette
 const BLINK = 0.13; // seconds an eye stays shut
+
+// The pointer over him is a hand ready to pinch; holding him, it pinches. The hotspot is the pinch
+// point, which is exactly where his collar is drawn.
+const hand = (closed: boolean) => {
+  // index finger and thumb coming down from a palm at the top right, meeting (or not) at the tip
+  const paths = `<path d='M20 8L${closed ? "8 22" : "5 17"}'/><path d='M27 15L${closed ? "10 25" : "14 28"}'/><path d='M21 7q5 -3 7 2t-1 7'/>`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><g fill='none' stroke-linecap='round' stroke-linejoin='round'><g stroke='%23111' stroke-width='8'>${paths}</g><g stroke='%23fff' stroke-width='4.6'>${paths}</g></g></svg>`;
+  return `url("data:image/svg+xml,${svg}") ${closed ? "8 25" : "9 23"}, ${closed ? "grabbing" : "grab"}`;
+};
+const HAND_OPEN = hand(false), HAND_PINCH = hand(true);
+// the back of his collar in a frame: [x, height above his feet], sheet units
+const gripOf = (name: string): [number, number] => (name === "failed_1" ? [16, 116] : [FRAMES[name][4] - 20, 118]);
 
 export default function HeroCharacter() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -140,10 +158,19 @@ export default function HeroCharacter() {
     let pending: (() => void) | null = null; // a launch waiting for the crouch to finish
     let targetX = 0, vx = 0, landX = 0, spin = 0, spinRate = 0;
     let loot: (Coin & { born: number })[] = [];
-    // being held by the pointer
+    // being held by the pointer: he hangs from the grip point by his collar and swings
     let armed: { x: number; y: number } | null = null;
-    let dragVx = 0, dragVy = 0, dragPx = 0, dragPy = 0, dragT = 0;
+    let gripX = 0, gripY = 0, prevGX = 0, prevGY = 0, gvx = 0, gvy = 0, prevGvx = 0;
+    let theta = 0, omega = 0, flailUntil = 0;
     let lastStartle = 0, tricks = 0;
+    // what happens after a fall, and other short bits of slapstick that take over his body
+    let introDone = false;
+    let gag: "hero" | "stuck" | "duck" | null = null, gagAt = 0;
+    let dropped = false, peakY = 0, stickAt: number | null = null, popping = false, flipping = false;
+    let gaps: number[] = []; // the spaces between the words of the first line
+    let rings: { x: number; y: number; age: number }[] = [];
+    // the pointer around him
+    let overFace = false, wasUnder = false, wasApproach = false, lastDuck = 0, lastUnder = 0, lastFlee = 0, hurry = false;
     let energy = 1; // 1 while awake, eases to 0 before he holds still, so nothing stops mid-motion
     let clock = 0, last = 0, lastInput = 0, phaseAt = 0;
     let coins: Coin[] = [];
@@ -186,6 +213,21 @@ export default function HeroCharacter() {
       }
       // how far along the first line he can walk
       lineEndX = wrapped ? restX : Math.max(restX, Math.min(target.right - box.left - charH * 0.22, h1.offsetWidth - charH * 0.3));
+
+      gaps = [];
+      const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const t = n.textContent ?? "";
+        for (let i = 0; i < t.length; i++) {
+          if (t[i] !== " ") continue;
+          const r = document.createRange();
+          r.setStart(n, i);
+          r.setEnd(n, i + 1);
+          const b = r.getBoundingClientRect();
+          const gx = b.left + b.width / 2 - box.left;
+          if (b.width > 0 && b.top < text.top + fontSize * 0.5 && gx > startX && gx < lineEndX) gaps.push(gx);
+        }
+      }
 
       // The perch: the far end of "accelerate", when it sits on the line right under the first one
       // and sticks out past it far enough for him to stand clear of "Designer".
@@ -297,9 +339,53 @@ export default function HeroCharacter() {
     };
     // a moving frame (run, jump, land) straight from the sheet
     const drawFrame = (name: string) => {
+      // wedged between two words: everything below the top of the letters is out of sight
+      const wedged = gag === "stuck" || (popping && y < 0);
+      if (wedged) {
+        ctx.save();
+        ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
+        ctx.beginPath();
+        ctx.rect(-padL, 0, padL + CW + padR, base + 1);
+        ctx.clip();
+      }
       place(1);
+      const sore = gag === "hero" && clock - gagAt > 0.64 && clock - gagAt < 1.8;
+      if (sore) ctx.translate(Math.sin(clock * 60) * charH * 0.006, 0); // he trembles
       ctx.globalAlpha = alpha;
       blit(name, charH / STAND_H);
+      if (wedged) ctx.restore();
+      if (sore) {
+        // pain, the comic-strip way: a few red dashes pulsing off his knee
+        ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
+        const cx = x + face * charH * 0.2, cy = base - y - charH * 0.2;
+        ctx.strokeStyle = "#ff5a4f";
+        ctx.lineWidth = charH * 0.016;
+        ctx.lineCap = "round";
+        ctx.globalAlpha = 0.55 + 0.45 * Math.sin(clock * 18);
+        for (const a of [-0.85, -0.25, 0.35]) {
+          const ux = Math.cos(a) * face, uy = Math.sin(a);
+          ctx.beginPath();
+          ctx.moveTo(cx + ux * charH * 0.07, cy + uy * charH * 0.07);
+          ctx.lineTo(cx + ux * charH * 0.14, cy + uy * charH * 0.14);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+    };
+    // Carried: he hangs from the pointer by the back of his collar and swings from that point.
+    // Freshly grabbed or shaken he kicks; left hanging he goes limp.
+    const carryFrame = () => (clock < flailUntil ? RUN[Math.floor(clock * 15) % RUN.length] : "failed_1");
+    const drawCarried = () => {
+      const name = carryFrame();
+      const [sx, sy, w, h] = FRAMES[name];
+      const [gx, gh] = gripOf(name);
+      const s = charH / STAND_H;
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
+      ctx.translate(gripX, base - gripY);
+      ctx.rotate(-theta);
+      ctx.scale(face, 1);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(bitmap, sx * R, sy * R, w * R, h * R, -gx * s, -gh * s, w * s, h * s);
     };
     // a standing pose: one still frame, breathing, drawn at one height so the head never bobs
     const drawPose = (which: Pose) => {
@@ -374,10 +460,21 @@ export default function HeroCharacter() {
           ctx.fill();
         }
       }
+      // the shock of a hard landing spreads along the line
+      for (const r of rings) {
+        const f = r.age / 0.42;
+        const rx = charH * (0.2 + 0.9 * f * (2 - f));
+        ctx.globalAlpha = (1 - f) * 0.5 * alpha;
+        ctx.strokeStyle = "#c5c5c5";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(r.x, base - r.y, rx, rx * 0.16, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.globalAlpha = 1;
     };
     const drawCoins = () => {
-      if (phase === "idle" || phase === "wait" || taken >= coins.length) return;
+      if (introDone || phase === "wait" || taken >= coins.length) return;
       const size = charH * 0.2;
       const cell = Math.floor(clock * 10) % 4;
       ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
@@ -404,8 +501,14 @@ export default function HeroCharacter() {
       ctx.globalAlpha = 1;
     };
     const movingFrame = (): string | null => {
-      if (phase === "drag") return "jump_2"; // arms up: he hangs from the pointer
-      if (!grounded) return spinRate ? "jump_2" : vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
+      if (gag === "hero") {
+        // fists down in a crouch, then onto his knees, a long second there, and back up
+        const t = clock - gagAt;
+        return t < 0.5 ? "jump_0" : t < 0.64 ? "failed_2" : t < 1.8 ? "failed_3" : t < 1.94 ? "failed_2" : "failed_1";
+      }
+      if (gag === "duck") return "duck_0";
+      if (gag === "stuck") return Math.floor(clock * 7) % 2 ? "jump_1" : "jump_2"; // arms flailing
+      if (!grounded) return flipping ? "jump_2" : vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
       if (landT > 0) return "jump_4";
       // the runner game plays this cycle at 9 frames a second at its starting pace; faster than
       // that and his legs spin quicker than he covers ground
@@ -434,6 +537,10 @@ export default function HeroCharacter() {
       drawPuffs();
       drawCoins();
       drawLoot();
+      if (phase === "drag") {
+        pose = "idle"; poseFacing = face; poseAt = clock; swapAt = -1; press = 0;
+        return drawCarried();
+      }
       const moving = movingFrame();
       if (moving) {
         // jumps and landings carry their own squash; the pose under them changes unseen
@@ -531,7 +638,8 @@ export default function HeroCharacter() {
       if (next === "run") { runT = 0; runDist = 0; runFrame = -1; }
       if (next === "idle") {
         restore();
-        plat = perch ? 1 : 0;
+        introDone = true;
+        busy = false; plan = []; step = null;
         nextActAt = clock + rand(3, 5);
       }
     };
@@ -571,6 +679,7 @@ export default function HeroCharacter() {
       if (Math.abs(tx - x) > 1) face = tx > x ? 1 : -1;
       floor = y1; plat = to; landX = tx;
       spin = 0; spinRate = (flips * face * Math.PI * 2) / T;
+      flipping = flips !== 0;
       grounded = false; phase = "fly";
       dust(3, -face);
     };
@@ -597,13 +706,18 @@ export default function HeroCharacter() {
         act = s.pose; actUntil = clock + s.dur;
         if (s.facing) stayFacing = s.facing;
       } else if (s.kind === "face") stayFacing = s.dir;
-      else if (s.kind === "tilt") tiltWord();
+      else if (s.kind === "resume") {
+        step = null; plan = []; face = 1; stayFacing = 1;
+        setPhase("run");
+      } else if (s.kind === "tilt") tiltWord();
       else if (s.kind === "loot") loot = s.xs.map((cx) => ({ x: cx, y: charH * 0.55, taken: false, born: clock }));
     };
     const stepTime = (s: Step) =>
       s.kind === "pose" || s.kind === "wait" ? s.dur : s.kind === "face" ? 0.4 : s.kind === "tilt" ? 0.5 : s.kind === "loot" ? 0.3 : Infinity;
     // replace whatever he was doing (he finishes a jump first)
     const command = (steps: Step[]) => {
+      if (!introDone || gag === "hero" || gag === "stuck") return;
+      gag = null;
       plan = steps; busy = true; act = null; pending = null;
       if (phase === "walk") phase = "idle";
       if (phase !== "fly") step = null;
@@ -659,6 +773,42 @@ export default function HeroCharacter() {
       if (tricks % 3 === 0) sparkle({ x, y: y + charH * 0.6, taken: true });
     };
 
+    // A fall from the visitor's hand ends one of two ways.
+    const heroLanding = () => {
+      gag = "hero"; gagAt = clock; landT = 0;
+      landPow = 0.22;
+      dust(8, 0, 1.3);
+      rings.push({ x, y: y + charH * 0.02, age: 0 });
+      dip(plat ? perchWord ?? line : line, 8);
+    };
+    const getStuck = () => {
+      gag = "stuck"; gagAt = clock; landT = 0;
+      line.animate(
+        [0, -2, 2, -1.5, 1.5, -2, 1, -1, 0].map((px) => ({ transform: `translateX(${px}px)` })),
+        { duration: 1700, easing: "linear" }
+      );
+    };
+    // Dropped before the intro was over: back to the first coin still waiting (or the run-up to the
+    // leap if "Designer" is all that is left), then the script carries on as written.
+    const resumeIntro = () => {
+      const waiting = coins.slice(0, 3).filter((c) => !c.taken).map((c) => c.x - charH * 0.35);
+      const from = Math.max(startX, Math.min(leapX - charH * 0.4, ...waiting));
+      plan = x > from + 2 ? [{ kind: "run", x: from }, { kind: "resume" }] : [{ kind: "resume" }];
+      busy = true;
+    };
+    // the pointer came at him and he would rather not: off along the line, or out of reach
+    const flee = (from: number) => {
+      const dir = from > 0 ? -1 : 1;
+      hurry = true;
+      if (plat === 0) {
+        const tx = clamp(x + dir * charH * rand(2, 3.6), startX, lineEndX);
+        if (Math.abs(tx - x) > charH * 0.8) command([{ kind: "run", x: tx }]);
+        else if (perch && dir > 0) command(route(perchX, 1));
+        else command([flipHop(dir)]); // cornered: over the top
+      } else if (dir < 0) command(route(clamp(restX - charH * rand(1, 2.6), startX, lineEndX), 0));
+      else command([flipHop(1)]);
+    };
+
     const land = () => {
       // harder landings squash more and raise more dust
       const impact = clamp(-vy / (leapVy * 1.25), 0.5, 1.2);
@@ -667,9 +817,16 @@ export default function HeroCharacter() {
       dust(6, 0, impact);
       if (phase === "fly") {
         const moved = Math.abs(vx) > 1;
-        x = landX; vx = 0; spin = 0; spinRate = 0;
+        x = landX; vx = 0; spin = 0; spinRate = 0; flipping = false; popping = false; hurry = false;
         phase = "idle"; step = null;
         if (moved) stayFacing = Math.random() < 0.65 ? 1 : face;
+        if (dropped) {
+          dropped = false;
+          stayFacing = 1;
+          if (stickAt !== null) getStuck();
+          else if (peakY - floor > charH * 0.45) heroLanding();
+          stickAt = null;
+        }
         if (tilted && plat === 0 && Math.abs(x - restX) < charH * 0.5) level();
         else dip(plat ? perchWord ?? line : !wrapped && Math.abs(x - restX) < charH * 0.6 ? word : line, 4);
       } else if (phase === "drop") {
@@ -677,13 +834,13 @@ export default function HeroCharacter() {
         setPhase("run");
       } else if (phase === "leap") {
         // stomp "Designer" level
-        x = restX;
+        x = restX; plat = 0;
         if (tilted) level();
         else dip(wrapped ? line : word, 4);
         setPhase(perch ? "stomp" : "cheer");
         if (perch) landT = 0.26; // stay crouched, then spring straight into the hop
       } else if (phase === "hop") {
-        x = perchX;
+        x = perchX; plat = 1;
         if (perchWord) dip(perchWord, 4);
         setPhase("cheer");
       } else if (perch && perchWord) dip(perchWord);
@@ -698,19 +855,47 @@ export default function HeroCharacter() {
       alpha = Math.min(1, alpha + dt * 5);
 
       if (phase === "drag") {
-        // held: the pointer moves him (see onMove); he just swings
-        dragVx *= 1 - Math.min(1, dt * 5);
-        dragVy *= 1 - Math.min(1, dt * 5);
+        // Held by the collar: a pendulum hanging from the pointer. Moving the hand sideways swings
+        // him the other way; gravity and a little damping bring him back to hanging straight.
+        const step = Math.max(dt, 0.004);
+        gvx += ((gripX - prevGX) / step - gvx) * 0.35;
+        gvy += ((gripY - prevGY) / step - gvy) * 0.35;
+        prevGX = gripX; prevGY = gripY;
+        const acc = clamp((gvx - prevGvx) / step, -9000, 9000);
+        prevGvx = gvx;
+        omega += (-70 * Math.sin(theta) - (acc / (charH * 0.5)) * Math.cos(theta) * 0.55 - 3.4 * omega) * dt;
+        theta = clamp(theta + omega * dt, -1.35, 1.35);
+        if (Math.hypot(gvx, gvy) > 650) flailUntil = clock + 0.45; // shaken: the legs go again
+        // where his feet are, for the coins and for when he is let go
+        const name = carryFrame();
+        const [gx, gh] = gripOf(name);
+        x = gripX + (FRAMES[name][4] - gx) * (charH / STAND_H) * face;
+        y = gripY - gh * (charH / STAND_H);
       } else if (!grounded) {
         vy -= (vy > 0 ? 2600 : 3600) * k * dt;
         y += vy * dt;
         if (phase === "leap") x += runSpeed * dt;
         if (phase === "hop") x += hopVx * dt;
         if (phase === "fly") { x += vx * dt; spin += spinRate * dt; }
+        if (dropped) peakY = Math.max(peakY, y);
         if (y <= floor && vy < 0) land();
       } else {
         landT = Math.max(0, landT - dt);
-        if (pending && landT === 0) {
+        if (gag) {
+          const t = clock - gagAt;
+          if (gag === "hero") {
+            if (t > 2.08) gag = null;
+          } else if (gag === "duck") {
+            if ((t > 0.55 && !overFace) || t > 2.2) gag = null;
+          } else {
+            // up to his waist between two words, wriggling; then he pops himself out
+            y = -charH * 0.4 * Math.min(1, t / 0.12);
+            if (t > 1.7) {
+              gag = null; popping = true;
+              launch(x, 0, 1.1);
+            }
+          }
+        } else if (pending && landT === 0) {
           const go = pending;
           pending = null;
           go();
@@ -720,7 +905,7 @@ export default function HeroCharacter() {
           face = d < 0 ? -1 : 1;
           runT += dt;
           const e = Math.min(1, runT / 0.22);
-          const speed = Math.min(runSpeed * 0.85 * (0.3 + 0.7 * e * (2 - e)), Math.abs(d) * 7 + charH * 0.3);
+          const speed = Math.min(runSpeed * (hurry ? 1.3 : 0.85) * (0.3 + 0.7 * e * (2 - e)), Math.abs(d) * 7 + charH * 0.3);
           const move = Math.min(Math.abs(d), speed * dt);
           x += face * move;
           runDist += move;
@@ -733,7 +918,7 @@ export default function HeroCharacter() {
           if (Math.abs(targetX - x) < 0.5) {
             x = targetX;
             dust(2, face, 0.5); // the skid
-            phase = "idle"; step = null;
+            phase = "idle"; step = null; hurry = false;
             stayFacing = Math.random() < 0.6 ? 1 : face;
           }
         } else if (phase === "idle") {
@@ -744,9 +929,12 @@ export default function HeroCharacter() {
             // done: tidy up, then leave a gap before the next idea
             busy = false;
             loot = [];
-            if (tilted) level();
-            nextActAt = clock + rand(2.5, 6.5);
-          } else if (!cue && !near && !act && clock > nextActAt && now - lastInput < AWAKE_MS) improvise();
+            if (!introDone) resumeIntro();
+            else {
+              if (tilted) level();
+              nextActAt = clock + rand(2.5, 6.5);
+            }
+          } else if (introDone && !cue && !near && !act && clock > nextActAt && now - lastInput < AWAKE_MS) improvise();
         } else if (phase === "run" && landT === 0) {
           // push off: a quarter of a second to reach full pace
           runT += dt;
@@ -776,16 +964,21 @@ export default function HeroCharacter() {
         sparkle(c);
         if (stats.length) pop(pick(stats));
       }
-      if (phase === "run" || phase === "leap") {
-        for (const c of coins) if (!c.taken && x >= c.x - charH * 0.12) collect(c);
+      // the intro's coins: his by passing through them, on foot, in the air or in the visitor's hand
+      if (!introDone && phase !== "wait") {
+        for (const c of coins) {
+          if (!c.taken && Math.abs(x - c.x) < charH * 0.16 && Math.abs(y + charH * 0.55 - c.y) < charH * 0.6) collect(c);
+        }
       }
+      for (const r of rings) r.age += dt;
+      if (rings.length) rings = rings.filter((r) => r.age < 0.42);
       // landing: squash, spring a little past full height, settle
       const sinceLand = clock - landAt;
       squash = sinceLand < 0.7 ? landPow * Math.exp(-sinceLand * 8) * Math.cos(sinceLand * 17) : 0;
       // he leans into a run, tips forward going up and back coming down, and stretches with speed
       const running = (phase === "run" || phase === "walk") && grounded && landT === 0;
-      const wantLean = phase === "drag"
-        ? clamp(dragVx * -0.0007, -0.5, 0.5) * face // he trails behind the hand that carries him
+      const wantLean = gag === "stuck"
+        ? Math.sin((clock - gagAt) * 13) * 0.14 // the wriggle
         : running ? 0.055
         : !grounded ? clamp(vy / leapVy, -1, 1) * -0.05 + (phase === "leap" || phase === "hop" || vx ? 0.03 : 0)
         : 0;
@@ -803,7 +996,7 @@ export default function HeroCharacter() {
       if (clock >= blinkAt + BLINK) blinkAt = clock + (Math.random() < 0.18 ? 0.16 : rand(2.2, 5.5));
 
       // ease the breathing and the wave in and out, then hold still
-      const awake = phase !== "idle" || !grounded || landT > 0 || puffs.length > 0 || act !== null || busy || now - lastInput < AWAKE_MS;
+      const awake = phase !== "idle" || !grounded || landT > 0 || puffs.length > 0 || rings.length > 0 || act !== null || busy || gag !== null || now - lastInput < AWAKE_MS;
       energy += ((awake ? 1 : 0) - energy) * Math.min(1, dt * 4);
       if (!awake && energy < 0.01) energy = 0;
 
@@ -845,7 +1038,11 @@ export default function HeroCharacter() {
     };
     const onHim = (px: number, py: number, pad = 0) =>
       Math.abs(px - x) < charH * (0.3 + pad) && py - y > -charH * pad && py - y < charH * (1 + pad);
-    const grabCursor = (v: string) => { section.style.cursor = v; };
+    // "grab": a hand ready to pinch, over him. "grabbing": pinching, wherever the pointer goes.
+    const grabCursor = (v: "" | "grab" | "grabbing") => {
+      section.style.cursor = v === "grab" ? HAND_OPEN : v === "grabbing" ? HAND_PINCH : "";
+      document.documentElement.style.cursor = v === "grabbing" ? HAND_PINCH : "";
+    };
 
     // Pointer movement keeps him awake. Coming right up to him gets a hello (he turns to the side
     // the pointer arrived from, once, and does not follow it); swiping past him fast makes him jump;
@@ -853,44 +1050,62 @@ export default function HeroCharacter() {
     const onMove = (e: PointerEvent) => {
       if (reduced) return;
       const { px, py } = world(e);
-      if (armed && e.pointerType === "mouse" && phase !== "drag" && free() && Math.hypot(e.clientX - armed.x, e.clientY - armed.y) > 5) {
-        // picked up
+      if (armed && e.pointerType === "mouse" && phase !== "drag" && phase !== "wait" && Math.hypot(e.clientX - armed.x, e.clientY - armed.y) > 5) {
+        // picked up by the collar, whatever he was doing (the intro included)
         plan = []; step = null; pending = null; act = null; busy = true;
+        gag = null; popping = false; flipping = false; hurry = false;
         phase = "drag"; grounded = false; vy = 0; vx = 0; spin = 0; spinRate = 0; landT = 0;
-        dragPx = px; dragPy = py; dragT = e.timeStamp; dragVx = dragVy = 0;
+        gripX = prevGX = px; gripY = prevGY = py;
+        gvx = gvy = prevGvx = 0; theta = 0; omega = 0;
+        flailUntil = clock + 0.7;
+        near = false;
         grabCursor("grabbing");
         wake();
       }
       if (phase === "drag") {
-        const dt = Math.max(1, e.timeStamp - dragT) / 1000;
-        dragVx += ((px - dragPx) / dt - dragVx) * 0.4;
-        dragVy += ((py - dragPy) / dt - dragVy) * 0.4;
-        dragPx = px; dragPy = py; dragT = e.timeStamp;
-        if (Math.abs(dragVx) > 40) face = dragVx > 0 ? 1 : -1;
-        x = clamp(px, charH * 0.35 - padL, CW + padR - charH * 0.35);
-        const lowest = perch && x > lineEndX + charH * 0.2 ? -perchDrop : 0;
-        y = clamp(py - charH * 0.72, lowest, base - charH * 1.02); // held by the collar
+        gripX = clamp(px, 8 - padL, CW + padR - 8);
+        const lowest = introDone && perch && gripX > lineEndX + charH * 0.2 ? -perchDrop : 0;
+        gripY = clamp(py, lowest + charH * 0.64, base - 6);
         lastInput = performance.now();
         return;
       }
-      if (!hovers.matches || e.timeStamp - lastMove < 120) return;
+      if (!hovers.matches || e.timeStamp - lastMove < 50) return;
       const speed = Math.abs(e.clientX - lastMoveX) / Math.max(1, e.timeStamp - lastMove); // px per ms
       lastMove = e.timeStamp; lastMoveX = e.clientX;
       if (!visible()) return;
-      const close = phase === "idle" && grounded && onHim(px, py, 0.18);
+      const hover = phase !== "wait" && onHim(px, py, 0.12);
+      const close = hover && phase === "idle" && grounded && !gag;
       if (close && !near) nearFacing = px < x - charH * 0.12 ? -1 : 1;
-      if (close !== near) grabCursor(close ? "grab" : "");
+      if (hover !== (section.style.cursor !== "")) grabCursor(hover ? "grab" : "");
       near = close;
-      if (close && !busy && speed > 1.4 && e.timeStamp - lastStartle > 2500) {
-        lastStartle = e.timeStamp;
+
+      // the pointer around him, once the intro is over and he is standing about
+      const calm = introDone && phase === "idle" && grounded && !busy && (!gag || gag === "duck");
+      const dx = px - x, dy = py - y;
+      const face_ = calm && Math.abs(dx) < charH * 0.27 && dy > charH * 0.56 && dy < charH * 1.04;
+      const under = calm && Math.abs(dx) < charH * 0.42 && dy < -charH * 0.03 && dy > -charH * 0.5;
+      const approach = calm && Math.abs(dx) < charH * 1.15 && dy > -charH * 0.2 && dy < charH * 1.3;
+      const t = e.timeStamp;
+      if (approach && !wasApproach && !hover && t - lastFlee > 3000 && Math.random() < 0.35) {
+        lastFlee = t;
+        flee(dx);
+      } else if (face_ && !overFace && t - lastDuck > 900) {
+        lastDuck = t;
+        gag = "duck"; gagAt = clock; // a hand across the face: down he goes
+      } else if (under && !wasUnder && t - lastUnder > 1200) {
+        lastUnder = t;
+        command([{ kind: "hop", power: 0.9, flip: 0 }]); // something under his feet
+      } else if (close && speed > 1.4 && t - lastStartle > 2500) {
+        lastStartle = t;
         command([{ kind: "hop", power: 0.8, flip: 0 }]);
       }
+      overFace = face_; wasUnder = under; wasApproach = approach;
       wake();
     };
     const onDown = (e: PointerEvent) => {
-      if (reduced || !free() || !visible() || e.button > 0) return;
+      if (reduced || phase === "wait" || !visible() || e.button > 0) return;
       const { px, py } = world(e);
-      if (phase !== "drag" && onHim(px, py, 0.05)) {
+      if (phase !== "drag" && onHim(px, py, 0.12)) {
         armed = { x: e.clientX, y: e.clientY };
       } else if (hovers.matches && phase !== "drag") {
         // a click on the headline sends him there
@@ -904,14 +1119,21 @@ export default function HeroCharacter() {
     };
     const onUp = () => {
       if (phase === "drag") {
-        // let go, or thrown: he falls to the nearest line he can stand on, tumbling if thrown hard
+        // Let go, or thrown: he falls to a line he can stand on, tumbling if thrown hard. During
+        // the intro that is always the first line, where the coins are.
         const gU = 2600 * k, gD = 3600 * k;
-        const reach = x + clamp(dragVx, -1400, 1400) * 0.18;
-        const to: 0 | 1 = perch && reach > lineEndX + charH * 0.35 ? 1 : 0;
-        const tx = to ? perchX : clamp(reach, startX, lineEndX);
+        const reach = x + clamp(gvx, -1400, 1400) * 0.18;
+        const to: 0 | 1 = introDone && perch && reach > lineEndX + charH * 0.35 ? 1 : 0;
+        let tx = to ? perchX : clamp(reach, startX, lineEndX);
+        stickAt = null;
+        if (to === 0 && gaps.length && Math.random() < 0.35) {
+          // now and then he comes down in the gap between two words
+          const gap = gaps.reduce((best, g) => (Math.abs(g - tx) < Math.abs(best - tx) ? g : best));
+          if (Math.abs(gap - tx) < charH * 1.3) { tx = gap; stickAt = gap; }
+        }
         const y1 = to ? -perchDrop : 0;
         y = Math.max(y, y1 + 1);
-        vy = clamp(dragVy, -leapVy, leapVy * 0.9);
+        vy = clamp(gvy, -leapVy, leapVy * 0.9);
         const T = Math.max(
           0.14,
           vy > 0
@@ -919,13 +1141,18 @@ export default function HeroCharacter() {
             : (vy + Math.sqrt(vy * vy + 2 * gD * (y - y1))) / gD
         );
         vx = (tx - x) / T;
-        if (Math.abs(vx) > 1) face = vx > 0 ? 1 : -1;
+        if (Math.abs(gvx) > 120) face = gvx > 0 ? 1 : -1;
         floor = y1; plat = to; landX = tx;
-        spin = 0; spinRate = Math.abs(dragVx) > 500 && T > 0.35 ? (face * Math.PI * 2) / T : 0;
+        // he leaves the hand at the angle he was swinging at, and is upright again by the ground
+        flipping = Math.abs(gvx) > 500 && T > 0.35;
+        spin = -theta;
+        spinRate = ((flipping ? face * Math.PI * 2 : 0) - spin) / T;
+        theta = 0; omega = 0;
+        dropped = true; peakY = y;
         phase = "fly";
         near = false;
         grabCursor("");
-      } else if (armed && free() && grounded) trick();
+      } else if (armed && introDone && free() && grounded && !gag) trick();
       armed = null;
       wake();
     };
@@ -938,7 +1165,7 @@ export default function HeroCharacter() {
       if (!visible()) return;
       // now and then a scroll makes him jump
       const now = performance.now();
-      if (phase === "idle" && grounded && !busy && !reduced && now - lastStartle > 5000 && Math.random() < 0.4) {
+      if (introDone && phase === "idle" && grounded && !busy && !gag && !reduced && now - lastStartle > 5000 && Math.random() < 0.4) {
         lastStartle = now;
         command([{ kind: "hop", power: 0.7, flip: 0 }]);
       }
@@ -1010,6 +1237,7 @@ export default function HeroCharacter() {
       window.removeEventListener("pointercancel", onCancel);
       document.removeEventListener("selectstart", onSelect);
       section.style.cursor = "";
+      document.documentElement.style.cursor = "";
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
