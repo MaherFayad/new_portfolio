@@ -61,7 +61,7 @@ type Step =
 type Pose = "idle" | "wave" | "present" | "think";
 type Coin = { x: number; y: number; taken: boolean };
 // dust kicked up by his feet and the sparkle of a collected coin, in the same units as x / y
-type Puff = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; gold: boolean };
+type Puff = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; gold: boolean; sweat?: boolean };
 
 const STAND_H = 187; // sheet units of a standing frame
 const AWAKE_MS = 5000; // keep animating this long after the last input
@@ -166,8 +166,11 @@ export default function HeroCharacter() {
     // what happens after a fall, and other short bits of slapstick that take over his body
     let introDone = false;
     let gag: "hero" | "stuck" | "duck" | null = null, gagAt = 0;
-    let dropped = false, peakY = 0, stickAt: number | null = null, popping = false, flipping = false;
-    let gaps: number[] = []; // the spaces between the words of the first line
+    let dropped = false, peakY = 0, stickAt: { x: number; left: number } | null = null, popping = false, flipping = false;
+    // the words of the first line and the spaces between them; `wedge` is the gap he is stuck in
+    let words: HTMLElement[] = [];
+    let gaps: { x: number; left: number }[] = []; // centre of the space, and how many words sit left of it
+    let wedge = -1, wedgeX = 0, spread = 0, slipAt = -10;
     let rings: { x: number; y: number; age: number }[] = [];
     // the pointer around him
     let overFace = false, wasUnder = false, wasApproach = false, lastDuck = 0, lastUnder = 0, lastFlee = 0, hurry = false;
@@ -214,19 +217,13 @@ export default function HeroCharacter() {
       // how far along the first line he can walk
       lineEndX = wrapped ? restX : Math.max(restX, Math.min(target.right - box.left - charH * 0.22, h1.offsetWidth - charH * 0.3));
 
+      words = Array.from(line.querySelectorAll<HTMLElement>("[data-hero-w]"));
       gaps = [];
-      const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        const t = n.textContent ?? "";
-        for (let i = 0; i < t.length; i++) {
-          if (t[i] !== " ") continue;
-          const r = document.createRange();
-          r.setStart(n, i);
-          r.setEnd(n, i + 1);
-          const b = r.getBoundingClientRect();
-          const gx = b.left + b.width / 2 - box.left;
-          if (b.width > 0 && b.top < text.top + fontSize * 0.5 && gx > startX && gx < lineEndX) gaps.push(gx);
-        }
+      for (let i = 0; i + 1 < words.length; i++) {
+        const a = words[i].getBoundingClientRect(), b = words[i + 1].getBoundingClientRect();
+        if (Math.abs(a.top - b.top) > fontSize * 0.5 || a.top > text.top + fontSize * 0.5) continue; // same, first line
+        const gx = (a.right + b.left) / 2 - box.left;
+        if (gx > startX && gx < lineEndX + charH * 0.3) gaps.push({ x: gx, left: i + 1 });
       }
 
       // The perch: the far end of "accelerate", when it sits on the line right under the first one
@@ -342,10 +339,13 @@ export default function HeroCharacter() {
       // wedged between two words: everything below the top of the letters is out of sight
       const wedged = gag === "stuck" || (popping && y < 0);
       if (wedged) {
+        // he shows above the letters, and in the space the two words have been forced apart
         ctx.save();
         ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
         ctx.beginPath();
         ctx.rect(-padL, 0, padL + CW + padR, base + 1);
+        const half = lineH * 0.125 + spread;
+        ctx.rect(wedgeX - half, base, half * 2, lineH * 1.1);
         ctx.clip();
       }
       place(1);
@@ -354,6 +354,7 @@ export default function HeroCharacter() {
       ctx.globalAlpha = alpha;
       blit(name, charH / STAND_H);
       if (wedged) ctx.restore();
+      if (gag === "stuck") drawTemper();
       if (sore) {
         // pain, the comic-strip way: a few red dashes pulsing off his knee
         ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
@@ -371,6 +372,40 @@ export default function HeroCharacter() {
         }
         ctx.globalAlpha = 1;
       }
+    };
+    // What being stuck does to his mood, the comic-strip way: a silent "..." while it sinks in, then
+    // a throbbing vein by his temple for as long as he is in there.
+    const drawTemper = () => {
+      const t = clock - gagAt;
+      ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
+      const top = base - y - charH * 1.02;
+      if (t > 0.3 && t < 1.15) {
+        ctx.fillStyle = "#c5c5c5";
+        for (let i = 0; i < 3; i++) {
+          const a = clamp((t - 0.3 - i * 0.2) * 8, 0, 1) * clamp((1.15 - t) * 8, 0, 1);
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          ctx.arc(x + (i - 1) * charH * 0.075, top - charH * 0.06 - a * charH * 0.02, charH * 0.022, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      if (t > 1.0) {
+        const beat = 1 + 0.18 * Math.sin(t * 14);
+        const r = charH * 0.075 * beat * clamp((t - 1.0) * 6, 0, 1);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = "#ff5a4f";
+        ctx.lineWidth = charH * 0.026;
+        ctx.lineCap = "round";
+        const cx = x + charH * 0.3, cy = top + charH * 0.08;
+        for (let q = 0; q < 4; q++) {
+          // four little arcs bowing in towards the centre
+          const a = q * (Math.PI / 2) + Math.PI / 4;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(a) * r * 1.5, cy + Math.sin(a) * r * 1.5, r, a + Math.PI - 1, a + Math.PI + 1);
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
     };
     // Carried: he hangs from the pointer by the back of his collar and swings from that point.
     // Freshly grabbed or shaken he kicks; left hanging he goes limp.
@@ -446,7 +481,13 @@ export default function HeroCharacter() {
       ctx.setTransform(dpr, 0, 0, dpr, padL * dpr, 0);
       for (const p of puffs) {
         const f = p.age / p.life;
-        if (p.gold) {
+        if (p.sweat) {
+          ctx.globalAlpha = (1 - f) * alpha;
+          ctx.fillStyle = "#9fd4ff";
+          ctx.beginPath();
+          ctx.arc(p.x, base - p.y, p.size * (1 - f * 0.4), 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.gold) {
           // square, like the pixel-art coin it came from
           const sz = p.size * (1 - f * 0.6);
           ctx.globalAlpha = (1 - f) * alpha;
@@ -507,7 +548,12 @@ export default function HeroCharacter() {
         return t < 0.5 ? "jump_0" : t < 0.64 ? "failed_2" : t < 1.8 ? "failed_3" : t < 1.94 ? "failed_2" : "failed_1";
       }
       if (gag === "duck") return "duck_0";
-      if (gag === "stuck") return Math.floor(clock * 7) % 2 ? "jump_1" : "jump_2"; // arms flailing
+      if (gag === "stuck") {
+        // not amused: a flat stare while it sinks in, a glare, then eyes screwed shut for each heave
+        const t = clock - gagAt;
+        return t < 0.08 ? "jump_3" : t < 1.0 ? "review_2" : t < PUSH1 ? "thinking_1" : t < SLIP ? "thinking_3" : t < PUSH2 ? "thinking_2" : "thinking_3";
+      }
+      if (popping) return "thinking_2"; // still scowling on his way out of the gap
       if (!grounded) return flipping ? "jump_2" : vy > 300 * k ? "jump_1" : vy > -250 * k ? "jump_2" : "jump_3";
       if (landT > 0) return "jump_4";
       // the runner game plays this cycle at 9 frames a second at its starting pace; faster than
@@ -532,6 +578,8 @@ export default function HeroCharacter() {
     //   2. the pose changes at the lowest point, where the eye expects a change
     //   3. settle: he springs up a touch past full height and comes to rest (about 0.3 s)
     const SWAP = 0.1;
+    // being stuck, in seconds from the landing: first heave, the slip back, second heave, out
+    const PUSH1 = 1.3, SLIP = 1.95, PUSH2 = 2.5, OUT = 3.3;
     const render = () => {
       begin();
       drawPuffs();
@@ -781,14 +829,49 @@ export default function HeroCharacter() {
       rings.push({ x, y: y + charH * 0.02, age: 0 });
       dip(plat ? perchWord ?? line : line, 8);
     };
-    const getStuck = () => {
-      gag = "stuck"; gagAt = clock; landT = 0;
-      line.animate(
-        [0, -2, 2, -1.5, 1.5, -2, 1, -1, 0].map((px) => ({ transform: `translateX(${px}px)` })),
-        { duration: 1700, easing: "linear" }
-      );
+    // Wedged between two words. The words are really moved: everything left of him is pushed left,
+    // everything right of him right, and the two he is between lean away from him.
+    const pry = () => {
+      const lean = (spread / (lineH * 0.2)) * 1.6;
+      words.forEach((el, i) => {
+        const side = i < wedge ? -1 : 1;
+        const next = i === wedge - 1 || i === wedge; // the two words touching him
+        el.style.transformOrigin = side < 0 ? "100% 100%" : "0 100%";
+        el.style.transform = `translateX(${(side * spread).toFixed(2)}px)${next ? ` rotate(${(side * lean).toFixed(2)}deg)` : ""}`;
+      });
     };
-    // Dropped before the intro was over: back to the first coin still waiting (or the run-up to the
+    // the words spring shut again
+    const unpry = () => {
+      if (wedge < 0) return;
+      words.forEach((el, i) => {
+        const side = i < wedge ? -1 : 1;
+        const from = el.style.transform;
+        el.style.transform = "";
+        el.animate(
+          [{ transform: from }, { transform: `translateX(${-side * 2.5}px)`, offset: 0.4 }, { transform: `translateX(${side}px)`, offset: 0.7 }, { transform: "none" }],
+          { duration: 420, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
+        );
+        if (el !== word) el.style.transformOrigin = "";
+      });
+      wedge = -1; spread = 0;
+    };
+    const getStuck = (g: { x: number; left: number }) => {
+      if (tilted) level();
+      gag = "stuck"; gagAt = clock; landT = 0; slipAt = -10;
+      wedge = g.left; wedgeX = g.x;
+      dust(8, 0, 1.2);
+    };
+    const sweat = (n: number) => {
+      for (let i = 0; i < n; i++) {
+        const side = Math.random() < 0.5 ? -1 : 1;
+        puffs.push({
+          x: x + side * charH * rand(0.12, 0.2), y: y + charH * rand(0.8, 0.95),
+          vx: side * charH * rand(0.4, 0.9), vy: charH * rand(0.5, 0.9),
+          age: 0, life: rand(0.35, 0.5), size: charH * rand(0.014, 0.022), gold: false, sweat: true,
+        });
+      }
+    };
+    // Dropped before the intro was over    // Dropped before the intro was over: back to the first coin still waiting (or the run-up to the
     // leap if "Designer" is all that is left), then the script carries on as written.
     const resumeIntro = () => {
       const waiting = coins.slice(0, 3).filter((c) => !c.taken).map((c) => c.x - charH * 0.35);
@@ -817,18 +900,26 @@ export default function HeroCharacter() {
       dust(6, 0, impact);
       if (phase === "fly") {
         const moved = Math.abs(vx) > 1;
+        const wasPopping = popping;
         x = landX; vx = 0; spin = 0; spinRate = 0; flipping = false; popping = false; hurry = false;
         phase = "idle"; step = null;
         if (moved) stayFacing = Math.random() < 0.65 ? 1 : face;
         if (dropped) {
           dropped = false;
           stayFacing = 1;
-          if (stickAt !== null) getStuck();
+          if (stickAt !== null) getStuck(stickAt);
           else if (peakY - floor > charH * 0.45) heroLanding();
           stickAt = null;
         }
-        if (tilted && plat === 0 && Math.abs(x - restX) < charH * 0.5) level();
+        if (gag === "stuck") {
+          /* the words are busy being pushed apart */
+        } else if (tilted && plat === 0 && Math.abs(x - restX) < charH * 0.5) level();
         else dip(plat ? perchWord ?? line : !wrapped && Math.abs(x - restX) < charH * 0.6 ? word : line, 4);
+        if (wasPopping && introDone) {
+          // out: he turns round and gives the gap a long look
+          plan = [{ kind: "pose", pose: "think", dur: 1.1, facing: wedgeX < x ? -1 : 1 }];
+          busy = true;
+        }
       } else if (phase === "drop") {
         dip(line);
         setPhase("run");
@@ -888,11 +979,31 @@ export default function HeroCharacter() {
           } else if (gag === "duck") {
             if ((t > 0.55 && !overFace) || t > 2.2) gag = null;
           } else {
-            // up to his waist between two words, wriggling; then he pops himself out
-            y = -charH * 0.4 * Math.min(1, t / 0.12);
-            if (t > 1.7) {
+            // Wedged up to the waist. He drops in with a thud that shoves the words apart, takes
+            // it in, heaves himself half out and slips back, then heaves again and comes free.
+            const deep = charH * 0.36, S = lineH * 0.2;
+            const ease = (v: number) => { const c = clamp(v, 0, 1); return c * c * (3 - 2 * c); };
+            const heave = t < PUSH1 ? 0 : t < SLIP ? 0.14 * ease((t - PUSH1) / (SLIP - PUSH1)) : t < PUSH2 ? 0 : 0.2 * ease((t - PUSH2) / (OUT - PUSH2));
+            if (t >= SLIP && slipAt < 0) {
+              // lost his grip: back down with a bump
+              slipAt = clock;
+              dust(4, 0, 0.7);
+            }
+            const sinceSlip = clock - slipAt;
+            const thud = Math.exp(-t * 9) * Math.cos(t * 26) * 0.35 + (slipAt > 0 ? Math.exp(-sinceSlip * 10) * Math.cos(sinceSlip * 30) * 0.3 : 0);
+            y = -deep * Math.min(1, t / 0.09) - deep * 0.12 * Math.exp(-t * 10) * Math.sin(t * 28) + charH * heave
+              - (slipAt > 0 ? deep * 0.1 * Math.exp(-sinceSlip * 12) * Math.sin(sinceSlip * 30) : 0);
+            spread = S * (1 - Math.exp(-t * 25)) * (1 + thud) + S * heave * 1.6;
+            pry();
+            const straining = (t > PUSH1 && t < SLIP) || t > PUSH2;
+            if (straining && Math.random() < dt * 9) sweat(1);
+            if (t > OUT) {
               gag = null; popping = true;
-              launch(x, 0, 1.1);
+              unpry();
+              // up and out, onto the word beside the gap
+              const side = Math.random() < 0.5 ? -1 : 1;
+              launch(clamp(wedgeX + side * charH * 0.5, startX, lineEndX), 0, 1.25);
+              dust(6, 0, 1.2);
             }
           }
         } else if (pending && landT === 0) {
@@ -977,8 +1088,9 @@ export default function HeroCharacter() {
       squash = sinceLand < 0.7 ? landPow * Math.exp(-sinceLand * 8) * Math.cos(sinceLand * 17) : 0;
       // he leans into a run, tips forward going up and back coming down, and stretches with speed
       const running = (phase === "run" || phase === "walk") && grounded && landT === 0;
+      const stuckT = clock - gagAt;
       const wantLean = gag === "stuck"
-        ? Math.sin((clock - gagAt) * 13) * 0.14 // the wriggle
+        ? ((stuckT > PUSH1 && stuckT < SLIP) || stuckT > PUSH2 ? Math.sin(stuckT * 22) * 0.07 : 0) // shaking with the effort
         : running ? 0.055
         : !grounded ? clamp(vy / leapVy, -1, 1) * -0.05 + (phase === "leap" || phase === "hop" || vx ? 0.03 : 0)
         : 0;
@@ -989,8 +1101,8 @@ export default function HeroCharacter() {
         p.age += dt;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
-        p.vx *= 1 - Math.min(1, dt * (p.gold ? 4 : 6));
-        p.vy = p.gold ? p.vy - charH * 2.2 * dt : p.vy * (1 - Math.min(1, dt * 5));
+        p.vx *= 1 - Math.min(1, dt * (p.gold || p.sweat ? 4 : 6));
+        p.vy = p.gold || p.sweat ? p.vy - charH * 2.2 * dt : p.vy * (1 - Math.min(1, dt * 5));
       }
       if (puffs.length) puffs = puffs.filter((p) => p.age < p.life);
       if (clock >= blinkAt + BLINK) blinkAt = clock + (Math.random() < 0.18 ? 0.16 : rand(2.2, 5.5));
@@ -1054,6 +1166,7 @@ export default function HeroCharacter() {
         // picked up by the collar, whatever he was doing (the intro included)
         plan = []; step = null; pending = null; act = null; busy = true;
         gag = null; popping = false; flipping = false; hurry = false;
+        unpry(); // pulled out of the gap, if that is where he was
         phase = "drag"; grounded = false; vy = 0; vx = 0; spin = 0; spinRate = 0; landT = 0;
         gripX = prevGX = px; gripY = prevGY = py;
         gvx = gvy = prevGvx = 0; theta = 0; omega = 0;
@@ -1128,8 +1241,8 @@ export default function HeroCharacter() {
         stickAt = null;
         if (to === 0 && gaps.length && Math.random() < 0.35) {
           // now and then he comes down in the gap between two words
-          const gap = gaps.reduce((best, g) => (Math.abs(g - tx) < Math.abs(best - tx) ? g : best));
-          if (Math.abs(gap - tx) < charH * 1.3) { tx = gap; stickAt = gap; }
+          const gap = gaps.reduce((best, g) => (Math.abs(g.x - tx) < Math.abs(best.x - tx) ? g : best));
+          if (Math.abs(gap.x - tx) < charH * 1.3) { tx = gap.x; stickAt = gap; }
         }
         const y1 = to ? -perchDrop : 0;
         y = Math.max(y, y1 + 1);
@@ -1173,7 +1286,7 @@ export default function HeroCharacter() {
     };
 
     const ro = new ResizeObserver(() => {
-      if (!ready) return;
+      if (!ready || gag === "stuck") return; // the words are out of place; measure once he is out
       measure();
       if (!raf && phase !== "wait") render();
     });
@@ -1229,6 +1342,7 @@ export default function HeroCharacter() {
       window.clearTimeout(timer);
       ro.disconnect();
       restore();
+      words.forEach((el) => { el.style.transform = ""; if (el !== word) el.style.transformOrigin = ""; });
       if (ring) ring.style.strokeDashoffset = "";
       document.removeEventListener("pointerover", onOver);
       window.removeEventListener("pointermove", onMove);

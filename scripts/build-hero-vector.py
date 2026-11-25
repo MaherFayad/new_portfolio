@@ -32,9 +32,13 @@ GAP = 4         # sheet px between frames
 USED = (["idle_0", "wave_2", "waiting_2", "thinking_1"]
         + [f"runA_{i}" for i in range(8)] + [f"jump_{i}" for i in range(1, 5)]
         # the hard landing (crouch, then down on his knees and back up) and the limp carry
-        + ["jump_0", "failed_1", "failed_2", "failed_3", "duck_0"])
+        + ["jump_0", "failed_1", "failed_2", "failed_3", "duck_0"]
+        # wedged between two words: unimpressed, glaring, straining
+        + ["review_2", "thinking_2", "thinking_3"])
 # where his legs are in the standing frames (sheet px), so every pose stands on the same spot;
 # the sheet's own anchors are bounding-box centres and drift when an arm goes out
+TOO_DARK = ("duck_0",)  # drawn with a near-black suit; brought back to the standing frame's tones
+STAND_AUTO = ("review_2", "thinking_2", "thinking_3")  # standing frames anchored by the script
 LEGS_X = {"idle_0": 40, "wave_2": 47, "waiting_2": 45.6, "thinking_1": 41.5}
 
 sheet = np.array(Image.open(SRC + "hero.png").convert("RGBA")).astype(int)
@@ -199,10 +203,38 @@ def trace(f, centers, rgb, ox, head_k=1.0, scale=1.0):
     return out
 
 
+def match_tone(f, ref):
+    """Some frames are drawn darker than the rest (near-black suit and hair). Remap their dark
+    tones onto the reference frame's, leaving skin, shirt and tie alone."""
+    def lab_of(g):
+        m = g[..., 3] > 128
+        return cv2.cvtColor(g[..., :3].astype(np.uint8), cv2.COLOR_RGB2LAB).astype(np.float32), m
+    lab, m = lab_of(f)
+    rl, rm = lab_of(ref)
+    dark, rdark = m & (lab[..., 0] < 110), rm & (rl[..., 0] < 110)
+    src = np.percentile(lab[..., 0][dark], [5, 50, 95])
+    dst = np.percentile(rl[..., 0][rdark], [5, 50, 95])
+    L = lab[..., 0]
+    mapped = np.interp(L, [0, *src, 140, 255], [0, *dst, 140, 255])
+    lab[..., 0] = np.where(m, mapped, L)
+    out = f.copy()
+    out[..., :3] = cv2.cvtColor(np.clip(lab, 0, 255).astype(np.uint8), cv2.COLOR_LAB2RGB)
+    return out
+
+
 cells = {}  # name -> (pixels, anchor x)
 for name in USED:
     x, y, w, h, ax = frames[name]
-    cells[name] = (clean(sheet[y:y + h, x:x + w]), LEGS_X.get(name, ax))
+    pixels = clean(sheet[y:y + h, x:x + w])
+    if name in TOO_DARK:
+        x0, y0, w0, h0, _ = frames["idle_0"]
+        pixels = match_tone(pixels, clean(sheet[y0:y0 + h0, x0:x0 + w0]))
+    if name in STAND_AUTO:
+        # same rule the hand-measured anchors follow: the middle of his feet
+        ys, xs = np.nonzero(pixels[int(h * 0.93):, :, 3] > 128)
+        ax = round(float(xs.mean()), 1)
+        print(f"{name}: feet at {ax}")
+    cells[name] = (pixels, LEGS_X.get(name, ax))
 body, hand, wrist = split_wave(cells["wave_2"][0])
 cells["wave_body"] = (body, LEGS_X["wave_2"])
 cells["wave_hand"] = (hand, LEGS_X["wave_2"])

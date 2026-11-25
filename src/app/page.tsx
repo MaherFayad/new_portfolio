@@ -237,7 +237,9 @@ export default function HomePage() {
         {/* Hero Title Heading */}
         <Reveal aboveFold as="h1" className="col-[3/10] max-sm:col-[1/5] max-sm:row-start-1 max-sm:text-[clamp(28px,8vw,40px)] sm:col-[1/5] sm:row-start-1 sm:text-[clamp(48px,4.688vw,68px)] lg:col-[3/10] dt:text-[clamp(46px,3.462vw-2.46px,64px)] lg:max-dt:text-[clamp(32px,3.733vw-6.22px,46px)] text-[#c5c5c5] font-medium text-[clamp(46px,3.462vw-2.46px,64px)] leading-[100%] tracking-[-0.06em] self-start">
           <span className="block pl-[calc((100%+20px)/7)] lg:max-dt:pl-[calc((100%+20px)/7)] sm:max-lg:pl-[calc((100%+20px)/4)] max-sm:pl-0">
-            Senior Product <span data-hero-word="" className="inline-block">Designer</span>
+            <span data-hero-w="" className="inline-block">Senior</span>{" "}
+            <span data-hero-w="" className="inline-block">Product</span>{" "}
+            <span data-hero-w="" data-hero-word="" className="inline-block">Designer</span>
           </span>
           crafting interfaces that{" "}
           <span data-hero-perch="" className="inline-block">accelerate</span> revenue
