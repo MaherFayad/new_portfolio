@@ -471,12 +471,13 @@ export async function createRunner(canvas, opts = {}) {
     const p = S.p; const an = A.heroMap.anims;
     const loop = (name, fps, t = clock) => an[name][Math.floor(t * fps) % an[name].length];
     if (lookDown) {
-      // glance down at the chat, point at it, then keep hopping while looking at it
+      // a thought, then he presents the chat with an open hand and keeps hopping beside it.
+      // (The sheet's "look" frames are drawn off-model, so they are not used.)
       const lt = clock - lookDownAt;
-      if (lt < 0.35) return { f: an.look[0] };
-      if (lt < 1.1) return { f: an.look[1] };
+      if (lt < 0.35) return { f: an.thinking[1] };
+      if (lt < 1.1) return { f: an.waiting[2] };
       const hop = reduced ? 0 : Math.abs(Math.sin((lt - 1.1) * 6.5)) * 20;
-      return { f: hop > 5 ? an.look[2] : an.look[0], hop };
+      return { f: hop > 5 ? an.jump[1] : an.waiting[2], hop };
     }
     if (mode === 'ready') {
       if (entranceK() < 1) return { f: loop('runA', 12) };
